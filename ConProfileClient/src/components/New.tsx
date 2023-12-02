@@ -11,7 +11,7 @@ const New = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5203/LoadedData/GetAllLoadedData');
+        const response = await axios.get('https://localhost:44300/LoadedData/GetAllLoadedData'); 
         console.log(response);
         setData(response.data);
       } catch (error) {
@@ -24,8 +24,6 @@ const New = () => {
 
   return (
     <div>
-      <p> Dáta</p>
-
     </div>
   );
 };

@@ -33,6 +33,22 @@ namespace WebAPI.Controllers
             return Ok(allLoadedData);
         }
 
+        [HttpPost("PostLoadedData")]
+        public async Task<IActionResult> Post(LoadedData data){
+            LoadedData loaded = new LoadedData();
+            
+                loaded.IdData = data.IdData;
+                loaded.IdFileData = data.IdFileData;
+                loaded.Excitation = data.Excitation;
+                loaded.Intensity = data.Intensity;
+                //loaded.Product = _context.Products.Where(f => f.id.Equals(data.product_id)).FirstOrDefault();
+                _context.LoadedDatas.Add(loaded);
+            
+            _context.SaveChanges();
+            return Ok();
+
+        }
+
         
 
 

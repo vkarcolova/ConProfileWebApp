@@ -10,9 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rpldy/upload-button": "^1.6.1",
+    "@rpldy/upload-drop-zone": "^1.6.1",
+    "@rpldy/uploader": "^1.6.1",
+    "@rpldy/uploady": "^1.6.1",
     "axios": "^1.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
     "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
