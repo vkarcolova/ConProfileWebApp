@@ -6,12 +6,14 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace WebAPI.Models;
+namespace WebApiServer.Models;
 
 public class LoadedData {
     [Key]
-    public int IdLoadedData { get; set; }
+    public int IdData { get; set; }
     public int IdFileData { get; set; }
-    public double Wavelenght { get; set; }
+    public double Excitation { get; set; }
     public double Intensity { get; set; }
+    public double? MultipliedIntensity { get; set; }
+
 }

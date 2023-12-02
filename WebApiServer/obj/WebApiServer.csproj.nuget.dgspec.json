@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\webapiserver\\WebApiServer.csproj": {}
+    "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj": {}
   },
   "projects": {
-    "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\webapiserver\\WebApiServer.csproj": {
+    "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\webapiserver\\WebApiServer.csproj",
+        "projectUniqueName": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj",
         "projectName": "WebApiServer",
-        "projectPath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\webapiserver\\WebApiServer.csproj",
+        "projectPath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj",
         "packagesPath": "C:\\Users\\verka\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\webapiserver\\obj\\",
+        "outputPath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\verka\\AppData\\Roaming\\NuGet\\NuGet.Config",

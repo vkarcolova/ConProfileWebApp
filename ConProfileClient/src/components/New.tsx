@@ -24,7 +24,7 @@ const New = () => {
 
   return (
     <div>
-      <h1>Moje Dáta</h1>
+      <p> Dáta</p>
 
     </div>
   );

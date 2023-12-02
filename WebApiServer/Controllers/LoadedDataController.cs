@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WebAPI.Data;
-using WebAPI.Models;
+using WebApiServer.Data;
+using WebApiServer.Models;
 
 namespace WebAPI.Controllers
 {

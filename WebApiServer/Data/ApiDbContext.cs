@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Models;
+using WebApiServer.Models;
 
-namespace WebAPI.Data;
+namespace WebApiServer.Data;
 
 public class ApiDbContext : DbContext {
     public ApiDbContext(DbContextOptions<ApiDbContext> options)
@@ -9,5 +9,9 @@ public class ApiDbContext : DbContext {
     {}
 
     public DbSet<LoadedData> LoadedDatas { get; set; }
+    public DbSet<LoadedFile> LoadedFiles { get; set; }
+    public DbSet<LoadedFolder> LoadedFolders { get; set; }
+    public DbSet<ProfileData> ProfileDatas { get; set; }
+    public DbSet<Project> Projects { get; set; }
 
 }

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
+using WebApiServer.Data;
 var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);

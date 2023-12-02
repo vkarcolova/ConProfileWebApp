@@ -206,3 +206,4 @@ C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\re
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\WebApiServer.pdb
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\WebApiServer.genruntimeconfig.cache
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\ref\WebApiServer.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0\WebApiServer.sourcelink.json
