@@ -1,15 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using WebApiServer.Data;
+using WebApiServer.Services;
 var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<ILoadedDataService, LoadedDataService>();
+
 
 builder.Services.AddCors(options =>
 {
 options.AddPolicy(name: AllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:5173");
+                          policy.WithOrigins("http://localhost:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod(); ;
                       });
 });
 // Add services to the container.

@@ -207,3 +207,9 @@ C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\We
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\WebApiServer.genruntimeconfig.cache
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\webapiserver\obj\Debug\net8.0\ref\WebApiServer.dll
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0\WebApiServer.sourcelink.json
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\System.Web.Cors.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\System.Net.Http.Formatting.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\System.Web.Http.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\System.Web.Http.Cors.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll

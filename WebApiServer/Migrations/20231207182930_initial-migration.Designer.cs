@@ -12,7 +12,7 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20231202192238_initial-migration")]
+    [Migration("20231207182930_initial-migration")]
     partial class initialmigration
     {
         /// <inheritdoc />
@@ -25,6 +25,22 @@ namespace WebApiServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("WebApiServer.Models.Factors", b =>
+                {
+                    b.Property<int>("Spectrum")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Spectrum"));
+
+                    b.Property<int>("Factor")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Spectrum");
+
+                    b.ToTable("Factors");
+                });
+
             modelBuilder.Entity("WebApiServer.Models.LoadedData", b =>
                 {
                     b.Property<int>("IdData")
@@ -36,7 +52,7 @@ namespace WebApiServer.Migrations
                     b.Property<double>("Excitation")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("IdFileData")
+                    b.Property<int>("IdFile")
                         .HasColumnType("integer");
 
                     b.Property<double>("Intensity")

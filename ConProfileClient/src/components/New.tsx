@@ -22,6 +22,8 @@ const New = () => {
     fetchData();
   }, []);
 
+  
+
   return (
     <div>
     </div>

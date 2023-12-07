@@ -11,7 +11,7 @@ namespace WebApiServer.Models;
 public class LoadedData {
     [Key]
     public int IdData { get; set; }
-    public int IdFileData { get; set; }
+    public int IdFile { get; set; }
     public double Excitation { get; set; }
     public double Intensity { get; set; }
     public double? MultipliedIntensity { get; set; }

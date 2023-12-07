@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WebApiServer.Data;
+using WebApiServer.DTOs;
 using WebApiServer.Models;
+using WebApiServer.Services;
 
 namespace WebAPI.Controllers
 {
@@ -17,12 +19,15 @@ namespace WebAPI.Controllers
     {
         private readonly ILogger<LoadedDataController> _logger;
         private readonly ApiDbContext _context;
+        private readonly ILoadedDataService _loadedDataService;
 
         public LoadedDataController(ApiDbContext context,
-            ILogger<LoadedDataController> logger)
+            ILogger<LoadedDataController> logger,
+            ILoadedDataService service)
         {
             _logger = logger;
             _context = context;
+            _loadedDataService = service;
         }
 
         [HttpGet("GetAllLoadedData")]
@@ -33,19 +38,19 @@ namespace WebAPI.Controllers
             return Ok(allLoadedData);
         }
 
-        [HttpPost("PostLoadedData")]
-        public async Task<IActionResult> Post(LoadedData data){
-            LoadedData loaded = new LoadedData();
-            
-                loaded.IdData = data.IdData;
-                loaded.IdFileData = data.IdFileData;
-                loaded.Excitation = data.Excitation;
-                loaded.Intensity = data.Intensity;
-                //loaded.Product = _context.Products.Where(f => f.id.Equals(data.product_id)).FirstOrDefault();
-                _context.LoadedDatas.Add(loaded);
-            
-            _context.SaveChanges();
-            return Ok();
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] LoadedFileDTO[] loadedFiles)
+        {
+            // Spracovanie prijatých súborov
+            if (loadedFiles != null && loadedFiles.Any())
+            {
+                IActionResult result = await _loadedDataService.ProcessLoadedData(loadedFiles);
+                return result;
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
 
         }
 

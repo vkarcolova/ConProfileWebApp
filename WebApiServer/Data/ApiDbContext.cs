@@ -13,5 +13,5 @@ public class ApiDbContext : DbContext {
     public DbSet<LoadedFolder> LoadedFolders { get; set; }
     public DbSet<ProfileData> ProfileDatas { get; set; }
     public DbSet<Project> Projects { get; set; }
-
+    public DbSet<Factors> Factors { get; set; }
 }

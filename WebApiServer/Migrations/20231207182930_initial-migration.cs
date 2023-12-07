@@ -12,12 +12,25 @@ namespace WebApiServer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Factors",
+                columns: table => new
+                {
+                    Spectrum = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Factor = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Factors", x => x.Spectrum);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LoadedDatas",
                 columns: table => new
                 {
                     IdData = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    IdFileData = table.Column<int>(type: "integer", nullable: false),
+                    IdFile = table.Column<int>(type: "integer", nullable: false),
                     Excitation = table.Column<double>(type: "double precision", nullable: false),
                     Intensity = table.Column<double>(type: "double precision", nullable: false),
                     MultipliedIntensity = table.Column<double>(type: "double precision", nullable: true)
@@ -89,6 +102,9 @@ namespace WebApiServer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Factors");
+
             migrationBuilder.DropTable(
                 name: "LoadedDatas");
 
