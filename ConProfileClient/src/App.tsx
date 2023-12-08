@@ -13,7 +13,7 @@ function App() {
     <Uploady>
 
       <div>
-      <New/>  {/*Pre vyskusanie ci databaza funguje*/}
+      {/*<New/>  Pre vyskusanie ci databaza funguje*/}
       <Routes>
           <Route path="/" element={<Home />} /> 
           <Route path="/create-profile" element={<CreateProfile />} />

@@ -51,11 +51,6 @@ namespace WebAPI.Controllers
             {
                 return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
             }
-
         }
-
-        
-
-
     }
 }

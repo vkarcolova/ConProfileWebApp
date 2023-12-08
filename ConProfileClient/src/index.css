@@ -85,6 +85,10 @@ button:focus-visible {
   margin-top: 1.5rem; /* Zmeňte podľa potreby */
 }
 
+
+
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
