@@ -3,7 +3,7 @@ import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 import axios from 'axios';
 import { FolderDTO, Factors } from '../types';
 import { blueGrey } from '@mui/material/colors';
-
+import './components.css'
 interface DataTableProps {
   folderData: FolderDTO;
 }
@@ -29,51 +29,45 @@ const DataTable: React.FC<DataTableProps> = ({ folderData }) => {
   }, []);
   
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 250 }}>
-      <Table stickyHeader size="small" aria-label="a dense table">
- <TableHead>
- <TableRow>
-    {folderData.data.map((tableData, index) => (
-      <React.Fragment key={tableData.filename}>
-        <TableCell>
-
-        </TableCell>
-        <TableCell style={{ margin: '0px', border: 'none', padding: '10px' }} > <Autocomplete
+    <TableContainer component={Paper} sx={{ maxHeight: 350, maxWidth: 700 }}>
+    <Table stickyHeader>
+      <TableHead style={{ width: '100%', backgroundColor: '#c0b3e7' }}>
+        <TableRow>
+          {folderData.data.map((tableData, index) => (
+            <TableCell key={tableData.filename}  style={{ margin:'0px', paddingLeft: '20px', paddingRight: '20px', paddingBottom: '0px', border: '0px' }} > 
+              <Autocomplete style={{ margin: '0px', padding: '0px', border: '0px', }}
                 id={`free-solo-demo-${index}`}
                 freeSolo
                 options={factors.map((option) => option.factor)}
-                renderInput={(params) => <TextField {...params} label="freeSolo" />}
-              /></TableCell>
-      </React.Fragment>
-    ))}
-  </TableRow>
-  <TableRow>
-    {folderData.data.map((tableData, index) => (
-      <React.Fragment key={tableData.filename}>
-        <TableCell>
+                renderInput={(params) => <TextField {...params} label="Faktor" />}
+              />
+            </TableCell>
+          ))}
+        </TableRow>
+        <TableRow>
+          {folderData.data.map((tableData) => (
+            <TableCell key={tableData.filename} style={{ width: '100px' }}> {/* Nastavte želanú šírku stĺpca */}
+              {tableData.filename}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          {folderData.data.map((tableData, index) => (
+            <React.Fragment key={tableData.filename}>
 
-        </TableCell>
-        <TableCell  >{tableData.filename}</TableCell>
-      </React.Fragment>
-    ))}
-  </TableRow>
-  </TableHead>
-        <TableBody>
-          <TableRow>
-            {folderData.data.map((tableData, index) => (
-              <React.Fragment key={tableData.filename}>
-                <TableCell>{selectedOptions[index]}</TableCell>
-                <TableCell>
-                  {tableData.intensity.map((intensity, i) => (
-                    <div key={i}>{intensity}</div>
-                  ))}
-                </TableCell>
-              </React.Fragment>
-            ))}
-          </TableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+              <TableCell style={{ width: '100px' }}> {/* Nastavte želanú šírku stĺpca */}
+                {tableData.intensity.map((intensity, i) => (
+                  <div key={i}>{intensity}</div>
+                ))}
+              </TableCell>
+            </React.Fragment>
+          ))}
+        </TableRow>
+      </TableBody>
+    </Table>
+  </TableContainer>
   );
 };
 
