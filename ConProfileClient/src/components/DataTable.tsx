@@ -1,77 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Autocomplete, TextField } from '@mui/material';
 import axios from 'axios';
 import { FolderDTO, Factors } from '../types';
-import { blueGrey } from '@mui/material/colors';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 import './components.css'
+import CustomInputAutocomplete from './CustomAutocomplete';
+
 interface DataTableProps {
   folderData: FolderDTO;
+  showAutocomplete: boolean;
+
 }
 
-const DataTable: React.FC<DataTableProps> = ({ folderData }) => {
+const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) => {
   const [selectedOptions, setSelectedOptions] = useState<number[]>(Array(folderData.data.length).fill(0));
-  const [factors, setFactors] = useState<Factors[]>([]); 
+  const [factors, setFactors] = useState<Factors[]>([]);
+
   const handleComboBoxChange = (index: number, value: number | null) => {
     const newSelectedOptions = [...selectedOptions];
-    newSelectedOptions[index] = value ?? 0; // Ak je hodnota null, použijeme defaultnú hodnotu 0
+    newSelectedOptions[index] = value ?? 0;
     setSelectedOptions(newSelectedOptions);
   };
+
   useEffect(() => {
-    // Získanie dát zo servera
-    axios.get<Factors[]>('https://localhost:44300/Factor') // Zmenil som návratový typ na Factors[]
+    axios.get<Factors[]>('https://localhost:44300/Factor')
       .then(response => {
-        setFactors(response.data); // Zmenil som setFolderData na setFactors
+        setFactors(response.data);
         console.log(response);
       })
       .catch(error => {
         console.error('Chyba pri získavaní dát zo servera:', error);
       });
   }, []);
-  
+
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 350, maxWidth: 700 }}>
-    <Table stickyHeader>
-      <TableHead style={{ width: '100%', backgroundColor: '#c0b3e7' }}>
-        <TableRow>
+    <table className="table" style={{ width: '100%', borderCollapse: 'collapse', maxHeight: '350px', maxWidth: '800px' }}>
+      <thead className="table__thead"  style={{ position: 'sticky',     top: '0'}} >
+      {showAutocomplete ? <tr className="table__head"   style={{ maxHeight: '10px' }} >
           {folderData.data.map((tableData, index) => (
-            <TableCell key={tableData.filename}  style={{ margin:'0px', paddingLeft: '20px', paddingRight: '20px', paddingBottom: '0px', border: '0px' }} > 
-              <Autocomplete style={{ margin: '0px', padding: '0px', border: '0px', }}
-                id={`free-solo-demo-${index}`}
-                freeSolo
-                options={factors.map((option) => option.factor)}
-                renderInput={(params) => <TextField {...params} label="Faktor" />}
-              />
-            </TableCell>
+            <th className="table__th" key={tableData.filename}  style={{ height: '10px', fontSize: '14px', paddingTop: '3px', paddingBottom: '3x' }} >
+              <CustomInputAutocomplete id={tableData.spectrum}/>
+            </th>
           ))}
-        </TableRow>
-        <TableRow>
+        </tr> :null }
+        <tr className="table__thead">
           {folderData.data.map((tableData) => (
-            <TableCell key={tableData.filename} style={{ width: '100px' }}> {/* Nastavte želanú šírku stĺpca */}
+            <th className="table__th" key={tableData.filename} style={{ width: '100px', fontSize: '12px' }}>
               {tableData.filename}
-            </TableCell>
+            </th>
           ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        <TableRow>
+        </tr >
+      </thead>
+      <tbody className="table__tbody">
+        <tr className="">
           {folderData.data.map((tableData, index) => (
             <React.Fragment key={tableData.filename}>
-
-              <TableCell style={{ width: '100px' }}> {/* Nastavte želanú šírku stĺpca */}
+              <td className="table__tr " style={{ width: '100px', fontSize: '12px' }}>
                 {tableData.intensity.map((intensity, i) => (
                   <div key={i}>{intensity}</div>
                 ))}
-              </TableCell>
+              </td>
             </React.Fragment>
           ))}
-        </TableRow>
-      </TableBody>
-    </Table>
-  </TableContainer>
+        </tr>
+      </tbody>
+    </table>
   );
 };
-
-  
-
 
 export default DataTable;

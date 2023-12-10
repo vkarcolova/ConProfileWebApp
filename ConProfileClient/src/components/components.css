@@ -1,0 +1,145 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;    }
+  
+  /* Štýly pre hlavičku tabuľky */
+  thead {
+    background-color:#b3c4d9; /* Farebné pozadie pre hlavičku */
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px inset;
+  }
+  th {
+    padding: 2px
+  }
+  th, td {
+    padding: 3px;
+    text-align: center;
+    border: 1px solid #ddd; /* Hranice stĺpcov a riadkov */
+  }
+  
+  /* Biele pozadie pre telo tabuľky */
+  tbody {
+    background-color: #fff;
+  }
+  
+  /* Oddelenie stĺpcov */
+  th:not(:first-child),
+  td:not(:first-child) {
+    border-left: 1px solid #ddd;
+  }
+
+
+  /* core styles for table */
+
+.table{
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 1px 2px 0 rgba(0, 0, 0, .24);
+  background-color: var(--tableBgColor, #fff);
+}
+
+.table__thead{
+  background-color: var(--tableTitleBgColor);
+  color: var(--tableTitleTextColor);
+}
+
+.table__mobile-caption{
+  display: none;
+}
+
+.table__td, .table__th{
+  box-sizing: border-box;
+}
+
+@media screen and (min-width: 769px){
+
+
+
+
+  .table__td, .table__th{
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 768px){
+
+  .table, .table__thead, .table__tbody, .table__tr{
+    display: block;
+  }
+
+  .table__td{
+    display: flex;
+  }
+
+  .table__head{
+    display: none;
+  }
+
+  .table__mobile-title{
+    background-color: var(--tableTitleBgColor);
+    color: var(--tableTitleTextColor);
+  }
+
+  .table__td{
+    border-bottom: 1px solid var(--tableSeparatorColor);
+  }
+
+  .table__td:last-of-type{
+    border-bottom: none;
+  }
+
+  .table__mobile-caption, .table__value{
+    display: block;
+    width: 50%;
+    box-sizing: border-box;
+  }
+
+  .table__mobile-caption{
+    padding-right: 2%;
+  }
+}
+
+/* demo styles for table */
+
+.table{
+  --tableCellPadding: 2rem;
+  --tableTitleBgColor: #5668ca;
+  --tableTitleTextColor: #fff;
+  --tableRowBgColorHover: #f0f0f0;
+  --tableSeparatorColor: #eee;
+}
+.table__tr:hover{
+  background-color: var(--tableRowBgColorHover);
+}
+
+@media screen and (min-width: 768px){
+
+  html{
+    font-size: 62.5%;
+  }
+}
+
+@media screen and (max-width: 767px){
+
+  html{
+    font-size: 50%;
+  }
+}
+
+body{
+  font-size: 1.4rem;
+  color: #222;
+  margin: 0;
+  -webkit-overflow-scrolling: touch;   
+}
+
+a{
+  text-decoration: none;
+  color: #5668ca;
+}
+
+a:hover, a:focus{
+  text-decoration: underline;
+}
+

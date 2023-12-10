@@ -27,7 +27,7 @@ namespace WebApiServer.Controllers
         public ActionResult<FolderDTO> GetItemById(int id)
         {
             LoadedFolder folder = _context.LoadedFolders.Where(folder => folder.IdFolder == id).First();
-            List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == id).ToList();
+            List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == id).OrderBy(file => file.Spectrum).ToList();
             if (!files.Any())
             {
                 return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené

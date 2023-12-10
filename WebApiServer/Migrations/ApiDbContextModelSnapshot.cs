@@ -30,8 +30,8 @@ namespace WebApiServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Spectrum"));
 
-                    b.Property<int>("Factor")
-                        .HasColumnType("integer");
+                    b.Property<double>("Factor")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Spectrum");
 

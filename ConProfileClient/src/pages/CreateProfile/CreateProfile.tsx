@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FolderDTO } from '../../types';
 import DataTable from '../../components/DataTable';
 import './index.css'
+import { Button, Divider } from '@mui/material';
 
 const CreateProfile: React.FC = () => {
   const [folderData, setFolderData] = useState<FolderDTO | null>(null);
@@ -32,11 +33,26 @@ const CreateProfile: React.FC = () => {
   }
 
   return (
-    <div>
-          <div className="table-container">
-      <DataTable folderData={folderData} />
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <div className='first' style={{ flex: '1fr', minWidth: '25%' }}>
+        {/* Obsah pre first div */}
       </div>
+      <div className='second' style={{ display: 'flex', flexDirection: 'column', flex: '2fr' }}>
+        <div className="table-container">
+          {/* Obsah pre druhý div */}
+          <DataTable folderData={folderData} showAutocomplete={true} />
+        </div>
+        <div className="table-container">
+          {/* Obsah pre druhý div */}
+          <DataTable folderData={folderData} showAutocomplete={false} />
+        </div>
+      </div>
+      <div className='third' style={{ flex: '1fr' }}>
+        {/* Obsah pre tretí div */}
 
+          <button  className="button-13" role="button">Vynásob</button>
+
+      </div>
     </div>
   );
 };

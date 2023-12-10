@@ -12,7 +12,7 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20231207182930_initial-migration")]
+    [Migration("20231210154830_initial-migration")]
     partial class initialmigration
     {
         /// <inheritdoc />
@@ -33,8 +33,8 @@ namespace WebApiServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Spectrum"));
 
-                    b.Property<int>("Factor")
-                        .HasColumnType("integer");
+                    b.Property<double>("Factor")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Spectrum");
 

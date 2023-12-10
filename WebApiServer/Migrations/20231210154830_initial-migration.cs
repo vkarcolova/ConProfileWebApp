@@ -17,7 +17,7 @@ namespace WebApiServer.Migrations
                 {
                     Spectrum = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Factor = table.Column<int>(type: "integer", nullable: false)
+                    Factor = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {

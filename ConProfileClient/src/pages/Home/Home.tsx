@@ -94,7 +94,7 @@ const Home: React.FC = () => {
     }
   };
   return (
-    <div>
+    <div >
       <div className="home-page">
       <div className="button-container">
         <button onClick={handleSelectFolder}  className="large-button">Načítať dáta</button>

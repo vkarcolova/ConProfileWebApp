@@ -6,6 +6,6 @@ namespace WebApiServer.Models
     {
         [Key]
         public int Spectrum { get; set; }
-        public int Factor { get; set; }
+        public double Factor { get; set; }
     }
 }
