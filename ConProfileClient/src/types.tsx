@@ -5,6 +5,7 @@ export interface TableDataDTO {
   }
   
   export interface FolderDTO {
+    id: number;
     foldername: string;
     excitation: number[];
     data: TableDataDTO[];
@@ -13,4 +14,10 @@ export interface TableDataDTO {
   export interface Factors {
     spectrum: number;
     factor: number;
+  }
+
+  export interface MultiplyFolderDTO {
+    IDFOLDER: number;
+    FACTORS: number[];
+    SPECTRUMS: number[];
   }

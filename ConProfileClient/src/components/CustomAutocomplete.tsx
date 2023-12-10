@@ -2,6 +2,7 @@ import * as React from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import { Factors } from '../types';
 import axios from 'axios';
+import { Chip } from '@mui/material';
 
 const options = ['1', '2'];
 interface CustomInputAutocomplete {
@@ -45,14 +46,13 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocomplete> = ({id}) => {
 
   return (
     <label>
-      <Autocomplete
+        <Autocomplete
+        size="small"
         freeSolo
         sx={{
           display: 'inline-block',
           '& input': {
             width: 50,
-            bgcolor: 'background.paper',
-            color: theme => theme.palette.getContrastText(theme.palette.background.paper),
           },
         }}
         id={`autocomplete-${id}`}
