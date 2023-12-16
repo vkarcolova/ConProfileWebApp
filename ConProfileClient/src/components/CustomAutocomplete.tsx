@@ -2,7 +2,7 @@ import * as React from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import { Factors } from '../types';
 import axios from 'axios';
-import { Chip } from '@mui/material';
+import { Chip, TextField } from '@mui/material';
 
 const options = ['1', '2'];
 interface CustomInputAutocomplete {
@@ -46,23 +46,16 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocomplete> = ({id}) => {
 
   return (
     <label>
-        <Autocomplete
-        size="small"
+      <Autocomplete
+  disablePortal
         freeSolo
-        sx={{
-          display: 'inline-block',
-          '& input': {
-            width: 50,
-          },
-        }}
+  sx={{ width: 100 }}
         id={`autocomplete-${id}`}
         options={factors.map(option => option.factor)}
         value={selectedValue}
         onChange={handleAutocompleteChange}
         renderInput={params => (
-          <div ref={params.InputProps.ref}>
-            <input type="text" {...params.inputProps} />
-          </div>
+            <TextField {...params} label="Faktor" />
         )}
       />
     </label>

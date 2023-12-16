@@ -1,3 +1,14 @@
+.MuiAutocomplete-hasPopupIcon.css-wf19tx-MuiAutocomplete-root .MuiOutlinedInput-root, .MuiAutocomplete-hasClearIcon.css-wf19tx-MuiAutocomplete-root .MuiOutlinedInput-root {
+  padding: 0px;
+  background-color: white;
+}
+
+.css-wf19tx-MuiAutocomplete-root .MuiOutlinedInput-root {
+  padding: 0px;
+  background-color: white;
+}
+
+
 table {
     width: 100%;
     border-collapse: collapse;
