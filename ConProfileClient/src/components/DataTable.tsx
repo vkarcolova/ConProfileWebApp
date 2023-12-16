@@ -5,6 +5,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import './components.css'
 import CustomInputAutocomplete from './CustomAutocomplete';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
 interface DataTableProps {
   folderData: FolderDTO;
@@ -34,37 +35,44 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
   }, []);
 
   return (
-    <table className="table" style={{ width: '100%', borderCollapse: 'collapse', maxHeight: '350px', maxWidth: '800px' }}>
-      <thead className="table__thead"  style={{ position: 'sticky',     top: '0'}} >
-      {showAutocomplete ? <tr className="table__head"   style={{ maxHeight: '10px' }} >
-          {folderData.data.map((tableData, index) => (
-            <th className="table__th" key={tableData.filename}  style={{ height: '10px', fontSize: '14px', paddingTop: '3px', paddingBottom: '3x' }} >
-              <CustomInputAutocomplete id={tableData.spectrum}/>
-            </th>
-          ))}
-        </tr> :null }
-        <tr className="table__thead">
-          {folderData.data.map((tableData) => (
-            <th className="table__th" key={tableData.filename} style={{ width: '100px', fontSize: '12px' }}>
-              {tableData.filename}
-            </th>
-          ))}
-        </tr >
-      </thead>
-      <tbody className="table__tbody">
-        <tr className="">
-          {folderData.data.map((tableData, index) => (
-            <React.Fragment key={tableData.filename}>
-              <td className="table__tr " style={{ width: '100px', fontSize: '12px' }}>
-                {tableData.intensity.map((intensity, i) => (
-                  <div key={i}>{intensity}</div>
-                ))}
-              </td>
-            </React.Fragment>
-          ))}
-        </tr>
-      </tbody>
-    </table>
+    <TableContainer component={Paper} >
+      <Table stickyHeader size="small" aria-label="a dense table">
+        <TableHead>
+
+          <TableRow>
+            {folderData.data.map((tableData, index) => (
+              <React.Fragment key={tableData.filename}>
+
+                <TableCell><div className='TableRowName'>{tableData.filename}</div></TableCell>
+              </React.Fragment>
+            ))}
+          </TableRow>
+          {showAutocomplete ? <TableRow>
+            {folderData.data.map((tableData, index) => (
+              <React.Fragment key={tableData.filename}>
+
+                <TableCell> 
+                <CustomInputAutocomplete id={tableData.spectrum}/>
+                </TableCell>
+              </React.Fragment>
+            ))}
+          </TableRow> : ""}
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            {folderData.data.map((tableData, index) => (
+              <React.Fragment key={tableData.filename}>
+                <TableCell>
+                  {tableData.intensity.map((intensity, i) => (
+                    <div key={i}>{intensity}</div>
+                  ))}
+                </TableCell>
+              </React.Fragment>
+            ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 

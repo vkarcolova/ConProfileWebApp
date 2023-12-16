@@ -11,6 +11,12 @@ export interface TableDataDTO {
     data: TableDataDTO[];
   }
 
+  export interface ProjectDTO {
+    idproject: number;
+    projectname: string;
+    folders: FolderDTO[];
+  }
+
   export interface Factors {
     spectrum: number;
     factor: number;

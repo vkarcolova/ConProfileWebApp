@@ -1,9 +1,10 @@
 .table-container {
-  max-height: '40vh';
+  max-height: 45vh;
   height: 40vh; /* 40 % výšky obrazovky */
   overflow-y: auto;
-    margin: 0 auto; /* Zarovnanie do stredu */
+  margin: 0 auto; /* Zarovnanie do stredu */
   margin-top: 10px; /* Prispôsobte podľa potreby */
+  margin-bottom: 20px;
 }
 .buttonMultiply{
 background-Color: rgb(55, 9, 55),

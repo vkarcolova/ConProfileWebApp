@@ -47,9 +47,11 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocomplete> = ({id}) => {
   return (
     <label>
       <Autocomplete
-  disablePortal
+       disablePortal
         freeSolo
-  sx={{ width: 100 }}
+        size="small"
+
+         sx={{ width: 70 }}
         id={`autocomplete-${id}`}
         options={factors.map(option => option.factor)}
         value={selectedValue}

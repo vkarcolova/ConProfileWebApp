@@ -42,7 +42,66 @@ namespace WebAPI.Controllers
             }
         }
 
+        [HttpGet("GetProject/{id}")]
+        public ActionResult<ProjectDTO> GetItemById(int id)
+        {
+            Project project = _context.Projects.Where(project => project.IdProject == id ).First();
 
+            if (project == null)
+            {
+                return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené
+            }
+            else
+            {
+                List<double> excitation = new List<double>();
+                List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
+                List<FolderDTO> folderList = new List<FolderDTO>();
+
+                foreach (LoadedFolder folder in folders) { 
+                    List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
+                    List<TableDataDTO> tabledata = new List<TableDataDTO>();
+
+                    foreach (LoadedFile file in files)
+                    {
+
+                        List<LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
+                        List<double> intensity = loadedData.Select(data => data.Intensity).ToList();
+
+                        if (excitation.Count == 0 || (excitation.Count < intensity.Count))
+                            excitation = loadedData.Select(data => data.Excitation).ToList();
+
+                        TableDataDTO data = new TableDataDTO
+                        {
+                            FILENAME = file.FileName,
+                            INTENSITY = intensity,
+                            SPECTRUM = file.Spectrum
+                        };
+
+                        tabledata.Add(data);
+                    }
+                    FolderDTO newFolder = new FolderDTO
+                    {
+                        ID = folder.IdFolder,
+                        FOLDERNAME = folder.FolderName,
+                        EXCITATION = excitation,
+                        DATA = tabledata
+
+                    };
+
+                    folderList.Add(newFolder);
+                }
+
+
+                ProjectDTO result = new ProjectDTO
+                {
+                    IDPROJECT = id,
+                    PROJECTNAME = project.ProjectName,
+                    FOLDERS = folderList
+
+                };
+                return result;
+            }
+        }
 
 
     }

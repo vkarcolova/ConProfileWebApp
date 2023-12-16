@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FolderDTO, MultiplyFolderDTO } from '../../types';
+import { FolderDTO, MultiplyFolderDTO, ProjectDTO } from '../../types';
 import DataTable from '../../components/DataTable';
 import './index.css'
 import { Button, Divider } from '@mui/material';
 
 const CreateProfile: React.FC = () => {
   const [folderData, setFolderData] = useState<FolderDTO | null>(null);
+  const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Získanie dát zo servera
-    axios.get<FolderDTO>('https://localhost:44300/LoadedFolder/GetFolder/1')
+    axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/1')
       .then(response => {
-        setFolderData(response.data);
+        setProjectData(response.data);
+        setFolderData(response.data.folders[0])
         console.log(response);
       })
       .catch(error => {
@@ -23,6 +26,8 @@ const CreateProfile: React.FC = () => {
         setIsLoading(false);
       });
   }, []);
+
+
 
     const [selectedValues, setSelectedValues] = useState<number[]>([]);
   
