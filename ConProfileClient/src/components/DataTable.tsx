@@ -52,7 +52,9 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
               <React.Fragment key={tableData.filename}>
 
                 <TableCell> 
+                  <div className='autocomplete'>
                 <CustomInputAutocomplete id={tableData.spectrum}/>
+                </div>
                 </TableCell>
               </React.Fragment>
             ))}

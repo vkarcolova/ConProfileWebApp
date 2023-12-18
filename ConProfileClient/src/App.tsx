@@ -11,6 +11,7 @@ const theme = createTheme({
   palette: {
     mode: 'light', 
   },
+
 });
 function App() {
   return (

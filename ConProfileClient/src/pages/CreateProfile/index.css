@@ -1,14 +1,16 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+
+
 .table-container {
   max-height: 45vh;
-  height: 40vh; /* 40 % výšky obrazovky */
+  height: 1fr; /* 40 % výšky obrazovky */
   overflow-y: auto;
   margin: 0 auto; /* Zarovnanie do stredu */
   margin-top: 10px; /* Prispôsobte podľa potreby */
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .buttonMultiply{
 background-Color: rgb(55, 9, 55),
-
 }
 
 
@@ -46,4 +48,49 @@ background-Color: rgb(55, 9, 55),
   border-color: #008296;
   box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
   outline: 0;
+}
+
+.treeView {
+  min-width: 100%;
+  min-height: 80vh;
+  background-color: #F7F6F6;
+  margin-left: 50px;
+  margin-right: 50px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+}
+
+.center-items {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.treeViewWindow {
+  font-family: 'Poppins', sans-serif;
+  width: 50%;
+  min-height: 50%;
+  border-style: solid;
+  border-width: 1px;
+  background-color: white;
+  border-color: #97a7b7;
+
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.css-1bcfi89-MuiTreeItem-content {
+  font-family: 'Poppins', sans-serif;
+}
+
+.MuiTreeView-root,
+.MuiTreeView-item {
+  font-family: 'Poppins', sans-serif !important;
 }

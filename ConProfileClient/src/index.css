@@ -5,9 +5,9 @@
   font-family: 'Poppins';
   line-height: 1.5;
   font-weight: 400;
-
+  width: 100vh;
   color-scheme: light;
-  color: rgba(59, 49, 119, 0.87);
+  color: hsla(249, 42%, 33%, 0.871);
  background-Color:#E6E5E5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
