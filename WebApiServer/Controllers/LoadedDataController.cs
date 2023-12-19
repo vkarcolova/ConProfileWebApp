@@ -52,5 +52,19 @@ namespace WebAPI.Controllers
                 return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
             }
         }
+
+        [HttpPost("PostFactorsMultiply")]
+        public async Task<IActionResult> Post([FromBody] MultiplyDataDTO multiplyDatas)
+        {
+            if (multiplyDatas != null)
+            {
+                IActionResult result = await _loadedDataService.MultiplyData(multiplyDatas);
+                return result;
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
+        }
     }
 }

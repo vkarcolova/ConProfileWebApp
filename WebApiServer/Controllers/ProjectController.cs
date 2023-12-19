@@ -45,6 +45,7 @@ namespace WebAPI.Controllers
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
+            bool multipliedData = true;
             Project project = _context.Projects.Where(project => project.IdProject == id ).First();
 
             if (project == null)
@@ -64,7 +65,9 @@ namespace WebAPI.Controllers
                     foreach (LoadedFile file in files)
                     {
 
-                        List<LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
+                        List <LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
+                        
+
                         List<double> intensity = loadedData.Select(data => data.Intensity).ToList();
 
                         if (excitation.Count == 0 || (excitation.Count < intensity.Count))
@@ -72,10 +75,19 @@ namespace WebAPI.Controllers
 
                         TableDataDTO data = new TableDataDTO
                         {
+                            ID = file.IdFile,
                             FILENAME = file.FileName,
                             INTENSITY = intensity,
                             SPECTRUM = file.Spectrum
                         };
+
+                        if (loadedData[0].MultipliedIntensity != null)
+                        {
+                            List<double> multipliedintensity = new List<double>();
+                            multipliedintensity = loadedData.Select(data => data.MultipliedIntensity.GetValueOrDefault()).ToList();
+                            if(multipliedintensity.Count > 0) 
+                                data.MULTIPLIEDINTENSITY = multipliedintensity;
+                        }
 
                         tabledata.Add(data);
                     }

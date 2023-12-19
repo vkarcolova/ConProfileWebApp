@@ -18,8 +18,10 @@
 
     public class TableDataDTO
     {
+        public int ID { get; set; }
         public string FILENAME { get; set; }
         public List<double> INTENSITY { get; set; }
+        public List<double>? MULTIPLIEDINTENSITY { get; set; }
         public int SPECTRUM { get; set; }
     }
 
@@ -34,7 +36,7 @@
     {
         public int IDFOLDER { get; set; }
         public List<double> FACTORS { get; set; }
-        public List<int> SPECTRUMS { get; set; }
+        public List<int> IDS { get; set; }
 
     }
 

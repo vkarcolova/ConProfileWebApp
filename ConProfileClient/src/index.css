@@ -1,11 +1,16 @@
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
 
+#root {
+  min-width: 100%;
+}
+
 
 :root {
   font-family: 'Poppins';
   line-height: 1.5;
-  font-weight: 400;
-  width: 100vh;
+  font-weight: 400;  
+  min-width: 100%;
+  max-width: none;
   color-scheme: light;
   color: hsla(249, 42%, 33%, 0.871);
  background-Color:#E6E5E5;

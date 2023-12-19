@@ -17,6 +17,7 @@ namespace WebApiServer.Services
 {
     public interface ILoadedDataService
     {
+        public Task<IActionResult> MultiplyData(MultiplyDataDTO multiplyDatas);
         public Task<IActionResult> ProcessLoadedData(LoadedFileDTO[] loadedFiles);
     }
 
@@ -28,6 +29,36 @@ namespace WebApiServer.Services
         {
             _context = context;
         }
+
+        public async Task<IActionResult> MultiplyData(MultiplyDataDTO multiplyDatas)
+        {
+            if (multiplyDatas != null)
+            {
+                try
+                {
+                    for (int i = 0; i < multiplyDatas.IDS.Count; i++)
+                    {
+                        List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
+                        foreach (var data in datas) {
+                            data.MultipliedIntensity = data.Intensity * multiplyDatas.FACTORS[i];
+                        }
+                    }
+                    _context.SaveChanges();
+
+                    return new OkResult(); // Odpoveď 200 OK
+                }
+                catch (Exception ex)
+                {
+                    return new BadRequestResult(); ;
+                }
+
+            }
+            else
+            {
+                return new BadRequestResult(); // Odpoveď 400 Bad Request
+            }
+        }
+
         public async Task<IActionResult> ProcessLoadedData(LoadedFileDTO[] loadedFiles)
         {
             if (loadedFiles != null)

@@ -67,20 +67,7 @@ namespace WebApiServer.Controllers
             }
         }
 
-        [HttpPost("PostFactorsMultiply")]
-        public async Task<IActionResult> Post([FromBody] MultiplyDataDTO multiplyDatas)
-        {
-            // Spracovanie prijatých súborov
-            if (multiplyDatas != null)
-            {
-                //IActionResult result = await _loadedDataService.ProcessLoadedData(loadedFiles);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
-            }
-        }
+
 
     }
 }
