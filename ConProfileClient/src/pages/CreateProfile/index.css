@@ -14,7 +14,6 @@ background-Color: rgb(55, 9, 55),
 }
 
 
-/* CSS */
 .button-13 {
   background-color: #fff;
   border: 1px solid #d5d9d9;
@@ -39,7 +38,6 @@ background-Color: rgb(55, 9, 55),
   margin-left: 20px;
   margin-top: 10px;
 }
-
 .button-13:hover {
   background-color: #f7fafa;
 }
@@ -89,6 +87,18 @@ background-Color: rgb(55, 9, 55),
   display: flex;
   justify-content: center;
   padding-top: 20px;
+}
+
+.buttonCreateProfil {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.emptyTable{
+  min-width: 100%;
+  min-height: 45vh;
+  background-color: #F7F6F6;
 }
 
 .css-1bcfi89-MuiTreeItem-content {

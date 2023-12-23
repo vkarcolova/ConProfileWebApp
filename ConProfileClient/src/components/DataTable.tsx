@@ -60,19 +60,35 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
             ))}
           </TableRow> : ""}
         </TableHead>
+        {showAutocomplete ? 
         <TableBody>
           <TableRow>
             {folderData.data.map((tableData, index) => (
               <React.Fragment key={tableData.filename}>
                 <TableCell>
                   {tableData.intensity.map((intensity, i) => (
-                    <div key={i}>{intensity}</div>
+                    <div key={i}>{intensity.toFixed(5)}</div>
                   ))}
                 </TableCell>
               </React.Fragment>
             ))}
           </TableRow>
-        </TableBody>
+        </TableBody> :        
+        <TableBody>
+          <TableRow>            
+            {folderData.data.map((tableData, index) => (
+              <React.Fragment key={tableData.filename}>
+                {tableData.multipliedintensity ?
+                <TableCell>
+                  {tableData.multipliedintensity.map((multipliedintensity, i) => (
+                    <div key={i}>{multipliedintensity.toFixed(5)}</div>
+                  ))}
+                </TableCell> : ""
+                }
+              </React.Fragment>
+            ))}
+          </TableRow>
+        </TableBody>}
       </Table>
     </TableContainer>
   );

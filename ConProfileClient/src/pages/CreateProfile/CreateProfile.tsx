@@ -11,10 +11,13 @@ import { Button, Divider, IconButton } from '@mui/material';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const CreateProfile: React.FC = () => {
+  const [selectedFolder, setSelectedFolder] = useState(0);
   const [folderData, setFolderData] = useState<FolderDTO | null>(null);
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
   const [multiplied, setMultiplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedValues, setSelectedValues] = useState<number[]>([]); //to co je?
+
   var foldersExpand: string[] = [];
 
   useEffect(() => {
@@ -22,11 +25,11 @@ const CreateProfile: React.FC = () => {
     axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/1')
       .then(response => {
         setProjectData(response.data);
-        setFolderData(response.data.folders[0])
+        setFolderData(response.data.folders[selectedFolder])
         response.data.folders.forEach(element => {
           foldersExpand.push(element.foldername)
         });
-        if(response.data.folders[0].data[0].multipliedintensity)
+        if (response.data.folders[selectedFolder].data[0].multipliedintensity)
           setMultiplied(true);
         console.log("expand" + foldersExpand);
         console.log(response);
@@ -41,11 +44,6 @@ const CreateProfile: React.FC = () => {
 
 
 
-  const [selectedValues, setSelectedValues] = useState<number[]>([]);
-
-  const handleAutocompleteValuesChange = (values: number[]) => {
-    setSelectedValues(values);
-  };
 
   const multiplyButtonClick = async () => {
     console.log('Vybrané hodnoty:', selectedValues);
@@ -107,8 +105,8 @@ const CreateProfile: React.FC = () => {
 
 
   return (
-    <div className='center-items main' style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-      <div className='first center-items' style={{  minWidth: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px'}}>
+    <div className='center-items main' style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+      <div className='first center-items' style={{ minWidth: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
         <div className='treeView' >
           <p>Načítané priečinky</p>
           <div className='treeViewWindow'>
@@ -140,24 +138,20 @@ const CreateProfile: React.FC = () => {
 
           </div>
         </div>
-
-        {/* Obsah pre first div */}
       </div>
       <div className='second' style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', minWidth: '40%', }}>
         <div className="table-container">
-          {/* Obsah pre druhý div */}
           <DataTable folderData={folderData} showAutocomplete={true} />
         </div>
         <div className="table-container">
-          {/* Obsah pre druhý div */}
-          <DataTable folderData={folderData} showAutocomplete={false} />
+        {multiplied && projectData ? 
+          <DataTable folderData={folderData} showAutocomplete={false} /> : <div className='emptyTable'></div> }
         </div>
       </div>
       <div className='third' style={{ minWidth: '35%', backgroundColor: 'white' }}>
-        {/* Obsah pre tretí div */}
-
-        <button onClick={multiplyButtonClick} className="button-13" role="button">Vynásob</button>
-
+        <div className='buttonCreateProfil'>
+          <button onClick={multiplyButtonClick} className="button-13" role="button">Vytvoriť profil</button>
+        </div>
       </div>
     </div>
   );
