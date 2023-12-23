@@ -6,13 +6,21 @@
   height: 1fr; /* 40 % výšky obrazovky */
   overflow-y: auto;
   margin: 0 ; /* Zarovnanie do stredu */
-  margin-top: 10px; /* Prispôsobte podľa potreby */
   margin-bottom: 10px;
 }
 .buttonMultiply{
 background-Color: rgb(55, 9, 55),
 }
 
+circle{
+  r: 2;
+}
+
+.profileTab{
+  padding-right: 10px;
+  padding-left: 10px;
+  width: 55%;
+}
 
 .button-13 {
   background-color: #fff;

@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
 using WebApiServer.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebAPI.Controllers
 {
@@ -45,7 +46,6 @@ namespace WebAPI.Controllers
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
-            bool multipliedData = true;
             Project project = _context.Projects.Where(project => project.IdProject == id ).First();
 
             if (project == null)
@@ -57,6 +57,8 @@ namespace WebAPI.Controllers
                 List<double> excitation = new List<double>();
                 List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
                 List<FolderDTO> folderList = new List<FolderDTO>();
+                bool multipliedData = false;
+
 
                 foreach (LoadedFolder folder in folders) { 
                     List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
@@ -87,10 +89,16 @@ namespace WebAPI.Controllers
                             multipliedintensity = loadedData.Select(data => data.MultipliedIntensity.GetValueOrDefault()).ToList();
                             if(multipliedintensity.Count > 0) 
                                 data.MULTIPLIEDINTENSITY = multipliedintensity;
+
+                            multipliedData = true;
+
                         }
 
                         tabledata.Add(data);
                     }
+
+                    
+
                     FolderDTO newFolder = new FolderDTO
                     {
                         ID = folder.IdFolder,
@@ -99,6 +107,15 @@ namespace WebAPI.Controllers
                         DATA = tabledata
 
                     };
+
+                    if (multipliedData)
+                    {
+                        List<ProfileData> dataprofiles = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
+                        List<double> profile = dataprofiles.Select(data => data.MaxIntensity).ToList();
+                        newFolder.PROFILE = profile;
+                    }
+
+                    
 
                     folderList.Add(newFolder);
                 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,7 @@ using WebApiServer.Data;
 using WebApiServer.DTOs;
 using WebApiServer.Models;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApiServer.Services
 {
@@ -36,13 +39,44 @@ namespace WebApiServer.Services
             {
                 try
                 {
+                    List<List<LoadedData>> allData = new List<List<LoadedData>>();
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
                     {
                         List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
+                        allData.Add(datas);
                         foreach (var data in datas) {
-                            data.MultipliedIntensity = data.Intensity * multiplyDatas.FACTORS[i];
+                            double multiplied = data.Intensity * multiplyDatas.FACTORS[i];
                         }
                     }
+                    int idProfile = _context.ProfileDatas.Count() + 1;
+
+
+                    for (int i = 0; i < allData[0].Count; i++) //kazdy riadok
+                    {
+                        double maxIntensity = -1;
+                        for(int j = 0; j < allData.Count; j++) //kazdy folder
+                        {
+                            if (allData[j][i].MultipliedIntensity > maxIntensity)
+                                maxIntensity = (double)allData[j][i].MultipliedIntensity;
+
+                        }
+
+                        //create profile 
+                        ProfileData profile = new ProfileData
+                        {
+                            IdProfileData = idProfile,
+                            Excitation = allData[0][i].Excitation,
+                            IdFolder = multiplyDatas.IDFOLDER,
+                            MaxIntensity = maxIntensity
+                        };
+                        _context.ProfileDatas.Add(profile);
+                        idProfile++;
+                    }
+
+
+
+                    
+
                     _context.SaveChanges();
 
                     return new OkResult(); // Odpoveď 200 OK

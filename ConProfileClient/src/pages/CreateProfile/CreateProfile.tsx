@@ -9,6 +9,13 @@ import { TreeView } from '@mui/x-tree-view/TreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { Button, Divider, IconButton } from '@mui/material';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+import { LineChart } from '@mui/x-charts/LineChart';
+import { ScatterChart } from '@mui/x-charts/ScatterChart';
+
+interface ChartData {
+  data: number[];
+  label: string;
+}
 
 const CreateProfile: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState(0);
@@ -17,10 +24,28 @@ const CreateProfile: React.FC = () => {
   const [multiplied, setMultiplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedValues, setSelectedValues] = useState<number[]>([]); //to co je?
-
+  const [chartData, setChartData] = useState<ChartData[] | null>(null);
   var foldersExpand: string[] = [];
 
   useEffect(() => {
+    loadProject();
+  }, []);
+
+  useEffect(() => {
+    //nacitanie legendy
+    if (folderData) {
+      const dynamicChartData: ChartData[] = folderData.data.map((data, index) => ({
+        data: data.intensity,
+        label: 'pv'
+      }));
+
+      setChartData(dynamicChartData);
+      console.log(dynamicChartData);
+    }
+
+  }, [folderData]);
+
+  const loadProject = async () => {
     // Získanie dát zo servera
     axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/1')
       .then(response => {
@@ -31,8 +56,9 @@ const CreateProfile: React.FC = () => {
         });
         if (response.data.folders[selectedFolder].data[0].multipliedintensity)
           setMultiplied(true);
-        console.log("expand" + foldersExpand);
-        console.log(response);
+
+
+
       })
       .catch(error => {
         console.error('Chyba pri získavaní dát zo servera:', error);
@@ -40,9 +66,7 @@ const CreateProfile: React.FC = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
-
-
+  }
 
 
   const multiplyButtonClick = async () => {
@@ -83,7 +107,7 @@ const CreateProfile: React.FC = () => {
 
         ).then(() => {
           console.log(dataToSend);
-
+          loadProject();
         });
 
       } catch (error) {
@@ -102,11 +126,14 @@ const CreateProfile: React.FC = () => {
     return <div>Error loading data.</div>;
   }
 
-
+  const dotStyle = {
+    r: 2, // Nastavte veľkosť bodov podľa potreby
+    fill: 'blue', // Nastavte farbu bodov podľa potreby
+  };
 
   return (
     <div className='center-items main' style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-      <div className='first center-items' style={{ minWidth: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
+      <div className='first center-items' style={{ width: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
         <div className='treeView' >
           <p>Načítané priečinky</p>
           <div className='treeViewWindow'>
@@ -139,18 +166,45 @@ const CreateProfile: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className='second' style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', minWidth: '40%', }}>
-        <div className="table-container">
-          <DataTable folderData={folderData} showAutocomplete={true} />
+      <div className='second' style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '75%', }}>
+        <div className='upperContainer' style={{ flexDirection: 'row', display: 'flex' }}>
+          <div className="table-container" style={{ width: '55%' }}>
+            <DataTable folderData={folderData} showAutocomplete={true} />
+          </div>
+          <div className='otherContainer' style={{ width: '45%' }}>
+            <div className='buttonCreateProfil'>
+              <button onClick={multiplyButtonClick} className="button-13" role="button">Vytvoriť profil</button>
+            </div>
+
+            {folderData ?
+              <ScatterChart
+                height={300}
+                series={folderData.data.map((data, i) => ({
+
+                  label: data.filename,
+                  data: data.intensity.map((v, index) => ({ x: folderData.excitation[index], y: v, id: v })),
+                }))}
+                yAxis={[{ min: 0 }]}
+                xAxis={[{ min: 250 }]}
+              />
+              : ""}
+
+          </div>
         </div>
-        <div className="table-container">
-        {multiplied && projectData ? 
-          <DataTable folderData={folderData} showAutocomplete={false} /> : <div className='emptyTable'></div> }
-        </div>
-      </div>
-      <div className='third' style={{ minWidth: '35%', backgroundColor: 'white' }}>
-        <div className='buttonCreateProfil'>
-          <button onClick={multiplyButtonClick} className="button-13" role="button">Vytvoriť profil</button>
+        <div className='bottomContainer' style={{ flexDirection: 'row', display: 'flex' }}>
+          <div className="table-container" style={{ width: '55%' }}>
+            {multiplied && projectData ?
+              <DataTable folderData={folderData} showAutocomplete={false} /> : <div className='emptyTable'></div>}
+          </div>
+          <div className='otherContainer' style={{ width: '45%' }}>
+              <div className='profileTab'>
+              {multiplied && projectData ?
+               <div className='emptyTable'></div>: <div className='emptyTable'></div>}
+              </div>
+              <div className='stats' style={{ width: '45%' }}>
+
+              </div>
+          </div>
         </div>
       </div>
     </div>

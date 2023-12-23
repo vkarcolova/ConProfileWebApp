@@ -12,6 +12,7 @@
         public int ID { get; set; }
         public string FOLDERNAME { get; set; }
         public List<double> EXCITATION { get; set; }
+        public List<double>? PROFILE {  get; set; }
         public List<TableDataDTO> DATA { get; set; }
 
     }
