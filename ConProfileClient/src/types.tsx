@@ -16,6 +16,7 @@ export interface FolderDTO {
   id: number;
   foldername: string;
   excitation: number[];
+  profile?: number[];
   data: TableDataDTO[];
 }
 
