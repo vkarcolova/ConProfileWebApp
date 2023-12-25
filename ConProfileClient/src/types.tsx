@@ -26,6 +26,12 @@ export interface ProjectDTO {
   folders: FolderDTO[];
 }
 
+
+export interface Profile {
+  excitation: number[];
+  profile: number[];
+}
+
 export interface Factors {
   spectrum: number;
   factor: number;

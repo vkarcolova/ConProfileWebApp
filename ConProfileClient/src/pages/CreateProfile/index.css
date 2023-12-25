@@ -6,20 +6,24 @@
   height: 1fr; /* 40 % výšky obrazovky */
   overflow-y: auto;
   margin: 0 ; /* Zarovnanie do stredu */
-  margin-bottom: 10px;
 }
 .buttonMultiply{
-background-Color: rgb(55, 9, 55),
+  background-Color: rgb(55, 9, 55),
 }
 
 circle{
   r: 2;
 }
+svg{
+  background-color: white;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+
+}
 
 .profileTab{
   padding-right: 10px;
   padding-left: 10px;
-  width: 55%;
+  width: 40%;
 }
 
 .button-13 {
@@ -32,7 +36,7 @@ circle{
   cursor: pointer;
   display: inline-block;
   font-family: "Amazon Ember",sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 29px;
   padding: 0 10px 0 11px;
   position: relative;
@@ -46,11 +50,40 @@ circle{
   margin-left: 20px;
   margin-top: 10px;
 }
+
 .button-13:hover {
   background-color: #f7fafa;
 }
 
-.button-13:focus {
+.button-1 {
+  background-color: #222122;
+  border: 1px solid #222122;
+  border-radius: 8px;
+  box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
+  box-sizing: border-box;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: "Amazon Ember",sans-serif;
+  font-size: 11px;
+  line-height: 29px;
+  padding: 0 10px 0 11px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  width: 100px;
+  margin-left: 20px;
+}
+
+.button-1:hover {
+  background-color: #6d6a6d;
+}
+
+.button-13:focus .button-1:focus {
   border-color: #008296;
   box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
   outline: 0;
@@ -97,6 +130,13 @@ circle{
   padding-top: 20px;
 }
 
+.buttonContainerRows{
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
 .buttonCreateProfil {
   width: 100%;
   display: flex;
@@ -107,6 +147,53 @@ circle{
   min-width: 100%;
   min-height: 45vh;
   background-color: #F7F6F6;
+}
+
+.statsContainer{
+    min-height: 100%;
+    min-width: 55%;
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+}
+
+.stats {
+  min-width: 90%;
+  min-height: 60%;
+  background-color: #F7F6F6;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+
+
+}
+
+.statsHead {
+  width: 100%;
+  background-color: #bfc3d9 !important;
+}
+
+h3{
+  margin: 0px
+}
+
+h4{
+  margin: 0px;
+  font-size: 12px;
+  text-Align: center;
+  padding-right: 5px;
+  padding-top: 5px;
+}
+
+h5{
+  padding: 5px;
+  margin: 0px;
+
+  font-size: 12px;
+  background-color: white;
+}
+
+.statsColumn{
+  min-width: 50%;
+  min-height: 80%;
 }
 
 .css-1bcfi89-MuiTreeItem-content {

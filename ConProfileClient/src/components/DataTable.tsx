@@ -10,7 +10,7 @@ import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 interface DataTableProps {
   folderData: FolderDTO;
   showAutocomplete: boolean;
-
+  
 }
 
 const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) => {

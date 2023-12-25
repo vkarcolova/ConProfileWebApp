@@ -39,22 +39,33 @@ namespace WebApiServer.Services
             {
                 try
                 {
+
                     List<List<LoadedData>> allData = new List<List<LoadedData>>();
+
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
                     {
                         List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
+
                         allData.Add(datas);
-                        foreach (var data in datas) {
+
+                        foreach (var data in datas)
+                        {
                             double multiplied = data.Intensity * multiplyDatas.FACTORS[i];
                         }
                     }
                     int idProfile = _context.ProfileDatas.Count() + 1;
 
+                    if (allData[0][0].MultipliedIntensity.HasValue)
+                    {
+                        List<ProfileData> profileData =  _context.ProfileDatas.Where(item => item.IdFolder == multiplyDatas.IDFOLDER).ToList();
+                        _context.ProfileDatas.RemoveRange(profileData);
+                    }
+
 
                     for (int i = 0; i < allData[0].Count; i++) //kazdy riadok
                     {
                         double maxIntensity = -1;
-                        for(int j = 0; j < allData.Count; j++) //kazdy folder
+                        for (int j = 0; j < allData.Count; j++) //kazdy folder
                         {
                             if (allData[j][i].MultipliedIntensity > maxIntensity)
                                 maxIntensity = (double)allData[j][i].MultipliedIntensity;
@@ -75,7 +86,7 @@ namespace WebApiServer.Services
 
 
 
-                    
+
 
                     _context.SaveChanges();
 
@@ -118,7 +129,8 @@ namespace WebApiServer.Services
                     int idData = _context.LoadedDatas.Count();
                     int rowCount = 1;
                     int idFile = _context.LoadedFiles.Count() + 1;
-                    for (int i = 0; i < loadedFiles.Length; i++) { 
+                    for (int i = 0; i < loadedFiles.Length; i++)
+                    {
                         LoadedFileDTO file = loadedFiles[i];
                         int spectrum = -1;
                         string pattern = @"(?<=m)\d+(?=\.)"; //cisla co su po m a pred . 
@@ -148,7 +160,7 @@ namespace WebApiServer.Services
 
                             double excitacion = -1;
                             double data = -1;
-                            if (line  != null)
+                            if (line != null)
                             {
                                 if (startReading == true && !string.IsNullOrWhiteSpace(line))
                                 {
@@ -162,7 +174,7 @@ namespace WebApiServer.Services
                                     {
                                         data = result;
                                     }
-                                    
+
 
                                     LoadedData newRow = new LoadedData
                                     {
@@ -178,7 +190,7 @@ namespace WebApiServer.Services
 
 
 
-                                if (startReading == false && line == "#DATA") 
+                                if (startReading == false && line == "#DATA")
                                     startReading = true;
                             }
 

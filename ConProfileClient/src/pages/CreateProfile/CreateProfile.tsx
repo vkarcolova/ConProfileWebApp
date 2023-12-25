@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FolderDTO, MultiplyFolderDTO, ProjectDTO } from '../../types';
+import { FolderDTO, MultiplyFolderDTO, Profile, ProjectDTO } from '../../types';
 import DataTable from '../../components/DataTable';
 import './index.css'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { TreeView } from '@mui/x-tree-view/TreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
-import { Button, Divider, IconButton } from '@mui/material';
+import { Button, Divider, IconButton, Input, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 
 interface ChartData {
@@ -17,14 +16,23 @@ interface ChartData {
   label: string;
 }
 
+interface StatData {
+  max: number;
+  min: number;
+  std: number;
+}
+
 const CreateProfile: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState(0);
   const [folderData, setFolderData] = useState<FolderDTO | null>(null);
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
+  const [profileData, setProfileData] = useState<Profile | null>(null);
   const [multiplied, setMultiplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedValues, setSelectedValues] = useState<number[]>([]); //to co je?
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
+  const [normalStatData, setNormalStatData] = useState<StatData | null>(null);
+  const [multipliedStatData, setMultipliedStatData] = useState<StatData | null>(null);
+
   var foldersExpand: string[] = [];
 
   useEffect(() => {
@@ -32,15 +40,54 @@ const CreateProfile: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    //nacitanie legendy
+    //nacitanie legendy && statistik
     if (folderData) {
       const dynamicChartData: ChartData[] = folderData.data.map((data, index) => ({
         data: data.intensity,
-        label: 'pv'
+        label: data.filename
       }));
 
+      var allData: number[] = [];
+      folderData.data.forEach(element => {
+        allData = allData.concat(element.intensity);
+      });
+      console.log(allData);
+      const normalMax: number = Math.max(...allData);
+      const normalMin: number = Math.min(...allData);
+
+      const mean = allData.reduce((sum, number) => sum + number, 0) / allData.length;
+      const squaredDifferences = allData.map(number => Math.pow(number - mean, 2));
+      const variance = squaredDifferences.reduce((sum, squaredDifference) => sum + squaredDifference, 0) / allData.length;
+      const standardDeviation = Math.sqrt(variance);
+
+      const normalStat: StatData = { max: normalMax, min: normalMin, std: standardDeviation };
+      setNormalStatData(normalStat);
+
+      if (folderData.profile) {
+
+        dynamicChartData.push({
+          data: folderData.profile,
+          label: 'Profil'
+        });
+
+        const multipliedMax: number = Math.max(...folderData.profile);
+        const multipliedMin: number = Math.min(...folderData.profile);
+
+        const mean = folderData.profile.reduce((sum, number) => sum + number, 0) / folderData.profile.length;
+        const squaredDifferences = folderData.profile.map(number => Math.pow(number - mean, 2));
+        const variance = squaredDifferences.reduce((sum, squaredDifference) => sum + squaredDifference, 0) / folderData.profile.length;
+        const multipliedStandardDeviation = Math.sqrt(variance);
+
+        const multipliedStat: StatData = { max: multipliedMax, min: multipliedMin, std: multipliedStandardDeviation };
+        setMultipliedStatData(multipliedStat);
+      }
+
       setChartData(dynamicChartData);
-      console.log(dynamicChartData);
+      if (folderData.profile) {
+        const profile: Profile = { excitation: folderData.excitation, profile: folderData.profile };
+        setProfileData(profile);
+      }
+
     }
 
   }, [folderData]);
@@ -50,14 +97,13 @@ const CreateProfile: React.FC = () => {
     axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/1')
       .then(response => {
         setProjectData(response.data);
+        console.log(response.data);
         setFolderData(response.data.folders[selectedFolder])
         response.data.folders.forEach(element => {
           foldersExpand.push(element.foldername)
         });
         if (response.data.folders[selectedFolder].data[0].multipliedintensity)
           setMultiplied(true);
-
-
 
       })
       .catch(error => {
@@ -70,7 +116,6 @@ const CreateProfile: React.FC = () => {
 
 
   const multiplyButtonClick = async () => {
-    console.log('Vybrané hodnoty:', selectedValues);
     const factors: number[] = [];
     const ids: number[] = [];
 
@@ -95,7 +140,6 @@ const CreateProfile: React.FC = () => {
         IDS: ids,
       };
       try {
-        console.log(dataToSend);
         const response = await axios.post(
           'https://localhost:44300/LoadedData/PostFactorsMultiply',
           JSON.stringify(dataToSend),
@@ -126,15 +170,23 @@ const CreateProfile: React.FC = () => {
     return <div>Error loading data.</div>;
   }
 
-  const dotStyle = {
-    r: 2, // Nastavte veľkosť bodov podľa potreby
-    fill: 'blue', // Nastavte farbu bodov podľa potreby
-  };
 
   return (
     <div className='center-items main' style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-      <div className='first center-items' style={{ width: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
+      <div className='first center-items' style={{ display: 'flex', flexDirection: 'column',width: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
+      <div style={{marginBottom: '10px',  display: 'flex', flexDirection: 'row', fontWeight: 'bold'}}>
+        <h4 style={{marginLeft: '5px', fontWeight: 'bold'}}>Názov projektu</h4>
+      <Input
+        placeholder="Názov projektu"
+        value={projectData?.projectname}
+        sx={{
+          "--Input-minHeight": "41px"
+        }}
+        id='inputName'
+      />
+      </div>
         <div className='treeView' >
+   
           <p>Načítané priečinky</p>
           <div className='treeViewWindow'>
             {projectData != undefined ?
@@ -162,48 +214,124 @@ const CreateProfile: React.FC = () => {
               <AddCircleOutlineRoundedIcon />
             </IconButton>
             <button onClick={multiplyButtonClick} className="button-13" role="button" style={{ padding: '0px', margin: '0px' }}>Porovnať</button>
+          </div>
+
+          <div className='buttonContainerRows'>
+          <button onClick={multiplyButtonClick} className="button-13" role="button" style={{ padding: '0px', margin: '0px' }}>Exportovať</button>
+          <button onClick={multiplyButtonClick} className="button-1" role="button" style={{fontSize: '13px', marginTop: '10px', fontWeight: 'bolder', margin: '0px', width: 'auto' }}>Uložiť projekt</button>
 
           </div>
         </div>
       </div>
       <div className='second' style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '75%', }}>
-        <div className='upperContainer' style={{ flexDirection: 'row', display: 'flex' }}>
+        <div className='upperContainer' style={{ flexDirection: 'row', display: 'flex', marginTop: '10px' }}>
           <div className="table-container" style={{ width: '55%' }}>
             <DataTable folderData={folderData} showAutocomplete={true} />
           </div>
           <div className='otherContainer' style={{ width: '45%' }}>
             <div className='buttonCreateProfil'>
-              <button onClick={multiplyButtonClick} className="button-13" role="button">Vytvoriť profil</button>
+              <button onClick={multiplyButtonClick} className="button-1" role="button" style={{ fontSize: '11px' }}>Vytvoriť profil</button>
+              <button onClick={multiplyButtonClick} className="button-1" role="button" style={{ fontSize: '11px', marginLeft: 'auto', marginRight: '30px' }}>Exportovať graf</button>
+
             </div>
 
-            {folderData ?
-              <ScatterChart
-                height={300}
-                series={folderData.data.map((data, i) => ({
-
-                  label: data.filename,
-                  data: data.intensity.map((v, index) => ({ x: folderData.excitation[index], y: v, id: v })),
-                }))}
-                yAxis={[{ min: 0 }]}
-                xAxis={[{ min: 250 }]}
-              />
+            {chartData ?
+              <div style={{ height: '80%', padding: '10px' }}>
+                <ScatterChart
+                  series={chartData.map((data, i) => ({
+                    label: data.label,
+                    data: data.data.map((v, index) => ({ x: folderData.excitation[index], y: v, id: v })),
+                  }))}
+                  yAxis={[{ min: 0 }]}
+                  xAxis={[{ min: 250 }]}
+                />
+              </div>
               : ""}
 
           </div>
         </div>
-        <div className='bottomContainer' style={{ flexDirection: 'row', display: 'flex' }}>
+        <div className='bottomContainer' style={{ flexDirection: 'row', display: 'flex', marginTop: '10px' }}>
           <div className="table-container" style={{ width: '55%' }}>
             {multiplied && projectData ?
               <DataTable folderData={folderData} showAutocomplete={false} /> : <div className='emptyTable'></div>}
           </div>
-          <div className='otherContainer' style={{ width: '45%' }}>
-              <div className='profileTab'>
+          <div className='otherContainer' style={{ width: '45%', flexDirection: 'row', display: 'flex' }}>
+            <div className='profileTab'>
               {multiplied && projectData ?
-               <div className='emptyTable'></div>: <div className='emptyTable'></div>}
-              </div>
-              <div className='stats' style={{ width: '45%' }}>
+                <div className="table-container">
+                  <TableContainer component={Paper} >
+                    <Table stickyHeader size="small" aria-label="a dense table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><div className='TableRowName'>Excitácie</div></TableCell>
+                          <TableCell><div className='TableRowName'>Intenzity</div></TableCell>
 
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+
+                          <TableCell>
+                            {profileData?.excitation.map((value, i) => (
+                              <div key={i}>{value.toFixed(5)}</div>
+                            ))}
+                          </TableCell>
+                          <TableCell>
+                            {profileData?.profile.map((value, i) => (
+                              <div key={i}>{value.toFixed(5)}</div>
+                            ))}
+                          </TableCell>
+
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </div>
+                :
+                <div className='emptyTable'></div>}
+
+            </div>
+            <div className='statsContainer' >
+              <div className='stats'>
+                <div className='statsHead'>
+                  <h3>Štatistiky</h3>
+                </div>
+                <div style={{ flexDirection: 'row', display: 'flex', marginTop: '10px' }}>
+                  <div className='statsColumn'>
+                    <h4>Originálne</h4>
+                    <div className='center-items' style={{ marginTop: '20px', flexDirection: 'row', display: 'flex', textAlign: 'center'  }}>
+                      <div>
+                        <h4>Max</h4>
+                        <h4>Min</h4>
+                        <h4>Std</h4>
+                      </div>
+                      <div>
+                        <h5>{normalStatData?.max.toFixed(5)}</h5>
+                        <h5>{normalStatData?.min.toFixed(5)}</h5>
+                        <h5>{normalStatData?.std.toFixed(5)}</h5>
+                      </div>
+                    </div>
+                  </div>
+                  {multiplied ?
+                    <div className='statsColumn'>
+                      <h4>Prenásobené</h4>
+                      <div className='center-items' style={{ marginTop: '20px', flexDirection: 'row', display: 'flex', textAlign: 'center'  }}>
+                      <div>
+                        <h4>Max</h4>
+                        <h4>Min</h4>
+                        <h4>Std</h4>
+                      </div>
+                      <div>
+                        <h5>{multipliedStatData?.max.toFixed(5)}</h5>
+                        <h5>{multipliedStatData?.min.toFixed(5)}</h5>
+                        <h5>{multipliedStatData?.std.toFixed(5)}</h5>
+                      </div>
+                    </div>
+                    </div>
+                    : ""}
+                </div>
               </div>
+            </div>
           </div>
         </div>
       </div>
