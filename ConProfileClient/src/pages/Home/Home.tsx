@@ -1,12 +1,7 @@
- import axios from 'axios';
+import axios from 'axios';
 import '../../index.css'; 
  import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-
- interface LoadedFile{
-  FILENAME: string,
-  FOLDERNAME: string;
-  CONTENT: string;
-}
+ import { LoadedFile} from '../../types';
 
 
 const Home: React.FC = () => {
@@ -19,12 +14,17 @@ const Home: React.FC = () => {
 
 
   const handleSelectFolder = () => {
+    try{
     if (inputRef.current) {
       inputRef.current.click();
+    }} catch (error) {
+      console.log(error);
     }
   };
 
   const handleFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    
+    try{
     const selectedFiles = e.target.files;
     if (selectedFiles) {
       const filesArray: File[] = Array.from(selectedFiles).filter((file) =>
@@ -51,6 +51,7 @@ const Home: React.FC = () => {
         try {
           const result = await readFileAsync(file);
           const loadedFile: LoadedFile = {
+            IDPROJECT: -1,
             FILENAME: file.name,
             FOLDERNAME: folderName,
             CONTENT: result
@@ -63,6 +64,9 @@ const Home: React.FC = () => {
         }
       }
         sendData(loadedFiles);
+    }
+    } catch(error) {
+      console.log(error);
     }
   };
 

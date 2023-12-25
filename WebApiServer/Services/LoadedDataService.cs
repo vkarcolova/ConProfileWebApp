@@ -110,14 +110,16 @@ namespace WebApiServer.Services
             {
                 try
                 {
-                    int idProject = _context.Projects.Count() + 1;
-                    Project newProject = new Project
-                    {
-                        ProjectName = "NewProject",
-                        IdProject = idProject
-                    };
-                    _context.Projects.Add(newProject);
-
+                    int idProject = loadedFiles[0].IDPROJECT;
+                    if (idProject == -1) { 
+                        idProject = _context.Projects.Count() + 1;
+                        Project newProject = new Project
+                        {
+                            ProjectName = "NewProject",
+                            IdProject = idProject
+                        };
+                        _context.Projects.Add(newProject);
+                    }
                     int idFolder = _context.LoadedFolders.Count() + 1;
                     LoadedFolder newFolder = new LoadedFolder
                     {

@@ -42,3 +42,10 @@ export interface MultiplyFolderDTO {
   FACTORS: number[];
   IDS: number[];
 }
+
+export interface LoadedFile{
+  FILENAME: string,
+  FOLDERNAME: string;
+  CONTENT: string;
+  IDPROJECT: number;
+}

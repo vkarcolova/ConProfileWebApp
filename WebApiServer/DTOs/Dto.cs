@@ -2,6 +2,7 @@
 {
     public class LoadedFileDTO
     {
+        public int IDPROJECT {  get; set; }
         public string FILENAME { get; set; }
         public string FOLDERNAME { get; set; }
         public string CONTENT {  get; set; }
