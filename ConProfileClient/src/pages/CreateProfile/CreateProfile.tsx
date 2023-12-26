@@ -10,6 +10,7 @@ import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { Backdrop, Button, CircularProgress, Divider, IconButton, Input, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
+import { useParams } from 'react-router-dom';
 
 interface ChartData {
   data: number[];
@@ -33,6 +34,7 @@ const CreateProfile: React.FC = () => {
   const [normalStatData, setNormalStatData] = useState<StatData | null>(null);
   const [multipliedStatData, setMultipliedStatData] = useState<StatData | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const {id} = useParams<{ id: string }>();
 
   var foldersExpand: string[] = [];
 
@@ -99,7 +101,14 @@ const CreateProfile: React.FC = () => {
 
   const loadProject = async () => {
     // Získanie dát zo servera
-    axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/1')
+
+    if(id){
+      const idProject = parseInt(id,10);
+
+    axios.get<ProjectDTO>('https://localhost:44300/Project/GetProject/'+idProject,  
+    {headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }})
       .then(response => {
         setProjectData(response.data);
         console.log(response.data);
@@ -116,6 +125,7 @@ const CreateProfile: React.FC = () => {
       })
       .finally(() => {
       });
+    }
   }
   const handleSelectFolder = () => {
 
@@ -184,7 +194,8 @@ const CreateProfile: React.FC = () => {
         JSON.stringify(files),
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         }
 

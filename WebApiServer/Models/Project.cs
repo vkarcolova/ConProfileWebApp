@@ -12,6 +12,9 @@ namespace WebApiServer.Models
         public int IdProject { get; set; }
         public string ProjectName {get; set; }
 
+        public string Token { get; set; }
+
+        public DateTime Created { get; set; }
 
     }
 }

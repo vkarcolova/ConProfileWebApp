@@ -1,0 +1,37 @@
+.welcomebar {
+    min-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+
+.button-container {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100%;
+  }
+  
+  .home-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden; 
+    background-color: #E6E5E5;
+    
+
+  }
+
+  .emptydiv {
+    min-width: 100%;
+    min-height: 30%;
+  }
+
+  .table-container {
+
+    width: 60%;
+    padding-top: 20px;
+}

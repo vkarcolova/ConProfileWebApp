@@ -32,6 +32,7 @@
         public int IDPROJECT { get; set; }
         public string PROJECTNAME { get; set;}
         public List<FolderDTO> FOLDERS { get; set; }
+        public DateTime CREATED { get; set; }
     }
 
     public class MultiplyDataDTO

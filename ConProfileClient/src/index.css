@@ -59,23 +59,7 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-.home-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 90vh;
-  overflow: hidden; 
-  background-color: #E6E5E5;
 
-}
-
-.button-container {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 .large-button {
   background-color: rgba(59, 49, 119, 0.87);

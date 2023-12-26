@@ -21,7 +21,7 @@ function App() {
     <div style={{ backgroundColor: '#E6E5E5', height: '100vh', padding: '0px' }}>
             <Routes>
           <Route path="/" element={<Home />} /> 
-          <Route path="/create-profile" element={<CreateProfile />} />
+          <Route path="/create-profile/:id" element={<CreateProfile />} />
           <Route path="/compare-profiles" element={<Comparison />} />
       </Routes>
       </div>

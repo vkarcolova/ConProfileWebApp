@@ -24,6 +24,7 @@ export interface ProjectDTO {
   idproject: number;
   projectname: string;
   folders: FolderDTO[];
+  created: Date;
 }
 
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -43,10 +44,52 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpGet("GetProject/{id}")]
+        [HttpGet("GetProjectsByToken/{token}")]
+        public ActionResult<List<ProjectDTO>> GetItemsByToken(string token)
+        {
+            var userToken = token.ToString().Replace("Bearer ", "");
+
+            List<Project> projects = _context.Projects.Where(project => project.Token == userToken).ToList();
+
+            if (projects == null)
+            {
+                return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené
+            } else
+            {
+                List<ProjectDTO> allProjects = new List<ProjectDTO>();
+                foreach(Project project in projects)
+                {
+                    List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
+                    List<FolderDTO> foldersDTO = new List<FolderDTO>();
+                    foreach(LoadedFolder folder in folders)
+                    {
+                        FolderDTO folderDTO = new FolderDTO { FOLDERNAME = folder.FolderName };
+                        foldersDTO.Add(folderDTO);
+                    }
+
+                    ProjectDTO result = new ProjectDTO
+                    {
+                        IDPROJECT = project.IdProject,
+                        PROJECTNAME = project.ProjectName,
+                        FOLDERS = foldersDTO,
+                        CREATED = project.Created,
+
+                    };
+
+                    allProjects.Add(result);
+                }
+                
+
+                return allProjects;
+            }
+        }
+
+            [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
-            Project project = _context.Projects.Where(project => project.IdProject == id ).First();
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            Project project = _context.Projects.Where(project => project.IdProject == id && project.Token == userToken).FirstOrDefault();
 
             if (project == null)
             {
@@ -125,7 +168,8 @@ namespace WebAPI.Controllers
                 {
                     IDPROJECT = id,
                     PROJECTNAME = project.ProjectName,
-                    FOLDERS = folderList
+                    FOLDERS = folderList,
+                    CREATED = project.Created,
 
                 };
                 return result;
