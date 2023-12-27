@@ -1,0 +1,18 @@
+.dialog-content {
+    min-height: 60vh;
+    min-width: 60vh;
+
+}
+
+.checkboxlitwindow {
+    font-family: 'Poppins', sans-serif;
+    min-height: 30vh;
+    width: 80%;
+    border-style: solid;
+    border-width: 1px;
+    background-color: white;
+    border-color: #97a7b7;
+    margin-bottom: 020px;
+
+
+}

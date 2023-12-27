@@ -21,7 +21,6 @@ function App() {
             <Routes>
           <Route path="/" element={<Home />} /> 
           <Route path="/create-profile/:id" element={<CreateProfile />} />
-          <Route path="/compare-profiles" element={<Comparison />} />
       </Routes>
       </div>
 

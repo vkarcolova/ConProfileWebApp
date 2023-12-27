@@ -10,7 +10,6 @@ import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 interface DataTableProps {
   folderData: FolderDTO;
   showAutocomplete: boolean;
-  
 }
 
 const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) => {
@@ -34,38 +33,43 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
       });
   }, []);
 
+  const calculateColumnWidth = () => {
+    const totalColumns = folderData.data.length;
+    return `${100 / totalColumns}%`;
+  };
+
   return (
-    <TableContainer component={Paper} >
+    <TableContainer component={Paper}>
       <Table stickyHeader size="small" aria-label="a dense table">
         <TableHead>
-
           <TableRow>
             {folderData.data.map((tableData, index) => (
               <React.Fragment key={tableData.filename}>
-
-                <TableCell><div className='TableRowName'>{tableData.filename}</div></TableCell>
-              </React.Fragment>
-            ))}
-          </TableRow>
-          {showAutocomplete ? <TableRow>
-            {folderData.data.map((tableData, index) => (
-              <React.Fragment key={tableData.filename}>
-
-                <TableCell> 
-                  <div className='autocomplete'>
-                <CustomInputAutocomplete id={tableData.spectrum}/>
-                </div>
+                <TableCell style={{ width: calculateColumnWidth() }}>
+                  <div className='TableRowName'>{tableData.filename}</div>
                 </TableCell>
               </React.Fragment>
             ))}
-          </TableRow> : ""}
+          </TableRow>
+          {showAutocomplete ? (
+            <TableRow>
+              {folderData.data.map((tableData, index) => (
+                <React.Fragment key={tableData.filename}>
+                  <TableCell style={{ width: calculateColumnWidth() }}>
+                    <div className='autocomplete'>
+                      <CustomInputAutocomplete id={tableData.spectrum} />
+                    </div>
+                  </TableCell>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          ) : null}
         </TableHead>
-        {showAutocomplete ? 
         <TableBody>
           <TableRow>
             {folderData.data.map((tableData, index) => (
               <React.Fragment key={tableData.filename}>
-                <TableCell>
+                <TableCell style={{ width: calculateColumnWidth() }}>
                   {tableData.intensity.map((intensity, i) => (
                     <div key={i}>{intensity.toFixed(5)}</div>
                   ))}
@@ -73,22 +77,7 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
               </React.Fragment>
             ))}
           </TableRow>
-        </TableBody> :        
-        <TableBody>
-          <TableRow>            
-            {folderData.data.map((tableData, index) => (
-              <React.Fragment key={tableData.filename}>
-                {tableData.multipliedintensity ?
-                <TableCell>
-                  {tableData.multipliedintensity.map((multipliedintensity, i) => (
-                    <div key={i}>{multipliedintensity.toFixed(5)}</div>
-                  ))}
-                </TableCell> : ""
-                }
-              </React.Fragment>
-            ))}
-          </TableRow>
-        </TableBody>}
+        </TableBody>
       </Table>
     </TableContainer>
   );

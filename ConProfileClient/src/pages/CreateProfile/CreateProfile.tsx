@@ -11,6 +11,8 @@ import { Backdrop, Button, CircularProgress, Divider, IconButton, Input, Paper, 
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { useParams } from 'react-router-dom';
+import Comparison from '../Comparison/Comparison';
+import { CustomTreeItem } from '../../components/CustomTreeNode';
 
 interface ChartData {
   data: number[];
@@ -35,6 +37,8 @@ const CreateProfile: React.FC = () => {
   const [multipliedStatData, setMultipliedStatData] = useState<StatData | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const {id} = useParams<{ id: string }>();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(null);
 
   var foldersExpand: string[] = [];
 
@@ -54,12 +58,10 @@ const CreateProfile: React.FC = () => {
         data: data.intensity,
         label: data.filename
       }));
-      console.log("som tuuuuu");
       var allData: number[] = [];
       folderData.data.forEach(element => {
         allData = allData.concat(element.intensity);
       });
-      console.log(allData);
       const normalMax: number = Math.max(...allData);
       const normalMin: number = Math.min(...allData);
 
@@ -111,13 +113,24 @@ const CreateProfile: React.FC = () => {
     }})
       .then(response => {
         setProjectData(response.data);
-        console.log(response.data);
         setFolderData(response.data.folders[selectedFolder])
+
+        const comparefolders: FolderDTO[] = [];
+
+
         response.data.folders.forEach(element => {
-          foldersExpand.push(element.foldername)
+          if(element.profile){
+            comparefolders.push(element);
+          }
         });
+
+        setFoldersToCompare(comparefolders);
+
+        console.log(foldersExpand);
         if (response.data.folders[selectedFolder].data[0].multipliedintensity)
           setMultiplied(true);
+
+        
 
       })
       .catch(error => {
@@ -219,11 +232,9 @@ const CreateProfile: React.FC = () => {
         setSelectedFolder(index);
         setFolderData(value);
         if (value.data[0].multipliedintensity != null) {
-          console.log("je true");
           setMultiplied(true);
         } else {
           setMultiplied(false);
-          console.log("je false");
         }
         handleSelectedFolder();
 
@@ -237,7 +248,6 @@ const CreateProfile: React.FC = () => {
     const ids: number[] = [];
 
     folderData?.data.forEach(element => {
-      console.log(element.spectrum);
       const autocompleteInput = document.getElementById(`autocomplete-${element.spectrum}`) as HTMLInputElement | null;
       const inputFactor = autocompleteInput ? parseFloat(autocompleteInput.value) : null;
       if (inputFactor) {
@@ -246,11 +256,10 @@ const CreateProfile: React.FC = () => {
       }
       else {
         alert("Nesprávne zadané reporty!");
-        return;
+        return; //todo aby sa vyletelo z forka
       }
-
     });
-    if (factors.length > 0 && folderData && ids) {
+    if (factors.length == folderData?.data.length && folderData && ids) {
       const dataToSend: MultiplyFolderDTO = {
         IDFOLDER: folderData.id,
         FACTORS: factors,
@@ -267,7 +276,6 @@ const CreateProfile: React.FC = () => {
           }
 
         ).then(() => {
-          console.log(dataToSend);
           loadProject();
         });
 
@@ -275,6 +283,8 @@ const CreateProfile: React.FC = () => {
         console.error('Chyba pri načítavaní dát:', error);
 
       }
+    } else {
+      return;
     }
 
   };
@@ -289,12 +299,25 @@ const CreateProfile: React.FC = () => {
     return <div>Error loading data.</div>;
   }
 
+  const handleOpenDialog = () => {
+    if(foldersToCompare && foldersToCompare.length < 2){
+      alert("Vytvorte aspoň 2 profily na porovnanie");
+    } else {
+      setDialogOpen(true);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
 
   return (
     <div>
    
     <div className='center-items main' style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-      
+    <Comparison open={dialogOpen} onClose={handleCloseDialog} folders={foldersToCompare} />
+
         <div className='first center-items' style={{ display: 'flex', flexDirection: 'column', width: '25%', minHeight: '100vh', paddingRight: '20px', paddingLeft: '20px' }}>
           <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'row', fontWeight: 'bold' }}>
             <h4 style={{ marginLeft: '5px', fontWeight: 'bold' }}>Názov projektu</h4>
@@ -313,25 +336,26 @@ const CreateProfile: React.FC = () => {
             <div className='treeViewWindow'>
               {projectData != undefined ?
                 <TreeView
-                  aria-label="controlled"
-                  defaultCollapseIcon={<ExpandMoreIcon />}
-                  defaultExpandIcon={<ChevronRightIcon />}
-                  defaultExpanded={[projectData?.folders[0].id.toString()]}
-                  onNodeSelect={handleNodeSelect}
-                >
-                  {projectData?.folders.map((folder, index) => (
-                    <TreeItem nodeId={folder.id.toString()}
-                      label={folder.foldername}
-                      style={{ fontFamily: 'Poppins', fontSize: 'larger' }}
-                    >
-                      {folder.data.map((file, index) => (
-                        <TreeItem nodeId={file.filename} label={file.filename}>
-                        </TreeItem>
-                      ))}
-                    </TreeItem>
-
-                  ))}
-                </TreeView> : ""}
+                aria-label="controlled"
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}
+                defaultExpanded={foldersExpand}
+                onNodeSelect={handleNodeSelect}
+              >
+                {projectData?.folders.map((folder, index) => (
+                  <CustomTreeItem
+                    nodeId={folder.id.toString()}
+                    label={folder.foldername}
+                    key={folder.id.toString()}
+                    style={{ fontFamily: 'Poppins', fontSize: 'larger' }}
+                  >
+                    {folder.data.map((file, index) => (
+                      <TreeItem nodeId={file.filename} label={file.filename} key={file.filename} />
+                    ))}
+                  </CustomTreeItem>
+                ))}
+              </TreeView>
+               : ""}
 
             </div>
 
@@ -348,7 +372,7 @@ const CreateProfile: React.FC = () => {
                 multiple
                 style={{ display: 'none' }}
               />
-              <button onClick={multiplyButtonClick} className="button-13" role="button" style={{ padding: '0px', margin: '0px' }}>Porovnať</button>
+              <button onClick={handleOpenDialog} className="button-13" role="button" style={{ padding: '0px', margin: '0px' }}>Porovnať</button>
             </div>
 
             <div className='buttonContainerRows'>
@@ -371,7 +395,7 @@ const CreateProfile: React.FC = () => {
               </div>
 
               {chartData ?
-                <div style={{ height: '80%', padding: '10px' }}>
+                <div style={{ height: '83%', margin: '10px', backgroundColor: 'white' }}>
                   <ScatterChart
                     series={chartData.map((data, i) => ({
                       label: data.label,

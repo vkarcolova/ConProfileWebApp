@@ -56,7 +56,13 @@ namespace WebApiServer.Services
                             data.MultipliedIntensity = multiplied;
                         }
                     }
-                    int idProfile = _context.ProfileDatas.Count() + 1;
+                    int idProfile = 1;
+                    if (_context.ProfileDatas.Count() >= 1)
+                    {
+                        idProfile = _context.ProfileDatas
+                        .OrderByDescending(obj => obj.IdProfileData)
+                        .FirstOrDefault().IdProfileData + 1;
+                    }
 
                     if (allData[0][0].MultipliedIntensity.HasValue)
                     {
@@ -124,7 +130,12 @@ namespace WebApiServer.Services
                     };
                     _context.Projects.Add(newProject);
 
-                    int idFolder = _context.LoadedFolders.Count() + 1;
+                    int idFolder = 1;
+                    if (_context.LoadedFolders.Count() >= 1)
+                    {
+                        idFolder = _context.LoadedFolders.OrderByDescending(obj => obj.IdFolder)
+                         .FirstOrDefault().IdFolder + 1;
+                    }
                     LoadedFolder newFolder = new LoadedFolder
                     {
                         FolderName = loadedFiles[0].FOLDERNAME,
@@ -132,9 +143,20 @@ namespace WebApiServer.Services
                         IdProject = idProject
                     };
                     _context.LoadedFolders.Add(newFolder);
-                    int idData = _context.LoadedDatas.Count();
+                    int idData = 1;
+                    if (_context.LoadedDatas.Count() >= 1)
+                    {
+                        idData = _context.LoadedDatas.OrderByDescending(obj => obj.IdData)
+                         .FirstOrDefault().IdData;
+                    }
                     int rowCount = 1;
-                    int idFile = _context.LoadedFiles.Count() + 1;
+
+                    int idFile = 1;
+                    if (_context.Projects.Count() >= 1)
+                    {
+                        idFile = _context.LoadedFiles.OrderByDescending(obj => obj.IdFile)
+                        .FirstOrDefault().IdFile + 1;
+                    }
                     for (int i = 0; i < loadedFiles.Length; i++)
                     {
                         LoadedFileDTO file = loadedFiles[i];
@@ -209,7 +231,7 @@ namespace WebApiServer.Services
                 }
                 catch (Exception ex)
                 {
-                    return new BadRequestResult() ;
+                    return new BadRequestResult();
                 }
 
             }
@@ -227,7 +249,12 @@ namespace WebApiServer.Services
                 try
                 {
                     int idProject = loadedFiles[0].IDPROJECT;
-                    int idFolder = _context.LoadedFolders.Count() + 1;
+                    int idFolder = 1;
+                    if (_context.LoadedFolders.Count() >= 1)
+                    {
+                        idFolder = _context.LoadedFolders.OrderByDescending(obj => obj.IdFolder)
+                         .FirstOrDefault().IdFolder + 1;
+                    }
                     LoadedFolder newFolder = new LoadedFolder
                     {
                         FolderName = loadedFiles[0].FOLDERNAME,
@@ -235,9 +262,20 @@ namespace WebApiServer.Services
                         IdProject = idProject
                     };
                     _context.LoadedFolders.Add(newFolder);
-                    int idData = _context.LoadedDatas.Count();
+                    int idData = 1;
+                    if (_context.LoadedDatas.Count() >= 1)
+                    {
+                        idData = _context.LoadedDatas.OrderByDescending(obj => obj.IdData)
+                         .FirstOrDefault().IdData;
+                    }
                     int rowCount = 1;
-                    int idFile = _context.LoadedFiles.Count() + 1;
+
+                    int idFile = 1;
+                    if (_context.Projects.Count() >= 1)
+                    {
+                        idFile = _context.LoadedFiles.OrderByDescending(obj => obj.IdFile)
+                        .FirstOrDefault().IdFile + 1;
+                    }
                     for (int i = 0; i < loadedFiles.Length; i++)
                     {
                         LoadedFileDTO file = loadedFiles[i];

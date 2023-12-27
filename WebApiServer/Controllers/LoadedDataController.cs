@@ -55,9 +55,14 @@ namespace WebAPI.Controllers
                 {
                     token = userToken;
                 }
+                int idProject = 1;
+                if(_context.Projects.Count() >= 1)
+                {
+                    idProject = _context.Projects
+                .OrderByDescending(obj => obj.IdProject)
+                .FirstOrDefault().IdProject + 1;
 
-
-                int idProject = _context.Projects.Count() + 1;
+                }
 
                 IActionResult result = await _loadedDataService.ProcessNewProjectData(loadedFiles, token, idProject);
 
