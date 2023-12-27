@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+
+
 .welcomebar {
     min-width: 100%;
     display: flex;
@@ -30,8 +33,17 @@
     min-height: 30%;
   }
 
-  .table-container {
+  .tab-container {
 
     width: 60%;
     padding-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+
+}
+
+.table-head {
+  font-weight: bold;
+  font-size: 13px;
+  font-family: 'Poppins';
 }

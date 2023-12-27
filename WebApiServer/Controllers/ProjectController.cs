@@ -83,8 +83,43 @@ namespace WebAPI.Controllers
                 return allProjects;
             }
         }
+        [HttpDelete("DeleteProject/{id}")]
+        public ActionResult<ProjectDTO> DeleteItemById(int id)
+        {
 
-            [HttpGet("GetProject/{id}")]
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == id && project.Token == userToken);
+
+            if(projectToRemove == null) {
+                return NotFound();
+            }
+            List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
+            foreach(LoadedFolder folder in folders)
+            {
+                List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).ToList();
+                foreach (LoadedFile file in files)
+                {
+
+                    List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
+
+                    _context.LoadedDatas.RemoveRange(data);
+                }
+                _context.LoadedFiles.RemoveRange(files);
+
+                List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
+                _context.ProfileDatas.RemoveRange(profile);
+            }
+            _context.LoadedFolders.RemoveRange(folders);
+
+            _context.Projects.Remove(projectToRemove);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");

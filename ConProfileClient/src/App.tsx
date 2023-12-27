@@ -1,5 +1,4 @@
 import './App.css'
-import New from './components/New'
 import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import CreateProfile from './pages/CreateProfile/CreateProfile'

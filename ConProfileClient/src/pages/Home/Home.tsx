@@ -4,8 +4,10 @@ import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 're
 import { FolderDTO, LoadedFile, ProjectDTO } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import './index.css'
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
-
+import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import moment from 'moment';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ModeEditIcon from '@mui/icons-material/ModeEdit';
 const Home: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
@@ -138,8 +140,32 @@ const Home: React.FC = () => {
         .finally(() => {
         });
     }
-
   }
+
+
+const handleDeleteProject = async (id: number) => {
+  const token = localStorage.getItem('token');
+
+  if (token != undefined || token != null) {
+    try {
+      const response = await axios.delete('https://localhost:44300/Project/DeleteProject/' + id, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      getProjectsByUser();
+      console.log(response.data);
+    } catch (error) {
+      console.error('Chyba pri získavaní dát zo servera:', error);
+    }
+  }
+};
+
+const handleEditProject = async (id: number) => {
+  navigate('/create-profile/' + id);
+};
+
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -160,38 +186,51 @@ const Home: React.FC = () => {
         />
         <div className='welcomebar'>
           <div className="small-text">Informacie o webe, projekty ktoré tu už boli vytvorené...</div>
-          {projectsData && projectsData?.length > 0  ? <div className='table-container'> <TableContainer component={Paper} >
+          {projectsData && projectsData?.length > 0 ? <div className='tab-container'> <TableContainer component={Paper} >
 
             <Table sx={{ width: '100%' }} stickyHeader size="small" aria-label="a dense table">
               <TableHead>
-                <TableRow>
+                <TableRow >
 
-                  <TableCell > Názov projektu</TableCell >
-                  <TableCell > Dátum úpravy</TableCell >
-                  <TableCell > Načítané priečinky</TableCell >
+                  <TableCell style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Názov projektu</TableCell >
+                  <TableCell  style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Dátum vytvorenia</TableCell >
+                  <TableCell  style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Načítané priečinky</TableCell >
+                  <TableCell > </TableCell >
+
                 </TableRow>
               </TableHead>
 
               <TableBody>
 
-                {projectsData.map((project: ProjectDTO, index: number) => (<TableRow>
+                {projectsData.map((project: ProjectDTO, index: number) => {
+                  return (<TableRow>
 
-                  <React.Fragment key={project.idproject}>
-                    <TableCell> {project.projectname} </TableCell>
-                    <TableCell>{new Date().getDate()}.{new Date().getMonth() + 1}.{new Date().getFullYear()}</TableCell>
-                    <TableCell>
-                      {project.folders.slice(0, 3).map((folder: FolderDTO, index: number) => (
-                        <React.Fragment key={index}>
-                          {folder.foldername}
-                          {index < 2 && ' '} 
-                        </React.Fragment>
-                      ))}
-                      {project.folders.length > 3 && '...'} 
-                    </TableCell>
+                    <React.Fragment key={project.idproject}>
+                      <TableCell> {project.projectname} </TableCell>
+                      <TableCell>{moment(project.created).format('DD.MM.YYYY HH:mm:ss')}</TableCell>
+                      <TableCell>
+                        {project.folders.slice(0, 3).map((folder: FolderDTO, index: number) => (
+                          <React.Fragment key={index}>
+                            {folder.foldername}
+                            {index < 2 && ' '}
+                          </React.Fragment>
+                        ))}
+                        {project.folders.length > 3 && '...'}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton aria-label="delete" onClick={() => handleDeleteProject(project.idproject)}>
+                          <DeleteIcon />
+                        </IconButton>
 
-                  </React.Fragment>
+                        <IconButton aria-label="edit" onClick={() => handleEditProject(project.idproject)}>
+                          <ModeEditIcon />
+                        </IconButton>
+                      </TableCell>
 
-                </TableRow>))}
+                    </React.Fragment>
+
+                  </TableRow>);
+                })}
               </TableBody>
             </Table>
           </TableContainer></div> : ""}
