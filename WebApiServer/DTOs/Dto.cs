@@ -1,6 +1,6 @@
 ﻿namespace WebApiServer.DTOs
 {
-    public class LoadedFileDTO
+    public class FileContent
     {
         public int IDPROJECT {  get; set; }
         public string FILENAME { get; set; }
@@ -14,11 +14,11 @@
         public string FOLDERNAME { get; set; }
         public List<double> EXCITATION { get; set; }
         public List<double>? PROFILE {  get; set; }
-        public List<TableDataDTO> DATA { get; set; }
+        public List<FileDTO> DATA { get; set; }
 
     }
 
-    public class TableDataDTO
+    public class FileDTO
     {
         public int ID { get; set; }
         public string FILENAME { get; set; }
@@ -27,10 +27,18 @@
         public int SPECTRUM { get; set; }
     }
 
+    //public class NewProjectDTO
+    //{ 
+    //    //public int IDPROJECT { get; set; }
+    //    public string PROJECTNAME { get; set;}
+    //    public List<FolderDTO> FOLDERS { get; set; }
+    //    public DateTime CREATED { get; set; }
+    //}
+
     public class ProjectDTO
-    { 
+    {
         public int IDPROJECT { get; set; }
-        public string PROJECTNAME { get; set;}
+        public string PROJECTNAME { get; set; }
         public List<FolderDTO> FOLDERS { get; set; }
         public DateTime CREATED { get; set; }
     }

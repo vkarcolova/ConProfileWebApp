@@ -1,16 +1,18 @@
 import axios from 'axios';
 import '../../index.css';
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { FolderDTO, LoadedFile, ProjectDTO } from '../../types';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { FolderDTO, FileContent, ProjectDTO } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import './index.css'
 import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import moment from 'moment';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
+
 const Home: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
+  const navigate = useNavigate()
 
   useEffect(() => {
     getProjectsByUser();
@@ -28,7 +30,6 @@ const Home: React.FC = () => {
   };
 
   const handleFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
-
     try {
       const selectedFiles = e.target.files;
       if (selectedFiles) {
@@ -36,7 +37,7 @@ const Home: React.FC = () => {
           file.name.endsWith('.sp')
         );
         const folderName = filesArray[0].webkitRelativePath.split('/')[0];
-        const loadedFiles: LoadedFile[] = [];
+        const loadedFiles: FileContent[] = [];
 
         const readFileAsync = (file: File): Promise<string> => {
           return new Promise((resolve, reject) => {
@@ -55,8 +56,8 @@ const Home: React.FC = () => {
         for (const file of filesArray) {
           try {
             const result = await readFileAsync(file);
-            const loadedFile: LoadedFile = {
-              IDPROJECT: -1,
+            const loadedFile: FileContent = {
+              //IDPROJECT: -1,
               FILENAME: file.name,
               FOLDERNAME: folderName,
               CONTENT: result
@@ -76,10 +77,7 @@ const Home: React.FC = () => {
   };
 
 
-  const navigate = useNavigate()
-
-
-  const sendData = async (files: LoadedFile[]) => {
+  const sendData = async (files: FileContent[]) => {
     try {
       const token = localStorage.getItem('token');
       console.log(token);
@@ -97,20 +95,20 @@ const Home: React.FC = () => {
 
 
       const response = await axios.post(
-        'https://localhost:44300/LoadedData/PostNewProject',
+        'https://localhost:44300/LoadedFolder/CreateNewProject',
         JSON.stringify(files),
         {
           headers: customHeaders,
         }
-
       ).then(response => {
         console.log(response.data);
-        // Uloženie tokenu do localStorage
-
         const token = response.data.token;
         const id = response.data.idproject;
         localStorage.setItem('token', token);
-        navigate('/create-profile/' + id);
+        const objString = JSON.stringify(response.data.project);
+        sessionStorage.setItem('loadeddata', objString);
+        navigate('/create-profile/');
+       // navigate('/create-profile/' + id);
       });
     } catch (error) {
       console.error('Chyba pri načítavaní dát:', error);
@@ -121,9 +119,7 @@ const Home: React.FC = () => {
     // Získanie dát zo servera
 
     const token = localStorage.getItem('token');
-
     if (token != undefined || token != null) {
-
       axios.get<ProjectDTO[]>('https://localhost:44300/Project/GetProjectsByToken/' + token,
         {
           headers: {
@@ -186,25 +182,20 @@ const handleEditProject = async (id: number) => {
         />
         <div className='welcomebar'>
           <div className="small-text">Informacie o webe, projekty ktoré tu už boli vytvorené...</div>
-          {projectsData && projectsData?.length > 0 ? <div className='tab-container'> <TableContainer component={Paper} >
+          {projectsData && projectsData?.length > 0 && (<div className='tab-container'> <TableContainer component={Paper} >
 
             <Table sx={{ width: '100%' }} stickyHeader size="small" aria-label="a dense table">
               <TableHead>
                 <TableRow >
-
                   <TableCell style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Názov projektu</TableCell >
                   <TableCell  style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Dátum vytvorenia</TableCell >
                   <TableCell  style={{fontFamily: 'Poppins', fontWeight: 'bolder'}}> Načítané priečinky</TableCell >
-                  <TableCell > </TableCell >
-
+                  <TableCell> </TableCell >
                 </TableRow>
               </TableHead>
-
               <TableBody>
-
-                {projectsData.map((project: ProjectDTO, index: number) => {
+                {projectsData.map((project: ProjectDTO) => {
                   return (<TableRow>
-
                     <React.Fragment key={project.idproject}>
                       <TableCell> {project.projectname} </TableCell>
                       <TableCell>{moment(project.created).format('DD.MM.YYYY HH:mm:ss')}</TableCell>
@@ -221,23 +212,18 @@ const handleEditProject = async (id: number) => {
                         <IconButton aria-label="delete" onClick={() => handleDeleteProject(project.idproject)}>
                           <DeleteIcon />
                         </IconButton>
-
                         <IconButton aria-label="edit" onClick={() => handleEditProject(project.idproject)}>
                           <ModeEditIcon />
                         </IconButton>
                       </TableCell>
-
                     </React.Fragment>
-
                   </TableRow>);
                 })}
               </TableBody>
             </Table>
-          </TableContainer></div> : ""}
-
+          </TableContainer></div>)}
         </div>
       </div>
-
     </div>
   );
 };

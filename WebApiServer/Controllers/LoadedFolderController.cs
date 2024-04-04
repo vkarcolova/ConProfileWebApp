@@ -15,12 +15,16 @@ namespace WebApiServer.Controllers
     {
         private readonly ILogger<LoadedDataController> _logger;
         private readonly ApiDbContext _context;
+        private readonly ILoadedDataService _loadedDataService;
+
 
         public LoadedFolderController(ApiDbContext context,
-            ILogger<LoadedDataController> logger)
+            ILogger<LoadedDataController> logger,
+            ILoadedDataService service)
         {
             _logger = logger;
             _context = context;
+            _loadedDataService = service;
         }
 
         [HttpGet("GetFolder/{id}")]
@@ -34,7 +38,7 @@ namespace WebApiServer.Controllers
             } else
             {
                 List<double> excitation = new List<double>();
-                List<TableDataDTO> tabledata = new List<TableDataDTO>();
+                List<FileDTO> tabledata = new List<FileDTO>();
 
                 foreach (LoadedFile file in files)
                 {
@@ -44,7 +48,7 @@ namespace WebApiServer.Controllers
                     if (excitation.Count == 0 || (excitation.Count < intensity.Count))
                         excitation = loadedData.Select(data => data.Excitation).ToList();
                     
-                    TableDataDTO data = new TableDataDTO
+                    FileDTO data = new FileDTO
                     {
                         FILENAME = file.FileName,
                         INTENSITY = intensity,
@@ -57,7 +61,7 @@ namespace WebApiServer.Controllers
 
                 FolderDTO result = new FolderDTO
                 {
-                    ID = folder.IdFolder,
+                    //ID = folder.IdFolder,
                     FOLDERNAME = folder.FolderName,
                     EXCITATION = excitation,
                     DATA = tabledata
@@ -68,6 +72,44 @@ namespace WebApiServer.Controllers
         }
 
 
+        [HttpPost("CreateNewProject")]
+        public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles)
+        {
+            // Spracovanie prijatých súborov
+            if (loadedFiles != null && loadedFiles.Any())
+            {
+                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                string token = "";
+                if (userToken == "")
+                {
+                    token = _loadedDataService.GenerateJwtToken();
+                }
+                else
+                {
+                    token = userToken;
+                }
 
+                List<FolderDTO> folders = new List<FolderDTO>();
+                folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
+                ProjectDTO result = new ProjectDTO
+                {
+                    CREATED = DateTime.Now,
+                    FOLDERS = folders,
+                    IDPROJECT = -1,
+                    PROJECTNAME = loadedFiles[0].FOLDERNAME
+                };
+                if (folders.Count != 0)
+                {
+                    return Ok(new { TOKEN = token, PROJECT = result });
+                }
+                else
+                    return BadRequest(result);
+
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
+        }
     }
 }
