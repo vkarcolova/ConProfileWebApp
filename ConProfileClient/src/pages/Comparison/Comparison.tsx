@@ -1,15 +1,11 @@
 // Comparison.tsx
 import React, { useEffect, useState } from 'react';
-import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import CloseIcon from '@mui/icons-material/Close';
-import Typography from '@mui/material/Typography';
 import './index.css';
 import { FolderDTO } from '../../types';
-import { TreeView } from '@mui/x-tree-view/TreeView';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { Checkbox, IconButton, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
@@ -34,12 +30,10 @@ interface StatData {
   folderName: string;
 }
 
-
 const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   const [checked, setChecked] = useState<number[]>([]);
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
   const [statData, setStatData] = useState<StatData[]>([]);
-
 
   useEffect(() => {
     //nacitanie legendy && statistik
@@ -54,7 +48,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       setChecked(list);
       if (list.length >= 2) {
         const filteredFolders = folders?.filter(data => checked.includes(data.id))
-          .map((data, index) => ({
+          .map((data) => ({
             data: data?.profile || [],
             label: data?.foldername || 'Unknown',
           })) || [];
@@ -64,25 +58,17 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         filteredFolders.forEach(element => {
           const multipliedMax: number = Math.max(...element.data);
           const multipliedMin: number = Math.min(...element.data);
-
           const mean = element.data.reduce((sum, number) => sum + number, 0) / element.data.length;
           const squaredDifferences = element.data.map(number => Math.pow(number - mean, 2));
           const variance = squaredDifferences.reduce((sum, squaredDifference) => sum + squaredDifference, 0) / element.data.length;
           const multipliedStandardDeviation = Math.sqrt(variance);
-
           const statistics: StatData = { max: multipliedMax, min: multipliedMin, std: multipliedStandardDeviation, folderName: element.label };
-
           statList.push(statistics)
         });
         setStatData(statList);
-
       }
-
     }
-
   };
-
-
 
   return (
     <Dialog
@@ -90,7 +76,6 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       aria-labelledby="customized-dialog-title"
       open={open}
       maxWidth='md'
-
     >
       <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
         Porovnanie profilov
@@ -113,7 +98,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
             <div style={{ width: '40%' }}>
               <div className='checkboxlitwindow'>
                 <List dense={true}>
-                  {folders?.map((value, i) => (
+                  {folders?.map((value) => (
                     <ListItem style={{ padding: '0px' }}>
                       <Checkbox
                         onChange={(event) => handleChange(event, value.id)}
@@ -137,38 +122,29 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                     <TableHead>
                       <TableRow >
                         <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bolder' }}> Priečinok</TableCell >
-
                         <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bolder' }}> Max</TableCell >
                         <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bolder' }}> Min</TableCell >
                         <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bolder' }}> Std</TableCell >
-
                       </TableRow>
                     </TableHead>
-
                     <TableBody>
-
-                      {statData.map((stat: StatData, index: number) => {
+                      {statData.map((stat: StatData) => {
                         return (<TableRow>
                           <TableCell> {stat.folderName} </TableCell>
-
                           <TableCell> {stat.max.toFixed(5)} </TableCell>
                           <TableCell> {stat.min.toFixed(5)} </TableCell>
                           <TableCell> {stat.std.toFixed(5)} </TableCell>
-
-
                         </TableRow>);
                       })}
                     </TableBody>
                   </Table>
                 </TableContainer></div> : ""}
-
-
             </div>
             <div style={{ width: '60%' }}>
               {chartData && folders ?
                 <div style={{ height: '50vh', margin: '10px', backgroundColor: 'white' }}>
                   <ScatterChart
-                    series={chartData.map((data, i) => ({
+                    series={chartData.map((data) => ({
                       label: data.label,
                       data: data.data.map((v, index) => ({ x: folders[0].excitation[index], y: v, id: v })),
                     }))}

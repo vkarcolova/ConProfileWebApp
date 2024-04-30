@@ -86,7 +86,6 @@ namespace WebAPI.Controllers
         [HttpDelete("DeleteProject/{id}")]
         public ActionResult<ProjectDTO> DeleteItemById(int id)
         {
-
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == id && project.Token == userToken);
@@ -118,7 +117,6 @@ namespace WebAPI.Controllers
             return Ok();
         }
 
-
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
@@ -140,7 +138,7 @@ namespace WebAPI.Controllers
 
                 foreach (LoadedFolder folder in folders) { 
                     List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
-                    List<TableDataDTO> tabledata = new List<TableDataDTO>();
+                    List<FileDTO> tabledata = new List<FileDTO>();
 
                     foreach (LoadedFile file in files)
                     {
@@ -153,9 +151,9 @@ namespace WebAPI.Controllers
                         if (excitation.Count == 0 || (excitation.Count < intensity.Count))
                             excitation = loadedData.Select(data => data.Excitation).ToList();
 
-                        TableDataDTO data = new TableDataDTO
+                        FileDTO data = new FileDTO
                         {
-                            ID = file.IdFile,
+                            //ID = file.IdFile,
                             FILENAME = file.FileName,
                             INTENSITY = intensity,
                             SPECTRUM = file.Spectrum
@@ -179,7 +177,7 @@ namespace WebAPI.Controllers
 
                     FolderDTO newFolder = new FolderDTO
                     {
-                        ID = folder.IdFolder,
+                        //ID = folder.IdFolder,
                         FOLDERNAME = folder.FolderName,
                         EXCITATION = excitation,
                         DATA = tabledata

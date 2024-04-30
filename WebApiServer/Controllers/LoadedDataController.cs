@@ -42,21 +42,23 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("PostNewProject")]
-        public async Task<IActionResult> PostNewProject([FromBody] LoadedFileDTO[] loadedFiles)
+        public async Task<IActionResult> PostNewProject([FromBody] FileContent[] loadedFiles)
         {
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
             {
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 string token = "";
-                if (userToken == "") {
-                    token = GenerateJwtToken();
-                } else
+                if (userToken == "")
+                {
+                    token = _loadedDataService.GenerateJwtToken();
+                }
+                else
                 {
                     token = userToken;
                 }
                 int idProject = 1;
-                if(_context.Projects.Count() >= 1)
+                if (_context.Projects.Count() >= 1)
                 {
                     idProject = _context.Projects
                 .OrderByDescending(obj => obj.IdProject)
@@ -64,11 +66,11 @@ namespace WebAPI.Controllers
 
                 }
 
-                IActionResult result = await _loadedDataService.ProcessNewProjectData(loadedFiles, token, idProject);
+                IActionResult result = await _loadedDataService.SaveNewFolder(loadedFiles, token, idProject);
 
                 if (result is OkResult)
                 {
-                    return Ok(new { TOKEN = token, IDPROJECT =  idProject});
+                    return Ok(new { TOKEN = token, IDPROJECT = idProject });
 
                 }
                 else
@@ -81,8 +83,9 @@ namespace WebAPI.Controllers
             }
         }
 
+
         [HttpPost]
-        public async Task<IActionResult> PostAddData([FromBody] LoadedFileDTO[] loadedFiles)
+        public async Task<IActionResult> PostAddData([FromBody] FileContent[] loadedFiles)
         {
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
@@ -98,8 +101,6 @@ namespace WebAPI.Controllers
                 {
                     return BadRequest("Chybný formát dát.");
                 }
-
-
 
             }
             else
@@ -124,20 +125,6 @@ namespace WebAPI.Controllers
             }
         }
 
-
-        private string GenerateJwtToken()
-        {
-            // Generovanie JWT tokenu bez identifikátora užívate¾a
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v");
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Expires = DateTime.UtcNow.AddDays(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
 
     }
 }

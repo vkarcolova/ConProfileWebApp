@@ -1,10 +1,5 @@
-export interface MultipliedTableDataDTO {
-  filename: string;
-  multipliedintensity: number[];
-  factor: number;
-}
 
-export interface TableDataDTO {
+export interface FileDTO {
   id: number;
   filename: string;
   intensity: number[];
@@ -17,7 +12,7 @@ export interface FolderDTO {
   foldername: string;
   excitation: number[];
   profile?: number[];
-  data: TableDataDTO[];
+  data: FileDTO[];
 }
 
 export interface ProjectDTO {
@@ -26,6 +21,12 @@ export interface ProjectDTO {
   folders: FolderDTO[];
   created: Date;
 }
+
+// export interface NewProjectDTO {
+//   projectname: string;
+//   folders: FolderDTO[];
+//   created: Date;
+// }
 
 
 export interface Profile {
@@ -44,9 +45,17 @@ export interface MultiplyFolderDTO {
   IDS: number[];
 }
 
-export interface LoadedFile{
+export interface MultipliedTableDataDTO {
+  filename: string;
+  multipliedintensity: number[];
+  factor: number;
+}
+
+
+export interface FileContent{ //na nacitanie suboru
   FILENAME: string,
   FOLDERNAME: string;
   CONTENT: string;
   IDPROJECT: number;
 }
+
