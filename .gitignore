@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/WebApiServer/obj/Debug/net8.0/WebApiServer.AssemblyInfoInputs.cache
+/WebApiServer/.vs/WebApiServer/v17/.suo
+*.vsidx
