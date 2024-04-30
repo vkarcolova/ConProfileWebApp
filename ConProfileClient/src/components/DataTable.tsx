@@ -57,7 +57,7 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
                 <React.Fragment key={tableData.filename}>
                   <TableCell style={{ width: calculateColumnWidth() }}>
                     <div className='autocomplete'>
-                      <CustomInputAutocomplete id={tableData.spectrum} />
+                      <CustomInputAutocomplete id={tableData.id} />
                     </div>
                   </TableCell>
                 </React.Fragment>
@@ -71,7 +71,7 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
               <React.Fragment key={tableData.filename}>
                 <TableCell style={{ width: calculateColumnWidth() }}>
                   {tableData.intensity.map((intensity, i) => (
-                    <div key={i}>{intensity.toFixed(5)}</div>
+                    <div key={i}>{intensity.intensity.toFixed(5)}</div>
                   ))}
                 </TableCell>
               </React.Fragment>

@@ -8,7 +8,7 @@ using WebApiServer.Services;
 var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddScoped<ILoadedDataService, LoadedDataService>();
+builder.Services.AddScoped<IDataProcessService, DataProcessService>();
 
 
 builder.Services.AddCors(options =>

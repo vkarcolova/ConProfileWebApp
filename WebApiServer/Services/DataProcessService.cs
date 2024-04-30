@@ -22,32 +22,33 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApiServer.Services
 {
-    public interface ILoadedDataService
+    public interface IDataProcessService
     {
         public Task<IActionResult> MultiplyData(MultiplyDataDTO multiplyDatas);
-        public Task<IActionResult> SaveNewFolder(FileContent[] loadedFiles, string token, int idProject);
+        //public Task<IActionResult> SaveNewFolder(FileContent[] loadedFiles, string token, int idProject);
         public Task<IActionResult> AddProjectData(FileContent[] loadedFiles);
         public FolderDTO ProcessUploadedFolder(FileContent[] loadedFiles);
 
         public string GenerateJwtToken();
     }
 
-    public class LoadedDataService : ILoadedDataService
+    public class DataProcessService : IDataProcessService
     {
         private readonly ApiDbContext _context;
 
-        public LoadedDataService(ApiDbContext context)
+        public DataProcessService(ApiDbContext context)
         {
             _context = context;
         }
 
+
+        //POTREBUJEM BEZ ULOZENIA DO DB
         public FolderDTO ProcessUploadedFolder(FileContent[] loadedFiles)
         {
             if (loadedFiles != null)
             {
                 try
                 { 
-                   
                     int rowCount = 0;
                     List<FileDTO> files = new List<FileDTO>();
                     List<double> excitactionList = new List<double>();
@@ -55,7 +56,7 @@ namespace WebApiServer.Services
                     for (int i = 0; i < loadedFiles.Length; i++)
                     {
                         FileContent file = loadedFiles[i];
-                        List<double> intensityList = new List<double>();
+                        List<IntensityDTO> intensityList = new List<IntensityDTO>();
                         int spectrum = -1;
                         string pattern = @"(?<=m)\d+(?=\.)"; //cisla co su po m a pred . 
                         Match typeOfData = Regex.Match(file.FILENAME, pattern);
@@ -90,7 +91,7 @@ namespace WebApiServer.Services
 
                                     if (excitactionList.Count < rowCount)
                                         excitactionList.Add(excitacion);
-                                    intensityList.Add(data);
+                                    intensityList.Add(new IntensityDTO{ EXCITATION = excitacion, INTENSITY = data});
                                 }
 
                                 if (startReading == false && line == "#DATA")
@@ -134,7 +135,6 @@ namespace WebApiServer.Services
             {
                 try
                 {
-
                     List<List<LoadedData>> allData = new List<List<LoadedData>>();
 
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
@@ -181,7 +181,7 @@ namespace WebApiServer.Services
                         {
                             IdProfileData = idProfile,
                             Excitation = allData[0][i].Excitation,
-                            //IdFolder = multiplyDatas.IDFOLDER,
+                            IdFolder = multiplyDatas.IDFOLDER,
                             MaxIntensity = maxIntensity
                         };
                         _context.ProfileDatas.Add(profile);
@@ -194,9 +194,9 @@ namespace WebApiServer.Services
                 }
                 catch (Exception ex)
                 {
+                    
                     return new BadRequestResult(); ;
                 }
-
             }
             else
             {
@@ -204,21 +204,16 @@ namespace WebApiServer.Services
             }
         }
 
-        public async Task<IActionResult> SaveNewFolder(FileContent[] loadedFiles, string token, int idProject)
+
+        public async Task<IActionResult> AddProjectData(FileContent[] loadedFiles)
+        //pridanie do existujueho proektu
+
         {
             if (loadedFiles != null)
             {
                 try
                 {
-                    Project newProject = new Project
-                    {
-                        ProjectName = "NewProject",
-                        IdProject = idProject,
-                        Token = token,
-                        Created = DateTime.UtcNow,
-                    };
-                    _context.Projects.Add(newProject);
-
+                    int idProject = loadedFiles[0].IDPROJECT;
                     int idFolder = 1;
                     if (_context.LoadedFolders.Count() >= 1)
                     {
@@ -230,124 +225,6 @@ namespace WebApiServer.Services
                         FolderName = loadedFiles[0].FOLDERNAME,
                         IdFolder = idFolder,
                         IdProject = idProject
-                    };
-                    _context.LoadedFolders.Add(newFolder);
-                    int idData = 1;
-                    if (_context.LoadedDatas.Count() >= 1)
-                    {
-                        idData = _context.LoadedDatas.OrderByDescending(obj => obj.IdData)
-                         .FirstOrDefault().IdData;
-                    }
-                    int rowCount = 1;
-
-                    int idFile = 1;
-                    if (_context.Projects.Count() >= 1)
-                    {
-                        idFile = _context.LoadedFiles.OrderByDescending(obj => obj.IdFile)
-                        .FirstOrDefault().IdFile + 1;
-                    }
-                    for (int i = 0; i < loadedFiles.Length; i++)
-                    {
-                        FileContent file = loadedFiles[i];
-                        int spectrum = -1;
-                        string pattern = @"(?<=m)\d+(?=\.)"; //cisla co su po m a pred . 
-                        Match typeOfData = Regex.Match(file.FILENAME, pattern);
-                        if (int.TryParse(typeOfData.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out int resultType))
-                        {
-                            spectrum = resultType;
-                        }
-
-                        LoadedFile newFile = new LoadedFile
-                        {
-                            FileName = loadedFiles[i].FILENAME,
-                            IdFolder = idFolder,
-                            IdFile = idFile + i,
-                            Spectrum = spectrum
-                        };
-                        _context.LoadedFiles.Add(newFile);
-
-                        string[] lines = file.CONTENT.Split('\n');
-                        bool startReading = false;
-
-
-                        foreach (var row in lines)
-                        {
-                            string line = row.Replace("\r", "");
-
-
-                            double excitacion = -1;
-                            double data = -1;
-                            if (line != null)
-                            {
-                                if (startReading == true && !string.IsNullOrWhiteSpace(line))
-                                {
-                                    string[] words = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries); //rozdelenie slov v riadku
-                                    if (double.TryParse(words[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
-                                    {
-                                        excitacion = x;
-                                    }
-
-                                    if (double.TryParse(words[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) //skusam slovo dat na double
-                                    {
-                                        data = result;
-                                    }
-
-
-                                    LoadedData newRow = new LoadedData
-                                    {
-                                        IdFile = idFile + i,
-                                        Excitation = excitacion,
-                                        Intensity = data,
-                                        IdData = idData + rowCount
-                                    };
-                                    rowCount++;
-                                    _context.LoadedDatas.Add(newRow);
-
-                                }
-
-
-
-                                if (startReading == false && line == "#DATA")
-                                    startReading = true;
-                            }
-
-                        }
-
-                    }
-                    _context.SaveChanges();
-
-                    return new OkResult(); // Odpoveď 200 OK
-                }
-                catch (Exception ex)
-                {
-                    return new BadRequestResult();
-                }
-
-            }
-            else
-            {
-                return new BadRequestResult(); // Odpoveď 400 Bad Request
-            }
-        }
-
-        public async Task<IActionResult> AddProjectData(FileContent[] loadedFiles)
-        {
-            if (loadedFiles != null)
-            {
-                try
-                {
-                    //int idProject = loadedFiles[0].IDPROJECT;
-                    int idFolder = 1;
-                    if (_context.LoadedFolders.Count() >= 1)
-                    {
-                        idFolder = _context.LoadedFolders.OrderByDescending(obj => obj.IdFolder)
-                         .FirstOrDefault().IdFolder + 1;
-                    }
-                    LoadedFolder newFolder = new LoadedFolder
-                    {
-                        FolderName = loadedFiles[0].FOLDERNAME,
-                        IdFolder = idFolder,
-                        //IdProject = idProject
                     };
                     _context.LoadedFolders.Add(newFolder);
                     int idData = 1;

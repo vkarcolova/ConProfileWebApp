@@ -57,7 +57,7 @@ const Home: React.FC = () => {
           try {
             const result = await readFileAsync(file);
             const loadedFile: FileContent = {
-              //IDPROJECT: -1,
+              IDPROJECT: -1,
               FILENAME: file.name,
               FOLDERNAME: folderName,
               CONTENT: result
@@ -95,7 +95,7 @@ const Home: React.FC = () => {
 
 
       const response = await axios.post(
-        'https://localhost:44300/LoadedFolder/CreateNewProject',
+        'https://localhost:44300/Project/CreateNewProject',
         JSON.stringify(files),
         {
           headers: customHeaders,

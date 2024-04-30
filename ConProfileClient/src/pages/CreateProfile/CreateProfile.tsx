@@ -55,7 +55,7 @@ const CreateProfile: React.FC = () => {
     null
   );
   const inputRef = useRef<HTMLInputElement>(null);
-  const { id } = useParams<{ id: string }>();
+  const { id: loadedProjectId } = useParams<{ id: string }>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
@@ -64,13 +64,11 @@ const CreateProfile: React.FC = () => {
   let foldersExpand: string[] = [];
 
   useEffect(() => {
-    //console.log("here");
-    //console.log(sessionStorage.getItem("loadeddata"));
-    if (id) loadProjectFromId();
+    if (loadedProjectId) loadProjectFromId();
     else {
       const sessionData = sessionStorage.getItem("loadeddata");
       if (!sessionData) {
-        navigate("/create-profile/");
+        navigate("/");
         return;
 
       }
@@ -86,17 +84,22 @@ const CreateProfile: React.FC = () => {
     //nacitanie legendy && statistik
     handleSelectedFolder();
   }, [folderData]);
+  useEffect(() => {
+    console.log(projectData);
+  }, [projectData]);
 
   const handleSelectedFolder = async () => {
     if (folderData) {
-      const dynamicChartData: ChartData[] = folderData.data.map((data) => ({
-        data: data.intensity,
-        label: data.filename,
-      }));
+      let dynamicChartData: ChartData[] = []; 
       let allData: number[] = [];
-      folderData.data.forEach((element) => {
-        allData = allData.concat(element.intensity);
+
+      folderData.data.forEach((file) => {
+        const intensities: number[] = file.intensity.map(dto => dto.intensity);
+        dynamicChartData.push({data: intensities, label: file.filename});
+
+        allData = allData.concat(intensities);
       });
+  
       const normalMax: number = Math.max(...allData);
       const normalMin: number = Math.min(...allData);
 
@@ -160,12 +163,11 @@ const CreateProfile: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const loadProjectFromId = async () => {
     // Získanie dát zo servera
 
-    if (id) {
-      const idProject = parseInt(id, 10);
+    if (loadedProjectId) {
+      const idProject = parseInt(loadedProjectId, 10);
 
       axios
         .get<ProjectDTO>(
@@ -186,10 +188,15 @@ const CreateProfile: React.FC = () => {
               comparefolders.push(element);
             }
           });
+          
           setFoldersToCompare(comparefolders);
-          console.log(foldersExpand);
-          if (response.data.folders[selectedFolder].data[0].multipliedintensity)
+
+          console.log(response.data);
+
+          if (response.data.folders[selectedFolder].profile){
             setMultiplied(true);
+          }
+
         })
         .catch((error) => {
           console.error("Chyba pri získavaní dát zo servera:", error);
@@ -202,7 +209,6 @@ const CreateProfile: React.FC = () => {
       inputRef.current.click();
     }
   };
-
   const loadNewFolder = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (selectedFiles) {
@@ -216,7 +222,6 @@ const CreateProfile: React.FC = () => {
           return;
         }
       });
-      console.log("pokracuje sa");
       const loadedFiles: FileContent[] = [];
 
       const readFileAsync = (file: File): Promise<string> => {
@@ -237,7 +242,7 @@ const CreateProfile: React.FC = () => {
         try {
           const result = await readFileAsync(file);
           const loadedFile: FileContent = {
-           // IDPROJECT: projectData?.idproject ? projectData?.idproject : -1,
+            IDPROJECT: projectData?.idproject ? projectData?.idproject : -1,
             FILENAME: file.name,
             FOLDERNAME: folderName,
             CONTENT: result,
@@ -248,26 +253,43 @@ const CreateProfile: React.FC = () => {
           console.error(error);
         }
       }
-      sendData(loadedFiles);
-    }
-  };
+      if(loadedProjectId)
+        {
+          try {
+            console.log(loadedFiles);
+            const response = await axios
+              .post("https://localhost:44300/LoadedFolder/PostNewFolderToProject", JSON.stringify(loadedFiles), {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              })
+              .then(() => {
+                loadProjectFromId();
+              });
+          } catch (error) {
+            console.error("Chyba pri načítavaní dát:", error);
+          }
+        }
+      else {
+       // console.log(loadedFiles);
+       let project : ProjectDTO = {...projectData!};
+       try { const response = await axios.post(
+        'https://localhost:44300/LoadedFolder/PostNewFolder',
+        loadedFiles,
+      ).then(response => {
+        console.log(response.data);
+        const objString = response.data.folder as FolderDTO;
+        project.folders.push(objString);
+        console.log(project);
+        setProjectData(project);
+      });}
+      catch (error) {
 
-  const sendData = async (files: FileContent[]) => {
-    try {
-      console.log(files);
-      const response = await axios
-        .post("https://localhost:44300/LoadedData", JSON.stringify(files), {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-        .then(() => {
-          alert("Oki doki!");
-          //loadProject();
-        });
-    } catch (error) {
-      console.error("Chyba pri načítavaní dát:", error);
+        console.error("Chyba pri načítavaní dát:", error);
+      }
+    
+      }
     }
   };
 
@@ -277,11 +299,11 @@ const CreateProfile: React.FC = () => {
         setIsLoading(true);
 
         setMultiplied(false);
-
         setSelectedFolder(index);
         setFolderData(value);
-        if (value.data[0].multipliedintensity != null) {
+        if (value.data[0].intensity[0].multipliedintensity) {
           setMultiplied(true);
+          console.log('dadidada');
         } else {
           setMultiplied(false);
         }
@@ -296,11 +318,12 @@ const CreateProfile: React.FC = () => {
 
     folderData?.data.forEach((element) => {
       const autocompleteInput = document.getElementById(
-        `autocomplete-${element.spectrum}`
+        `autocomplete-${element.id}`
       ) as HTMLInputElement | null;
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
         : null;
+      console.log(autocompleteInput);
       if (inputFactor) {
         factors.push(inputFactor);
         ids.push(element.id);
@@ -309,32 +332,35 @@ const CreateProfile: React.FC = () => {
         return; //todo aby sa vyletelo z forka
       }
     });
-    if (factors.length == folderData?.data.length && folderData && ids) {
+    console.log(ids);
+    if (factors.length !== folderData?.data.length || !folderData || !ids) {
+      return; // Funkcia sa zastaví tu
+    }
+    if(loadedProjectId) {
       const dataToSend: MultiplyFolderDTO = {
         IDFOLDER: folderData.id,
         FACTORS: factors,
         IDS: ids,
       };
-      try {
-        await axios
-          .post(
-            "https://localhost:44300/LoadedData/PostFactorsMultiply",
-            JSON.stringify(dataToSend),
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          )
-          .then(() => {
-            //loadProject();
-          });
-      } catch (error) {
-        console.error("Chyba pri načítavaní dát:", error);
+
+        try {
+          await axios
+            .post(
+              "https://localhost:44300/LoadedFolder/PostFactorsMultiply",
+              JSON.stringify(dataToSend),
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+            .then(() => {
+              //loadProject();
+            });
+        } catch (error) {
+          console.error("Chyba pri načítavaní dát:", error);
+        }
       }
-    } else {
-      return;
-    }
   };
 
   if (isLoading) {
@@ -418,7 +444,7 @@ const CreateProfile: React.FC = () => {
                     <CustomTreeItem
                       nodeId={folder.id.toString()}
                       label={folder.foldername}
-                      key={folder.id.toString()}
+                      key={folder.foldername}
                       style={{ fontFamily: "Poppins", fontSize: "larger" }}
                     >
                       {folder.data.map((file) => (
@@ -538,7 +564,7 @@ const CreateProfile: React.FC = () => {
                       data: data.data.map((v, index) => ({
                         x: folderData.excitation[index],
                         y: v,
-                        id: v,
+                        id: index,
                       })),
                     }))}
                     yAxis={[{ min: 0 }]}

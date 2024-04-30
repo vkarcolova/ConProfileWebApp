@@ -1,9 +1,21 @@
+export interface FileContent{ //na nacitanie suboru
+  FILENAME: string,
+  FOLDERNAME: string;
+  CONTENT: string;
+  IDPROJECT: number;
+}
+
+export interface IntensityDTO {
+  idData?: number;
+  intensity: number;
+  multipliedintensity?: number;
+  excitacion: number;
+}
 
 export interface FileDTO {
   id: number;
   filename: string;
-  intensity: number[];
-  multipliedintensity?: number[];
+  intensity: IntensityDTO[];
   spectrum: number;
 }
 
@@ -22,12 +34,6 @@ export interface ProjectDTO {
   created: Date;
 }
 
-// export interface NewProjectDTO {
-//   projectname: string;
-//   folders: FolderDTO[];
-//   created: Date;
-// }
-
 
 export interface Profile {
   excitation: number[];
@@ -45,17 +51,11 @@ export interface MultiplyFolderDTO {
   IDS: number[];
 }
 
-export interface MultipliedTableDataDTO {
-  filename: string;
-  multipliedintensity: number[];
-  factor: number;
-}
+// export interface MultipliedTableDataDTO {
+//   filename: string;
+//   multipliedintensity: number[];
+//   factor: number;
+// }
 
 
-export interface FileContent{ //na nacitanie suboru
-  FILENAME: string,
-  FOLDERNAME: string;
-  CONTENT: string;
-  IDPROJECT: number;
-}
 

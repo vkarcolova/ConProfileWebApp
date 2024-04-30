@@ -13,94 +13,57 @@ namespace WebApiServer.Controllers
     [Route("[controller]")]
     public class LoadedFolderController : ControllerBase
     {
-        private readonly ILogger<LoadedDataController> _logger;
         private readonly ApiDbContext _context;
-        private readonly ILoadedDataService _loadedDataService;
+        private readonly IDataProcessService _dataProcessService;
 
 
         public LoadedFolderController(ApiDbContext context,
-            ILogger<LoadedDataController> logger,
-            ILoadedDataService service)
+            IDataProcessService service)
         {
-            _logger = logger;
             _context = context;
-            _loadedDataService = service;
-        }
-
-        [HttpGet("GetFolder/{id}")]
-        public ActionResult<FolderDTO> GetItemById(int id)
-        {
-            LoadedFolder folder = _context.LoadedFolders.Where(folder => folder.IdFolder == id).First();
-            List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == id).OrderBy(file => file.Spectrum).ToList();
-            if (!files.Any())
-            {
-                return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené
-            } else
-            {
-                List<double> excitation = new List<double>();
-                List<FileDTO> tabledata = new List<FileDTO>();
-
-                foreach (LoadedFile file in files)
-                {
-                    List<LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
-                    List<double> intensity = loadedData.Select(data => data.Intensity).ToList();
-
-                    if (excitation.Count == 0 || (excitation.Count < intensity.Count))
-                        excitation = loadedData.Select(data => data.Excitation).ToList();
-                    
-                    FileDTO data = new FileDTO
-                    {
-                        FILENAME = file.FileName,
-                        INTENSITY = intensity,
-                        SPECTRUM = file.Spectrum
-                    };
-
-                    tabledata.Add(data);
-                }
-
-
-                FolderDTO result = new FolderDTO
-                {
-                    //ID = folder.IdFolder,
-                    FOLDERNAME = folder.FolderName,
-                    EXCITATION = excitation,
-                    DATA = tabledata
-                    
-                };
-                return result;
-            }
+            _dataProcessService = service;
         }
 
 
-        [HttpPost("CreateNewProject")]
-        public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles)
+        [HttpPost("PostNewFolderToProject")]
+        public async Task<IActionResult> PostAddDataToSavedProject([FromBody] FileContent[] loadedFiles)
         {
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
             {
+
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                string token = "";
-                if (userToken == "")
+                var existingProject = _context.Projects.FirstOrDefault(p => p.Token == userToken && p.IdProject == loadedFiles[0].IDPROJECT);
+                if (existingProject != null)
                 {
-                    token = _loadedDataService.GenerateJwtToken();
+                    IActionResult result = await _dataProcessService.AddProjectData(loadedFiles);
+                    return Ok();
                 }
                 else
                 {
-                    token = userToken;
+                    return BadRequest("Chybný formát dát.");
                 }
 
-                List<FolderDTO> folders = new List<FolderDTO>();
-                folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
-                ProjectDTO result = new ProjectDTO
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
+            }
+        }
+
+
+        [HttpPost("PostNewFolder")] //pridavanie priecinku bez noveho projektu
+        public async Task<IActionResult> PostAddData([FromBody] FileContent[] loadedFiles)
+        {
+            // Spracovanie prijatých súborov
+            if (loadedFiles != null && loadedFiles.Any())
+            {
+
+                FolderDTO result = _dataProcessService.ProcessUploadedFolder(loadedFiles);
+
+                if (result != null)
                 {
-                    CREATED = DateTime.Now,
-                    FOLDERS = folders,
-                    IDPROJECT = -1,
-                    PROJECTNAME = loadedFiles[0].FOLDERNAME
-                };
-                if (folders.Count != 0)
-                {
-                    return Ok(new { TOKEN = token, PROJECT = result });
+                    return Ok(new { FOLDER = result });
                 }
                 else
                     return BadRequest(result);
@@ -109,6 +72,20 @@ namespace WebApiServer.Controllers
             else
             {
                 return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
+        }
+
+        [HttpPost("PostFactorsMultiply")]
+        public async Task<IActionResult> Post([FromBody] MultiplyDataDTO multiplyDatas)
+        {
+            if (multiplyDatas != null)
+            {
+                IActionResult result = await _dataProcessService.MultiplyData(multiplyDatas);
+                return result;
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
             }
         }
     }

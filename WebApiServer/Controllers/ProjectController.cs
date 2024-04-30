@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
 using WebApiServer.Models;
+using WebApiServer.Services;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebAPI.Controllers
@@ -19,30 +21,16 @@ namespace WebAPI.Controllers
     [Route("[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly ILogger<ProjectController> _logger;
         private readonly ApiDbContext _context;
+        private readonly IDataProcessService _loadedDataService;
 
         public ProjectController(ApiDbContext context,
-            ILogger<ProjectController> logger)
+            IDataProcessService service)
         {
-            _logger = logger;
             _context = context;
+            _loadedDataService = service;
         }
 
-        [HttpGet("GetCount")]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                var count = _context.Projects.Count();
-
-                return Ok(new { Count = count });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Error = "Internal Server Error", Message = ex.Message });
-            }
-        }
 
         [HttpGet("GetProjectsByToken/{token}")]
         public ActionResult<List<ProjectDTO>> GetItemsByToken(string token)
@@ -117,6 +105,49 @@ namespace WebAPI.Controllers
             return Ok();
         }
 
+
+        [HttpPost("CreateNewProject")]
+        public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles)
+        {
+            // Spracovanie prijatých súborov
+            if (loadedFiles != null && loadedFiles.Any())
+            {
+                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                string token = "";
+                if (userToken == "")
+                {
+                    token = _loadedDataService.GenerateJwtToken();
+                }
+                else
+                {
+                    token = userToken;
+                }
+
+                List<FolderDTO> folders = new List<FolderDTO>();
+                folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
+                ProjectDTO result = new ProjectDTO
+                {
+                    CREATED = DateTime.Now,
+                    FOLDERS = folders,
+                    IDPROJECT = -1,
+                    PROJECTNAME = loadedFiles[0].FOLDERNAME
+                };
+                if (folders.Count != 0)
+                {
+                    return Ok(new { TOKEN = token, PROJECT = result });
+                }
+                else
+                    return BadRequest(result);
+
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
+        }
+
+
+        //GET PROJECT FROM ID POTREBUJEM
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
@@ -133,8 +164,6 @@ namespace WebAPI.Controllers
                 List<double> excitation = new List<double>();
                 List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
                 List<FolderDTO> folderList = new List<FolderDTO>();
-                bool multipliedData = false;
-
 
                 foreach (LoadedFolder folder in folders) { 
                     List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
@@ -144,54 +173,40 @@ namespace WebAPI.Controllers
                     {
 
                         List <LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
-                        
 
-                        List<double> intensity = loadedData.Select(data => data.Intensity).ToList();
+                        List<IntensityDTO> intensity = loadedData.Select(obj => new IntensityDTO
+                        { INTENSITY = obj.Intensity, EXCITATION = obj.Excitation, MULTIPLIEDINTENSITY =obj.MultipliedIntensity, IDDATA = obj.IdData })
+                            .ToList();
 
                         if (excitation.Count == 0 || (excitation.Count < intensity.Count))
                             excitation = loadedData.Select(data => data.Excitation).ToList();
 
                         FileDTO data = new FileDTO
                         {
-                            //ID = file.IdFile,
+                            ID = file.IdFile,
                             FILENAME = file.FileName,
                             INTENSITY = intensity,
                             SPECTRUM = file.Spectrum
                         };
 
-                        if (loadedData[0].MultipliedIntensity != null)
-                        {
-                            List<double> multipliedintensity = new List<double>();
-                            multipliedintensity = loadedData.Select(data => data.MultipliedIntensity.GetValueOrDefault()).ToList();
-                            if(multipliedintensity.Count > 0) 
-                                data.MULTIPLIEDINTENSITY = multipliedintensity;
-
-                            multipliedData = true;
-
-                        }
-
                         tabledata.Add(data);
                     }
 
-                    
-
                     FolderDTO newFolder = new FolderDTO
                     {
-                        //ID = folder.IdFolder,
+                        ID = folder.IdFolder,
                         FOLDERNAME = folder.FolderName,
                         EXCITATION = excitation,
                         DATA = tabledata
 
                     };
 
-                    if (multipliedData)
+                    if (tabledata[0].INTENSITY[0].MULTIPLIEDINTENSITY.HasValue)
                     {
                         List<ProfileData> dataprofiles = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
                         List<double> profile = dataprofiles.Select(data => data.MaxIntensity).ToList();
                         newFolder.PROFILE = profile;
                     }
-
-                    
 
                     folderList.Add(newFolder);
                 }

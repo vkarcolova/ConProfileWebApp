@@ -43,10 +43,13 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>, id: number) => {
     console.log(event.target);
     const list: number[] = checked;
-    if (!checked.includes(id)) {
+    console.log(checked);
+    if (!list.includes(id)) {
       list.push(id);
       setChecked(list);
       if (list.length >= 2) {
+        console.log('som tu');
+        console.log(folders);
         const filteredFolders = folders?.filter(data => checked.includes(data.id))
           .map((data) => ({
             data: data?.profile || [],
@@ -98,10 +101,10 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
             <div style={{ width: '40%' }}>
               <div className='checkboxlitwindow'>
                 <List dense={true}>
-                  {folders?.map((value) => (
+                  {folders?.map((value, index) => (
                     <ListItem style={{ padding: '0px' }}>
                       <Checkbox
-                        onChange={(event) => handleChange(event, value.id)}
+                        onChange={(event) => handleChange(event, index)}
                         inputProps={{ 'id': '${value.id}' }}
                         style={{ paddingTop: '0px', paddingBottom: '0px', paddingLeft: '2px', paddingRight: '2px' }}
                       />
