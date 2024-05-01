@@ -67,7 +67,9 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
         </TableHead>
         <TableBody>
           <TableRow>
-            {folderData.data.map((tableData, index) => (
+          {showAutocomplete ? (
+            <>
+            {folderData.data.map((tableData) => (
               <React.Fragment key={tableData.filename}>
                 <TableCell style={{ width: calculateColumnWidth() }}>
                   {tableData.intensity.map((intensity, i) => (
@@ -75,7 +77,16 @@ const DataTable: React.FC<DataTableProps> = ({ folderData, showAutocomplete }) =
                   ))}
                 </TableCell>
               </React.Fragment>
-            ))}
+            ))}</>) : ( <>
+              {folderData.data.map((tableData) => (
+                <React.Fragment key={tableData.filename}>
+                  <TableCell style={{ width: calculateColumnWidth() }}>
+                    {tableData.intensity.map((intensity, i) => (
+                      <div key={i}>{intensity.multipliedintensity!.toFixed(5)}</div>
+                    ))}
+                  </TableCell>
+                </React.Fragment>
+              ))}</>)}
           </TableRow>
         </TableBody>
       </Table>

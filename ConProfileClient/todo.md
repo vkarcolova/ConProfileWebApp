@@ -1,10 +1,11 @@
 
 # TODO
 - [x] Nahranie noveho priecinku
-- [ ] Multiply
-- [ ] Vymazanie nepotrebneho
+- [x] Multiply
 - [ ] Uploadnutie a savnutie projektu
 - [ ] Prerobit podla desktopu nahravanie tych suborov
+- [ ] Vymazanie nepotrebneho
+
 
 ## 
 - [ ] Upravit porovnanie, ked unchecknem

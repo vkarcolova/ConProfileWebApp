@@ -89,7 +89,7 @@ namespace WebApiServer.Services
                                     }
                                     rowCount++;
 
-                                    if (excitactionList.Count < rowCount)
+                                    if (!excitactionList.Contains(excitacion))
                                         excitactionList.Add(excitacion);
                                     intensityList.Add(new IntensityDTO{ EXCITATION = excitacion, INTENSITY = data});
                                 }

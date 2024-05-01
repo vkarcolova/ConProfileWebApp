@@ -70,7 +70,6 @@ const CreateProfile: React.FC = () => {
       if (!sessionData) {
         navigate("/");
         return;
-
       }
       const obj = JSON.parse(sessionData) as ProjectDTO;
 
@@ -90,16 +89,18 @@ const CreateProfile: React.FC = () => {
 
   const handleSelectedFolder = async () => {
     if (folderData) {
-      let dynamicChartData: ChartData[] = []; 
+      let dynamicChartData: ChartData[] = [];
       let allData: number[] = [];
 
       folderData.data.forEach((file) => {
-        const intensities: number[] = file.intensity.map(dto => dto.intensity);
-        dynamicChartData.push({data: intensities, label: file.filename});
+        const intensities: number[] = file.intensity.map(
+          (dto) => dto.intensity
+        );
+        dynamicChartData.push({ data: intensities, label: file.filename });
 
         allData = allData.concat(intensities);
       });
-  
+
       const normalMax: number = Math.max(...allData);
       const normalMin: number = Math.min(...allData);
 
@@ -123,6 +124,7 @@ const CreateProfile: React.FC = () => {
       setNormalStatData(normalStat);
 
       if (folderData.profile) {
+        setMultiplied(true);
         dynamicChartData.push({
           data: folderData.profile,
           label: "Profil",
@@ -150,22 +152,19 @@ const CreateProfile: React.FC = () => {
           std: multipliedStandardDeviation,
         };
         setMultipliedStatData(multipliedStat);
-      }
 
-      setChartData(dynamicChartData);
-      if (folderData.profile) {
         const profile: Profile = {
           excitation: folderData.excitation,
           profile: folderData.profile,
         };
         setProfileData(profile);
       }
+      else setMultiplied(false);
+      setChartData(dynamicChartData);
       setIsLoading(false);
     }
   };
   const loadProjectFromId = async () => {
-    // Získanie dát zo servera
-
     if (loadedProjectId) {
       const idProject = parseInt(loadedProjectId, 10);
 
@@ -188,15 +187,14 @@ const CreateProfile: React.FC = () => {
               comparefolders.push(element);
             }
           });
-          
+
           setFoldersToCompare(comparefolders);
 
           console.log(response.data);
 
-          if (response.data.folders[selectedFolder].profile){
+          if (response.data.folders[selectedFolder].profile) {
             setMultiplied(true);
           }
-
         })
         .catch((error) => {
           console.error("Chyba pri získavaní dát zo servera:", error);
@@ -253,42 +251,45 @@ const CreateProfile: React.FC = () => {
           console.error(error);
         }
       }
-      if(loadedProjectId)
-        {
-          try {
-            console.log(loadedFiles);
-            const response = await axios
-              .post("https://localhost:44300/LoadedFolder/PostNewFolderToProject", JSON.stringify(loadedFiles), {
+      if (loadedProjectId) {
+        try {
+          console.log(loadedFiles);
+          const response = await axios
+            .post(
+              "https://localhost:44300/LoadedFolder/PostNewFolderToProject",
+              JSON.stringify(loadedFiles),
+              {
                 headers: {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-              })
-              .then(() => {
-                loadProjectFromId();
-              });
-          } catch (error) {
-            console.error("Chyba pri načítavaní dát:", error);
-          }
+              }
+            )
+            .then(() => {
+              loadProjectFromId();
+            });
+        } catch (error) {
+          console.error("Chyba pri načítavaní dát:", error);
         }
-      else {
-       // console.log(loadedFiles);
-       let project : ProjectDTO = {...projectData!};
-       try { const response = await axios.post(
-        'https://localhost:44300/LoadedFolder/PostNewFolder',
-        loadedFiles,
-      ).then(response => {
-        console.log(response.data);
-        const objString = response.data.folder as FolderDTO;
-        project.folders.push(objString);
-        console.log(project);
-        setProjectData(project);
-      });}
-      catch (error) {
-
-        console.error("Chyba pri načítavaní dát:", error);
-      }
-    
+      } else {
+        // console.log(loadedFiles);
+        let project: ProjectDTO = { ...projectData! };
+        try {
+          const response = await axios
+            .post(
+              "https://localhost:44300/LoadedFolder/PostNewFolder",
+              loadedFiles
+            )
+            .then((response) => {
+              console.log(response.data);
+              const objString = response.data.folder as FolderDTO;
+              project.folders.push(objString);
+              console.log(project);
+              setProjectData(project);
+            });
+        } catch (error) {
+          console.error("Chyba pri načítavaní dát:", error);
+        }
       }
     }
   };
@@ -303,7 +304,6 @@ const CreateProfile: React.FC = () => {
         setFolderData(value);
         if (value.data[0].intensity[0].multipliedintensity) {
           setMultiplied(true);
-          console.log('dadidada');
         } else {
           setMultiplied(false);
         }
@@ -332,35 +332,60 @@ const CreateProfile: React.FC = () => {
         return; //todo aby sa vyletelo z forka
       }
     });
-    console.log(ids);
     if (factors.length !== folderData?.data.length || !folderData || !ids) {
-      return; // Funkcia sa zastaví tu
+      return;
     }
-    if(loadedProjectId) {
+    if (loadedProjectId) {
       const dataToSend: MultiplyFolderDTO = {
         IDFOLDER: folderData.id,
         FACTORS: factors,
         IDS: ids,
       };
 
-        try {
-          await axios
-            .post(
-              "https://localhost:44300/LoadedFolder/PostFactorsMultiply",
-              JSON.stringify(dataToSend),
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            )
-            .then(() => {
-              //loadProject();
-            });
-        } catch (error) {
-          console.error("Chyba pri načítavaní dát:", error);
-        }
+      try {
+        await axios
+          .post(
+            "https://localhost:44300/LoadedFolder/PostFactorsMultiply",
+            JSON.stringify(dataToSend),
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+          .then(() => {
+            loadProjectFromId();
+          });
+      } catch (error) {
+        console.error("Chyba pri načítavaní dát:", error);
       }
+    } else {
+      let project: ProjectDTO = { ...projectData! };
+
+      let profile : number[] = [];
+      console.log(project.folders[selectedFolder].excitation.length);
+      for (let row = 0; row < project.folders[selectedFolder].data[0].intensity.length; row++) {
+        let max : number = Number.MIN_VALUE;
+        for (let file = 0; file < project.folders[selectedFolder].data.length; file++) {
+          //console.log(project.folders[selectedFolder].data[file]);
+          const multiplied : number = project.folders[selectedFolder].data[file].intensity[row].intensity * factors[file];
+          project.folders[selectedFolder].data[file].intensity[row].multipliedintensity = multiplied;
+          if (multiplied > max) max = multiplied;
+        }
+        profile.push(max);
+      }
+      const newProfile: Profile = {
+        excitation: folderData.excitation,
+        profile: profile,
+      };
+      project.folders[selectedFolder].profile = profile;
+      setProfileData(newProfile);
+      setProjectData(project);
+      setMultiplied(true);
+      handleSelectedFolder();
+      
+
+    }
   };
 
   if (isLoading) {
