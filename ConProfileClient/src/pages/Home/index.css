@@ -1,45 +1,33 @@
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
 
-
 .welcomebar {
-    min-width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+  min-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
-
 .button-container {
-    margin-bottom: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 100%;
-  }
-  
-  .home-page {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden; 
-    background-color: #E6E5E5;
-    
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100%;
+}
 
-  }
-
-  .emptydiv {
-    min-width: 100%;
-    min-height: 30%;
-  }
-
-  .tab-container {
-
-    width: 60%;
-    padding-top: 20px;
-    max-height: 200px;
-    overflow-y: auto;
-
+.home-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: #e6e5e5;
+}
+.tab-container {
+  width: 60%;
+  padding-top: 20px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .table-head {

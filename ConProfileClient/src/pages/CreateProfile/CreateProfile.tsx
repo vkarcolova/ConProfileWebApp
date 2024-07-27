@@ -14,15 +14,19 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { TreeView } from "@mui/x-tree-view/TreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
+  Box,
+  CircularProgress,
   IconButton,
   Input,
   Paper,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  fabClasses,
 } from "@mui/material";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
@@ -43,165 +47,177 @@ interface StatData {
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
+  const { id: loadedProjectId } = useParams<{ id: string }>();
+
   const [selectedFolder, setSelectedFolder] = useState(0);
   const [folderData, setFolderData] = useState<FolderDTO | null>(null);
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
   const [profileData, setProfileData] = useState<Profile | null>(null);
   const [multiplied, setMultiplied] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
   const [normalStatData, setNormalStatData] = useState<StatData | null>(null);
   const [multipliedStatData, setMultipliedStatData] = useState<StatData | null>(
     null
   );
   const inputRef = useRef<HTMLInputElement>(null);
-  const { id: loadedProjectId } = useParams<{ id: string }>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+
   let foldersExpand: string[] = [];
 
   useEffect(() => {
-    if (loadedProjectId) loadProjectFromId();
-    else {
-      const sessionData = sessionStorage.getItem("loadeddata");
-      if (!sessionData) {
-        navigate("/");
-        return;
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        if (loadedProjectId) {
+          await loadProjectFromId();
+        } else {
+          const sessionData = sessionStorage.getItem("loadeddata");
+          if (!sessionData) {
+            navigate("/");
+            return;
+          }
+          const obj = JSON.parse(sessionData) as ProjectDTO;
+          setProjectData(obj);
+          setFolderData(obj.folders[0]);
+        }
+      } catch (error) {
+        console.error("Chyba pri načítavaní dát:", error);
+      } finally {
+        setIsLoading(false);
       }
-      const obj = JSON.parse(sessionData) as ProjectDTO;
+    };
+    loadData();
+  }, [loadedProjectId, navigate]);
 
-      setProjectData(obj);
-      console.log(obj);
-      setFolderData(obj.folders[0]);
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await handleSelectedFolder();
+      setIsLoading(false);
+    };
+    if (folderData) {
+      loadData();
     }
-  }, []);
+  }, [folderData]);
 
   useEffect(() => {
-    //nacitanie legendy && statistik
-    handleSelectedFolder();
-  }, [folderData]);
-  useEffect(() => {
-    console.log(projectData);
-  }, [projectData]);
+    console.log(isLoading);
+  }, [isLoading]);
 
   const handleSelectedFolder = async () => {
-    if (folderData) {
-      let dynamicChartData: ChartData[] = [];
-      let allData: number[] = [];
+    if (!folderData) return;
+    let dynamicChartData: ChartData[] = [];
+    let allData: number[] = [];
 
-      folderData.data.forEach((file) => {
-        const intensities: number[] = file.intensity.map(
-          (dto) => dto.intensity
-        );
-        dynamicChartData.push({ data: intensities, label: file.filename });
+    folderData.data.forEach((file) => {
+      const intensities: number[] = file.intensity.map((dto) => dto.intensity);
+      dynamicChartData.push({ data: intensities, label: file.filename });
+      allData = allData.concat(intensities);
+    });
 
-        allData = allData.concat(intensities);
+    const normalMax: number = Math.max(...allData);
+    const normalMin: number = Math.min(...allData);
+
+    const mean =
+      allData.reduce((sum, number) => sum + number, 0) / allData.length;
+    const squaredDifferences = allData.map((number) =>
+      Math.pow(number - mean, 2)
+    );
+    const variance =
+      squaredDifferences.reduce(
+        (sum, squaredDifference) => sum + squaredDifference,
+        0
+      ) / allData.length;
+    const standardDeviation = Math.sqrt(variance);
+
+    const normalStat: StatData = {
+      max: normalMax,
+      min: normalMin,
+      std: standardDeviation,
+    };
+    setNormalStatData(normalStat);
+
+    if (folderData.profile) {
+      setMultiplied(true);
+      dynamicChartData.push({
+        data: folderData.profile,
+        label: "Profil",
       });
 
-      const normalMax: number = Math.max(...allData);
-      const normalMin: number = Math.min(...allData);
+      const multipliedMax: number = Math.max(...folderData.profile);
+      const multipliedMin: number = Math.min(...folderData.profile);
 
-      const mean =
-        allData.reduce((sum, number) => sum + number, 0) / allData.length;
-      const squaredDifferences = allData.map((number) =>
-        Math.pow(number - mean, 2)
+      const meanProfile =
+        folderData.profile.reduce((sum, number) => sum + number, 0) /
+        folderData.profile.length;
+      const squaredDifferencesProfile = folderData.profile.map((number) =>
+        Math.pow(number - meanProfile, 2)
       );
-      const variance =
-        squaredDifferences.reduce(
+      const varianceProfile =
+        squaredDifferencesProfile.reduce(
           (sum, squaredDifference) => sum + squaredDifference,
           0
-        ) / allData.length;
-      const standardDeviation = Math.sqrt(variance);
+        ) / folderData.profile.length;
+      const multipliedStandardDeviation = Math.sqrt(varianceProfile);
 
-      const normalStat: StatData = {
-        max: normalMax,
-        min: normalMin,
-        std: standardDeviation,
+      const multipliedStat: StatData = {
+        max: multipliedMax,
+        min: multipliedMin,
+        std: multipliedStandardDeviation,
       };
-      setNormalStatData(normalStat);
+      setMultipliedStatData(multipliedStat);
 
-      if (folderData.profile) {
-        setMultiplied(true);
-        dynamicChartData.push({
-          data: folderData.profile,
-          label: "Profil",
-        });
-
-        const multipliedMax: number = Math.max(...folderData.profile);
-        const multipliedMin: number = Math.min(...folderData.profile);
-
-        const mean =
-          folderData.profile.reduce((sum, number) => sum + number, 0) /
-          folderData.profile.length;
-        const squaredDifferences = folderData.profile.map((number) =>
-          Math.pow(number - mean, 2)
-        );
-        const variance =
-          squaredDifferences.reduce(
-            (sum, squaredDifference) => sum + squaredDifference,
-            0
-          ) / folderData.profile.length;
-        const multipliedStandardDeviation = Math.sqrt(variance);
-
-        const multipliedStat: StatData = {
-          max: multipliedMax,
-          min: multipliedMin,
-          std: multipliedStandardDeviation,
-        };
-        setMultipliedStatData(multipliedStat);
-
-        const profile: Profile = {
-          excitation: folderData.excitation,
-          profile: folderData.profile,
-        };
-        setProfileData(profile);
-      }
-      else setMultiplied(false);
-      setChartData(dynamicChartData);
-      setIsLoading(false);
+      const profile: Profile = {
+        excitation: folderData.excitation,
+        profile: folderData.profile,
+      };
+      setProfileData(profile);
+    } else {
+      setMultiplied(false);
     }
+
+    setChartData(dynamicChartData);
   };
+
   const loadProjectFromId = async () => {
     if (loadedProjectId) {
       const idProject = parseInt(loadedProjectId, 10);
 
-      axios
-        .get<ProjectDTO>(
-          "https://localhost:44300/Project/GetProject/" + idProject,
+      try {
+        const response = await axios.get<ProjectDTO>(
+          `https://localhost:44300/Project/GetProject/${idProject}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
-        )
-        .then((response) => {
-          setProjectData(response.data);
-          setFolderData(response.data.folders[selectedFolder]);
+        );
+        setProjectData(response.data);
+        setFolderData(response.data.folders[selectedFolder]);
 
-          const comparefolders: FolderDTO[] = [];
-          response.data.folders.forEach((element) => {
-            if (element.profile) {
-              comparefolders.push(element);
-            }
-          });
-
-          setFoldersToCompare(comparefolders);
-
-          console.log(response.data);
-
-          if (response.data.folders[selectedFolder].profile) {
-            setMultiplied(true);
+        const comparefolders: FolderDTO[] = [];
+        response.data.folders.forEach((element) => {
+          if (element.profile) {
+            comparefolders.push(element);
           }
-        })
-        .catch((error) => {
-          console.error("Chyba pri získavaní dát zo servera:", error);
-        })
-        .finally(() => {});
+        });
+
+        setFoldersToCompare(comparefolders);
+
+        if (response.data.folders[selectedFolder].profile) {
+          setMultiplied(true);
+        }
+      } catch (error) {
+        console.error("Chyba pri získavaní dát zo servera:", error);
+      }
     }
   };
+
   const handleSelectFolder = () => {
     if (inputRef.current) {
       inputRef.current.click();
@@ -214,12 +230,14 @@ const CreateProfile: React.FC = () => {
         file.name.endsWith(".sp")
       );
       const folderName = filesArray[0].webkitRelativePath.split("/")[0];
-      projectData?.folders.forEach((element) => {
-        if (element.foldername == folderName) {
-          alert("Priečinok s týmto menom už bol nahraný.");
-          return;
-        }
-      });
+      if (
+        projectData?.folders.some(
+          (element) => element.foldername === folderName
+        )
+      ) {
+        alert("Priečinok s týmto menom už bol nahraný.");
+        return;
+      }
       const loadedFiles: FileContent[] = [];
 
       const readFileAsync = (file: File): Promise<string> => {
@@ -253,8 +271,7 @@ const CreateProfile: React.FC = () => {
       }
       if (loadedProjectId) {
         try {
-          console.log(loadedFiles);
-          const response = await axios
+          await axios
             .post(
               "https://localhost:44300/LoadedFolder/PostNewFolderToProject",
               JSON.stringify(loadedFiles),
@@ -272,19 +289,16 @@ const CreateProfile: React.FC = () => {
           console.error("Chyba pri načítavaní dát:", error);
         }
       } else {
-        // console.log(loadedFiles);
         let project: ProjectDTO = { ...projectData! };
         try {
-          const response = await axios
+          await axios
             .post(
               "https://localhost:44300/LoadedFolder/PostNewFolder",
               loadedFiles
             )
             .then((response) => {
-              console.log(response.data);
               const objString = response.data.folder as FolderDTO;
               project.folders.push(objString);
-              console.log(project);
               setProjectData(project);
             });
         } catch (error) {
@@ -295,11 +309,10 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleNodeSelect = (event: React.ChangeEvent<{}>, nodeId: string) => {
-    projectData?.folders.forEach((value: FolderDTO, index: number) => {
+    projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
       if (value.id.toString() == nodeId && selectedFolder != index) {
-        setIsLoading(true);
-
         setMultiplied(false);
+
         setSelectedFolder(index);
         setFolderData(value);
         if (value.data[0].intensity[0].multipliedintensity) {
@@ -307,7 +320,9 @@ const CreateProfile: React.FC = () => {
         } else {
           setMultiplied(false);
         }
-        handleSelectedFolder();
+        setIsLoading(true);
+        await handleSelectedFolder();
+        setIsLoading(false);
       }
     });
   };
@@ -315,7 +330,7 @@ const CreateProfile: React.FC = () => {
   const multiplyButtonClick = async () => {
     const factors: number[] = [];
     const ids: number[] = [];
-
+    let wrongInput: boolean = false;
     folderData?.data.forEach((element) => {
       const autocompleteInput = document.getElementById(
         `autocomplete-${element.id}`
@@ -323,18 +338,21 @@ const CreateProfile: React.FC = () => {
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
         : null;
-      console.log(autocompleteInput);
       if (inputFactor) {
         factors.push(inputFactor);
         ids.push(element.id);
       } else {
-        alert("Nesprávne zadané reporty!");
-        return; //todo aby sa vyletelo z forka
+        wrongInput = true;
       }
     });
-    if (factors.length !== folderData?.data.length || !folderData || !ids) {
+    if (wrongInput) {
+      alert("Nesprávne zadané hodnoty!");
       return;
     }
+
+    if (factors.length !== folderData?.data.length || !folderData || !ids)
+      return;
+
     if (loadedProjectId) {
       const dataToSend: MultiplyFolderDTO = {
         IDFOLDER: folderData.id,
@@ -362,14 +380,24 @@ const CreateProfile: React.FC = () => {
     } else {
       let project: ProjectDTO = { ...projectData! };
 
-      let profile : number[] = [];
-      console.log(project.folders[selectedFolder].excitation.length);
-      for (let row = 0; row < project.folders[selectedFolder].data[0].intensity.length; row++) {
-        let max : number = Number.MIN_VALUE;
-        for (let file = 0; file < project.folders[selectedFolder].data.length; file++) {
-          //console.log(project.folders[selectedFolder].data[file]);
-          const multiplied : number = project.folders[selectedFolder].data[file].intensity[row].intensity * factors[file];
-          project.folders[selectedFolder].data[file].intensity[row].multipliedintensity = multiplied;
+      let profile: number[] = [];
+      for (
+        let row = 0;
+        row < project.folders[selectedFolder].data[0].intensity.length;
+        row++
+      ) {
+        let max: number = Number.MIN_VALUE;
+        for (
+          let file = 0;
+          file < project.folders[selectedFolder].data.length;
+          file++
+        ) {
+          const multiplied: number =
+            project.folders[selectedFolder].data[file].intensity[row]
+              .intensity * factors[file];
+          project.folders[selectedFolder].data[file].intensity[
+            row
+          ].multipliedintensity = multiplied;
           if (multiplied > max) max = multiplied;
         }
         profile.push(max);
@@ -383,17 +411,11 @@ const CreateProfile: React.FC = () => {
       setProjectData(project);
       setMultiplied(true);
       handleSelectedFolder();
-      
-
     }
   };
 
-  if (isLoading) {
-    return <div>Loading</div>;
-  }
-
   if (!folderData) {
-    return <div>Error loading data.</div>;
+    return <Box>Error loading data.</Box>;
   }
 
   const handleOpenDialog = () => {
@@ -407,334 +429,360 @@ const CreateProfile: React.FC = () => {
   };
 
   return (
-    <div>
-      <div
-        className="center-items main"
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "flex-start",
-        }}
-      >
-        <Comparison
-          open={dialogOpen}
-          onClose={handleCloseDialog}
-          folders={foldersToCompare}
-        />
-
-        <div
-          className="first center-items"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "25%",
-            minHeight: "100vh",
-            paddingRight: "20px",
-            paddingLeft: "20px",
-          }}
-        >
-          <div
+    <Box>
+      {isLoading ? (
+        <>
+          <CircularProgress />
+        </>
+      ) : (
+        <>
+          <Box
+            className="center-items main"
             style={{
-              marginBottom: "10px",
               display: "flex",
               flexDirection: "row",
-              fontWeight: "bold",
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
             }}
           >
-            <h4 style={{ marginLeft: "5px", fontWeight: "bold" }}>
-              Názov projektu
-            </h4>
-            <Input
-              placeholder="Názov projektu"
-              value={projectData?.projectname}
-              sx={{
-                "--Input-minHeight": "41px",
-              }}
-              id="inputName"
+            <Comparison
+              open={dialogOpen}
+              onClose={handleCloseDialog}
+              folders={foldersToCompare}
             />
-          </div>
-          <div className="treeView">
-            <p>Načítané priečinky</p>
-            <div className="treeViewWindow">
-              {projectData != undefined ? (
-                <TreeView
-                  aria-label="controlled"
-                  defaultCollapseIcon={<ExpandMoreIcon />}
-                  defaultExpandIcon={<ChevronRightIcon />}
-                  defaultExpanded={foldersExpand}
-                  onNodeSelect={handleNodeSelect}
-                >
-                  {projectData?.folders.map((folder) => (
-                    <CustomTreeItem
-                      nodeId={folder.id.toString()}
-                      label={folder.foldername}
-                      key={folder.foldername}
-                      style={{ fontFamily: "Poppins", fontSize: "larger" }}
-                    >
-                      {folder.data.map((file) => (
-                        <TreeItem
-                          nodeId={file.filename}
-                          label={file.filename}
-                          key={file.filename}
-                        />
-                      ))}
-                    </CustomTreeItem>
-                  ))}
-                </TreeView>
-              ) : (
-                ""
-              )}
-            </div>
 
-            <div className="buttonContainer">
-              <IconButton aria-label="delete" onClick={handleSelectFolder}>
-                <AddCircleOutlineRoundedIcon />
-              </IconButton>
-              <input
-                ref={inputRef}
-                type="file"
-                directory=""
-                webkitdirectory=""
-                onChange={loadNewFolder}
-                multiple
-                style={{ display: "none" }}
-              />
-              <button
-                onClick={handleOpenDialog}
-                className="button-13"
-                role="button"
-                style={{ padding: "0px", margin: "0px" }}
-              >
-                Porovnať
-              </button>
-            </div>
-
-            <div className="buttonContainerRows">
-              <button
-                onClick={multiplyButtonClick}
-                className="button-13"
-                role="button"
-                style={{ padding: "0px", margin: "0px" }}
-              >
-                Exportovať
-              </button>
-              <button
-                onClick={multiplyButtonClick}
-                className="button-1"
-                role="button"
+            <Box
+              className="first center-items"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: "25%",
+                minHeight: "100vh",
+                paddingRight: "20px",
+                paddingLeft: "20px",
+              }}
+            >
+              <Box
                 style={{
-                  fontSize: "13px",
-                  marginTop: "10px",
-                  fontWeight: "bolder",
-                  margin: "0px",
-                  width: "auto",
+                  marginBottom: "10px",
+                  display: "flex",
+                  flexDirection: "row",
+                  fontWeight: "bold",
                 }}
               >
-                Uložiť projekt
-              </button>
-            </div>
-          </div>
-        </div>
-        <div
-          className="second"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
-            width: "75%",
-          }}
-        >
-          <div
-            className="upperContainer"
-            style={{ flexDirection: "row", display: "flex", marginTop: "10px" }}
-          >
-            <div className="table-container" style={{ width: "55%" }}>
-              <DataTable folderData={folderData} showAutocomplete={true} />
-            </div>
-            <div className="otherContainer" style={{ width: "45%" }}>
-              <div className="buttonCreateProfil">
-                <button
-                  onClick={multiplyButtonClick}
-                  className="button-1"
-                  role="button"
-                  style={{ fontSize: "11px" }}
-                >
-                  Vytvoriť profil
-                </button>
-                <button
-                  onClick={multiplyButtonClick}
-                  className="button-1"
-                  role="button"
-                  style={{
-                    fontSize: "11px",
-                    marginLeft: "auto",
-                    marginRight: "30px",
+                <h4 style={{ marginLeft: "5px", fontWeight: "bold" }}>
+                  Názov projektu
+                </h4>
+                <Input
+                  placeholder="Názov projektu"
+                  value={projectData?.projectname}
+                  sx={{
+                    "--Input-minHeight": "41px",
                   }}
-                >
-                  Exportovať graf
-                </button>
-              </div>
-              {chartData ? (
-                <div
-                  style={{
-                    height: "83%",
-                    margin: "10px",
-                    backgroundColor: "white",
-                  }}
-                >
-                  <ScatterChart
-                    series={chartData.map((data) => ({
-                      label: data.label,
-                      data: data.data.map((v, index) => ({
-                        x: folderData.excitation[index],
-                        y: v,
-                        id: index,
-                      })),
-                    }))}
-                    yAxis={[{ min: 0 }]}
-                    xAxis={[{ min: 250 }]}
+                  id="inputName"
+                />
+              </Box>
+              <Box className="treeView">
+                <p>Načítané priečinky</p>
+                <Box className="treeViewWindow">
+                  {projectData != undefined ? (
+                    <TreeView
+                      aria-label="controlled"
+                      defaultCollapseIcon={<ExpandMoreIcon />}
+                      defaultExpandIcon={<ChevronRightIcon />}
+                      defaultExpanded={foldersExpand}
+                      onNodeSelect={handleNodeSelect}
+                    >
+                      {projectData?.folders.map((folder) => (
+                        <CustomTreeItem
+                          nodeId={folder.id.toString()}
+                          label={folder.foldername}
+                          key={folder.foldername}
+                          style={{ fontFamily: "Poppins", fontSize: "larger" }}
+                        >
+                          {folder.data.map((file) => (
+                            <TreeItem
+                              nodeId={file.filename}
+                              label={file.filename}
+                              key={file.filename}
+                            />
+                          ))}
+                        </CustomTreeItem>
+                      ))}
+                    </TreeView>
+                  ) : (
+                    ""
+                  )}
+                </Box>
+
+                <Box className="buttonContainer">
+                  <IconButton aria-label="delete" onClick={handleSelectFolder}>
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    directory=""
+                    webkitdirectory=""
+                    onChange={loadNewFolder}
+                    multiple
+                    style={{ display: "none" }}
                   />
-                </div>
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-          <div
-            className="bottomContainer"
-            style={{ flexDirection: "row", display: "flex", marginTop: "10px" }}
-          >
-            <div className="table-container" style={{ width: "55%" }}>
-              {multiplied && projectData ? (
-                <DataTable folderData={folderData} showAutocomplete={false} />
-              ) : (
-                <div className="emptyTable"></div>
-              )}
-            </div>
-            <div
-              className="otherContainer"
-              style={{ width: "45%", flexDirection: "row", display: "flex" }}
-            >
-              <div className="profileTab">
-                {multiplied && projectData ? (
-                  <div className="table-container">
-                    <TableContainer component={Paper}>
-                      <Table
-                        stickyHeader
-                        size="small"
-                        aria-label="a dense table"
-                      >
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>
-                              <div className="TableRowName">Excitácie</div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="TableRowName">Intenzity</div>
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>
-                              {profileData?.excitation.map((value, i) => (
-                                <div key={i}>{value.toFixed(5)}</div>
-                              ))}
-                            </TableCell>
-                            <TableCell>
-                              {profileData?.profile.map((value, i) => (
-                                <div key={i}>{value.toFixed(5)}</div>
-                              ))}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </div>
-                ) : (
-                  <div className="emptyTable"></div>
-                )}
-              </div>
-              <div className="statsContainer">
-                <div className="stats">
-                  <div className="statsHead">
-                    <h3>Štatistiky</h3>
-                  </div>
-                  <div
+                  <button
+                    onClick={handleOpenDialog}
+                    className="button-13"
+                    role="button"
+                    style={{ padding: "0px", margin: "0px" }}
+                  >
+                    Porovnať
+                  </button>
+                </Box>
+
+                <Box className="buttonContainerRows">
+                  <button
+                    onClick={multiplyButtonClick}
+                    className="button-13"
+                    role="button"
+                    style={{ padding: "0px", margin: "0px" }}
+                  >
+                    Exportovať
+                  </button>
+                  <button
+                    onClick={multiplyButtonClick}
+                    className="button-1"
+                    role="button"
                     style={{
-                      flexDirection: "row",
-                      display: "flex",
+                      fontSize: "13px",
                       marginTop: "10px",
+                      fontWeight: "bolder",
+                      margin: "0px",
+                      width: "auto",
                     }}
                   >
-                    <div className="statsColumn">
-                      <h4>Originálne</h4>
-                      <div
-                        className="center-items"
+                    Uložiť projekt
+                  </button>
+                </Box>
+              </Box>
+            </Box>
+            <Box
+              className="second"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "100vh",
+                width: "75%",
+              }}
+            >
+              <Box
+                className="upperContainer"
+                style={{
+                  flexDirection: "row",
+                  display: "flex",
+                  marginTop: "10px",
+                }}
+              >
+                <Box className="table-container" style={{ width: "55%" }}>
+                  <DataTable folderData={folderData} showAutocomplete={true} />
+                </Box>
+                <Box className="otherContainer" style={{ width: "45%" }}>
+                  <Box className="buttonCreateProfil">
+                    <button
+                      onClick={multiplyButtonClick}
+                      className="button-1"
+                      role="button"
+                      style={{ fontSize: "11px" }}
+                    >
+                      Vytvoriť profil
+                    </button>
+                    <button
+                      onClick={multiplyButtonClick}
+                      className="button-1"
+                      role="button"
+                      style={{
+                        fontSize: "11px",
+                        marginLeft: "auto",
+                        marginRight: "30px",
+                      }}
+                    >
+                      Exportovať graf
+                    </button>
+                  </Box>
+                  {chartData ? (
+                    <Box
+                      style={{
+                        height: "83%",
+                        margin: "10px",
+                        backgroundColor: "white",
+                      }}
+                    >
+                      <ScatterChart
+                        series={chartData.map((data) => ({
+                          label: data.label,
+                          data: data.data.map((v, index) => ({
+                            x: folderData.excitation[index],
+                            y: v,
+                            id: index,
+                          })),
+                        }))}
+                        yAxis={[{ min: 0 }]}
+                        xAxis={[{ min: 250 }]}
+                      />
+                    </Box>
+                  ) : (
+                    ""
+                  )}
+                </Box>
+              </Box>
+              <Box
+                className="bottomContainer"
+                style={{
+                  flexDirection: "row",
+                  display: "flex",
+                  marginTop: "10px",
+                }}
+              >
+                <Box className="table-container" style={{ width: "55%" }}>
+                  {isLoading ? (
+                    <Skeleton />
+                  ) : (
+                    <>
+                      {multiplied && projectData ? (
+                        <DataTable
+                          folderData={folderData}
+                          showAutocomplete={false}
+                        />
+                      ) : (
+                        <Box className="emptyTable"></Box>
+                      )}
+                    </>
+                  )}
+                </Box>
+                <Box
+                  className="otherContainer"
+                  style={{
+                    width: "45%",
+                    flexDirection: "row",
+                    display: "flex",
+                  }}
+                >
+                  <Box className="profileTab">
+                    {multiplied && projectData ? (
+                      <Box className="table-container">
+                        <TableContainer component={Paper}>
+                          <Table
+                            stickyHeader
+                            size="small"
+                            aria-label="a dense table"
+                          >
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>
+                                  <Box className="TableRowName">Excitácie</Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box className="TableRowName">Intenzity</Box>
+                                </TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell>
+                                  {profileData?.excitation.map((value, i) => (
+                                    <Box key={i}>{value.toFixed(5)}</Box>
+                                  ))}
+                                </TableCell>
+                                <TableCell>
+                                  {profileData?.profile.map((value, i) => (
+                                    <Box key={i}>{value.toFixed(5)}</Box>
+                                  ))}
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </Box>
+                    ) : (
+                      <Box className="emptyTable"></Box>
+                    )}
+                  </Box>
+                  <Box className="statsContainer">
+                    <Box className="stats">
+                      <Box className="statsHead">
+                        <h3>Štatistiky</h3>
+                      </Box>
+                      <Box
                         style={{
-                          marginTop: "20px",
                           flexDirection: "row",
                           display: "flex",
-                          textAlign: "center",
+                          marginTop: "10px",
                         }}
                       >
-                        <div>
-                          <h4>Max</h4>
-                          <h4>Min</h4>
-                          <h4>Std</h4>
-                        </div>
-                        <div>
-                          <h5>{normalStatData?.max.toFixed(5)}</h5>
-                          <h5>{normalStatData?.min.toFixed(5)}</h5>
-                          <h5>{normalStatData?.std.toFixed(5)}</h5>
-                        </div>
-                      </div>
-                    </div>
-                    {multiplied ? (
-                      <div className="statsColumn">
-                        <h4>Prenásobené</h4>
-                        <div
-                          className="center-items"
-                          style={{
-                            marginTop: "20px",
-                            flexDirection: "row",
-                            display: "flex",
-                            textAlign: "center",
-                          }}
-                        >
-                          <div>
-                            <h4>Max</h4>
-                            <h4>Min</h4>
-                            <h4>Std</h4>
-                          </div>
-                          <div>
-                            <h5>{multipliedStatData?.max.toFixed(5)}</h5>
-                            <h5>{multipliedStatData?.min.toFixed(5)}</h5>
-                            <h5>{multipliedStatData?.std.toFixed(5)}</h5>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div></div>
-    </div>
+                        <Box className="statsColumn">
+                          <h4>Originálne</h4>
+                          <Box
+                            className="center-items"
+                            style={{
+                              marginTop: "20px",
+                              flexDirection: "row",
+                              display: "flex",
+                              textAlign: "center",
+                            }}
+                          >
+                            <Box>
+                              <h4>Max</h4>
+                              <h4>Min</h4>
+                              <h4>Std</h4>
+                            </Box>
+                            <Box>
+                              <h5>{normalStatData?.max.toFixed(5)}</h5>
+                              <h5>{normalStatData?.min.toFixed(5)}</h5>
+                              <h5>{normalStatData?.std.toFixed(5)}</h5>
+                            </Box>
+                          </Box>
+                        </Box>
+                        {multiplied ? (
+                          <Box className="statsColumn">
+                            <h4>Prenásobené</h4>
+                            <Box
+                              className="center-items"
+                              style={{
+                                marginTop: "20px",
+                                flexDirection: "row",
+                                display: "flex",
+                                textAlign: "center",
+                              }}
+                            >
+                              <Box>
+                                <h4>Max</h4>
+                                <h4>Min</h4>
+                                <h4>Std</h4>
+                              </Box>
+                              <Box>
+                                <h5>{multipliedStatData?.max.toFixed(5)}</h5>
+                                <h5>{multipliedStatData?.min.toFixed(5)}</h5>
+                                <h5>{multipliedStatData?.std.toFixed(5)}</h5>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ) : (
+                          ""
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </>
+      )}
+    </Box>
   );
 };
 export default CreateProfile;
 
 declare module "react" {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-    // extends React's HTMLAttributes
     directory?: string;
     webkitdirectory?: string;
   }
