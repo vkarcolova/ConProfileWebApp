@@ -42,70 +42,35 @@ namespace WebAPI.Controllers
             if (projects == null)
             {
                 return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené
-            } else
+            }
+            else
             {
                 List<ProjectDTO> allProjects = new List<ProjectDTO>();
-                foreach(Project project in projects)
+                foreach (Project project in projects)
                 {
                     List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
                     List<FolderDTO> foldersDTO = new List<FolderDTO>();
-                    foreach(LoadedFolder folder in folders)
+                    foreach (LoadedFolder folder in folders)
                     {
                         FolderDTO folderDTO = new FolderDTO { FOLDERNAME = folder.FolderName };
                         foldersDTO.Add(folderDTO);
                     }
-
                     ProjectDTO result = new ProjectDTO
                     {
                         IDPROJECT = project.IdProject,
                         PROJECTNAME = project.ProjectName,
                         FOLDERS = foldersDTO,
                         CREATED = project.Created,
-
                     };
 
                     allProjects.Add(result);
                 }
-                
 
                 return allProjects;
             }
         }
-        [HttpDelete("DeleteProject/{id}")]
-        public ActionResult<ProjectDTO> DeleteItemById(int id)
-        {
-            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == id && project.Token == userToken);
-
-            if(projectToRemove == null) {
-                return NotFound();
-            }
-            List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
-            foreach(LoadedFolder folder in folders)
-            {
-                List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).ToList();
-                foreach (LoadedFile file in files)
-                {
-
-                    List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
-
-                    _context.LoadedDatas.RemoveRange(data);
-                }
-                _context.LoadedFiles.RemoveRange(files);
-
-                List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
-                _context.ProfileDatas.RemoveRange(profile);
-            }
-            _context.LoadedFolders.RemoveRange(folders);
-
-            _context.Projects.Remove(projectToRemove);
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
-
+        //Spracovanie suborov a poslanie ich vo forme dto este nesavnutie
         [HttpPost("CreateNewProject")]
         public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles)
         {
@@ -115,13 +80,8 @@ namespace WebAPI.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 string token = "";
                 if (userToken == "")
-                {
                     token = _loadedDataService.GenerateJwtToken();
-                }
-                else
-                {
-                    token = userToken;
-                }
+                else token = userToken;
 
                 List<FolderDTO> folders = new List<FolderDTO>();
                 folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
@@ -132,20 +92,93 @@ namespace WebAPI.Controllers
                     IDPROJECT = -1,
                     PROJECTNAME = loadedFiles[0].FOLDERNAME
                 };
-                if (folders.Count != 0)
-                {
-                    return Ok(new { TOKEN = token, PROJECT = result });
-                }
-                else
-                    return BadRequest(result);
-
+                if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
+                else return BadRequest(result);
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+                return BadRequest("Chybný formát dát.");
             }
         }
 
+        //Savnutie noveho projekt
+        [HttpPost("SaveNewProject")]
+        public async Task<IActionResult> SaveNewProject([FromBody] ProjectDTO projectData)
+        {
+            // Spracovanie prijatých súborov
+            if (projectData != null && projectData.FOLDERS.Any())
+            {
+                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                string token;
+                if (userToken == "") token = _loadedDataService.GenerateJwtToken();
+                else token = userToken;
+
+                Project project = new Project {
+                    Created = projectData.CREATED,
+                    IdProject = _context.Projects.Count(),
+                    ProjectName = projectData.PROJECTNAME,
+                    Token = token
+                };
+                _context.Projects.Add(project);
+                foreach (FolderDTO folderData in projectData.FOLDERS)
+                {
+                    LoadedFolder folder = new LoadedFolder
+                    {
+                        IdProject = project.IdProject,
+                        IdFolder = _context.LoadedFolders.Count(),
+                        FolderName = folderData.FOLDERNAME
+                    };
+                    _context.LoadedFolders.Add(folder);
+
+                    foreach (FileDTO fileData in folderData.DATA)
+                    {
+                        LoadedFile file = new LoadedFile
+                        {
+                            IdFolder = folder.IdFolder,
+                            IdFile = _context.LoadedFiles.Count(),
+                            FileName = fileData.FILENAME,
+                            Spectrum = fileData.SPECTRUM
+                        };
+                        _context.LoadedFiles.Add(file);
+
+                        for (int i = 0; i < fileData.INTENSITY.Count; i++)
+                        {
+                            LoadedData data = new LoadedData
+                            {
+                                IdFile = file.IdFile,
+                                IdData = _context.LoadedDatas.Count(),
+                                Excitation = fileData.INTENSITY[i].EXCITATION,
+                                Intensity = fileData.INTENSITY[i].INTENSITY,
+                                MultipliedIntensity = fileData.INTENSITY[i].MULTIPLIEDINTENSITY != null
+                                    ? fileData.INTENSITY[i].MULTIPLIEDINTENSITY : null
+                            };
+                            _context.LoadedDatas.Add(data);
+                        }
+                    }
+                    if (folderData.PROFILE != null) {
+                        for (int i = 0; i < folderData.PROFILE.Count; i++)
+                        {
+                            ProfileData data = new ProfileData
+                            {
+                                IdFolder = folder.IdFolder,
+                                IdProfileData = _context.ProfileDatas.Count(),
+                                Excitation = folderData.EXCITATION[i],
+                                MaxIntensity = folderData.PROFILE[i]
+                            };
+                            _context.ProfileDatas.Add(data);
+                        }
+                    }
+
+                }
+
+                _context.SaveChanges();
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát.");
+            }
+        }
 
         //GET PROJECT FROM ID POTREBUJEM
         [HttpGet("GetProject/{id}")]
@@ -165,14 +198,15 @@ namespace WebAPI.Controllers
                 List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
                 List<FolderDTO> folderList = new List<FolderDTO>();
 
-                foreach (LoadedFolder folder in folders) { 
+                foreach (LoadedFolder folder in folders)
+                {
                     List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
                     List<FileDTO> tabledata = new List<FileDTO>();
 
                     foreach (LoadedFile file in files)
                     {
 
-                        List <LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
+                        List<LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
 
                         List<IntensityDTO> intensity = loadedData.Select(obj => new IntensityDTO
                         { INTENSITY = obj.Intensity, EXCITATION = obj.Excitation, MULTIPLIEDINTENSITY =obj.MultipliedIntensity, IDDATA = obj.IdData })
@@ -224,6 +258,34 @@ namespace WebAPI.Controllers
             }
         }
 
+        [HttpDelete("DeleteProject/{id}")]
+        public ActionResult<ProjectDTO> DeleteItemById(int id)
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == id && project.Token == userToken);
+            if (projectToRemove == null) return NotFound();
+            List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
+            foreach (LoadedFolder folder in folders)
+            {
+                List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).ToList();
+                foreach (LoadedFile file in files)
+                {
+                    List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
+
+                    _context.LoadedDatas.RemoveRange(data);
+                }
+                _context.LoadedFiles.RemoveRange(files);
+
+                List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
+                _context.ProfileDatas.RemoveRange(profile);
+            }
+            _context.LoadedFolders.RemoveRange(folders);
+
+            _context.Projects.Remove(projectToRemove);
+            _context.SaveChanges();
+
+            return Ok();
+        }
 
     }
 }

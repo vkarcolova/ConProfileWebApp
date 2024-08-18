@@ -31,7 +31,6 @@ namespace WebApiServer.Controllers
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
             {
-
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var existingProject = _context.Projects.FirstOrDefault(p => p.Token == userToken && p.IdProject == loadedFiles[0].IDPROJECT);
                 if (existingProject != null)
@@ -43,7 +42,6 @@ namespace WebApiServer.Controllers
                 {
                     return BadRequest("Chybný formát dát.");
                 }
-
             }
             else
             {
@@ -58,15 +56,9 @@ namespace WebApiServer.Controllers
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
             {
-
                 FolderDTO result = _dataProcessService.ProcessUploadedFolder(loadedFiles);
-
-                if (result != null)
-                {
-                    return Ok(new { FOLDER = result });
-                }
-                else
-                    return BadRequest(result);
+                if (result != null)  return Ok(new { FOLDER = result });
+                else return BadRequest(result);
 
             }
             else

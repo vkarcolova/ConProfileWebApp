@@ -6,6 +6,7 @@ import {
   MultiplyFolderDTO,
   Profile,
   ProjectDTO,
+  Factors,
 } from "../../types";
 import DataTable from "../../components/DataTable";
 import "./index.css";
@@ -26,7 +27,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  fabClasses,
 } from "@mui/material";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
@@ -45,20 +45,25 @@ interface StatData {
   std: number;
 }
 
+interface AllFolderData {
+  chartData: ChartData[],
+  normalStatData: StatData,
+  multipliedStatData: StatData,
+  folderData: FolderDTO,
+  profileData: Profile,
+  multiplied: boolean,
+}
+
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
+  const [factors, setFactors] = React.useState<Factors[]>([]);
+
 
   const [selectedFolder, setSelectedFolder] = useState(0);
-  const [folderData, setFolderData] = useState<FolderDTO | null>(null);
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
-  const [profileData, setProfileData] = useState<Profile | null>(null);
-  const [multiplied, setMultiplied] = useState(false);
-  const [chartData, setChartData] = useState<ChartData[] | null>(null);
-  const [normalStatData, setNormalStatData] = useState<StatData | null>(null);
-  const [multipliedStatData, setMultipliedStatData] = useState<StatData | null>(
-    null
-  );
+  const [projectFolders, setProjectFolders] = useState<AllFolderData[]>([]);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
@@ -67,7 +72,7 @@ const CreateProfile: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  let foldersExpand: string[] = [];
+  const foldersExpand: string[] = [];
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,7 +88,13 @@ const CreateProfile: React.FC = () => {
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
           setProjectData(obj);
-          setFolderData(obj.folders[0]);
+
+          const folders: AllFolderData[] = [];
+          obj.folders.forEach(async folder => {
+            const filledFolder = await fillFolder(folder);
+            folders.push(filledFolder);
+          });
+          setProjectFolders(folders);
         }
       } catch (error) {
         console.error("Chyba pri načítavaní dát:", error);
@@ -94,24 +105,34 @@ const CreateProfile: React.FC = () => {
     loadData();
   }, [loadedProjectId, navigate]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await handleSelectedFolder();
-      setIsLoading(false);
-    };
-    if (folderData) {
-      loadData();
-    }
-  }, [folderData]);
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     setIsLoading(true);
+  //     await handleSelectedFolder();
+  //     setIsLoading(false);
+  //   };
+  //   loadData();
+    
+  // }, [selectedFolder]);
 
   useEffect(() => {
     console.log(isLoading);
   }, [isLoading]);
 
-  const handleSelectedFolder = async () => {
-    if (!folderData) return;
-    let dynamicChartData: ChartData[] = [];
+  useEffect(() => {
+    axios
+      .get<Factors[]>('https://localhost:44300/Factor')
+      .then(response => {
+        setFactors(response.data);
+      })
+      .catch(error => {
+        console.error('Chyba pri získavaní dát zo servera:', error);
+      });
+  }, []);
+
+
+  const fillFolder = async (folderData: FolderDTO) : Promise<AllFolderData> => {
+    const dynamicChartData: ChartData[] = [];
     let allData: number[] = [];
 
     folderData.data.forEach((file) => {
@@ -140,29 +161,43 @@ const CreateProfile: React.FC = () => {
       min: normalMin,
       std: standardDeviation,
     };
-    setNormalStatData(normalStat);
+    const allFolderData: AllFolderData = {
+      chartData:  dynamicChartData ,
+      normalStatData:  normalStat ,
+      multipliedStatData: {  max: 0, min: 0, std: 0 },
+      folderData: folderData,
+      profileData: { excitation: [], profile: [] },
+      multiplied: false,
+    };
 
     if (folderData.profile) {
-      setMultiplied(true);
-      dynamicChartData.push({
-        data: folderData.profile,
+      calculateMultipliedStats(allFolderData);
+    } 
+
+    return allFolderData;
+  };
+
+  const calculateMultipliedStats = (folder: AllFolderData) => {
+    if (folder.folderData.profile) {
+      folder.chartData.push({
+        data: folder.folderData.profile,
         label: "Profil",
       });
 
-      const multipliedMax: number = Math.max(...folderData.profile);
-      const multipliedMin: number = Math.min(...folderData.profile);
+      const multipliedMax: number = Math.max(...folder.folderData.profile);
+      const multipliedMin: number = Math.min(...folder.folderData.profile);
 
       const meanProfile =
-        folderData.profile.reduce((sum, number) => sum + number, 0) /
-        folderData.profile.length;
-      const squaredDifferencesProfile = folderData.profile.map((number) =>
+        folder.folderData.profile.reduce((sum, number) => sum + number, 0) /
+        folder.folderData.profile.length;
+      const squaredDifferencesProfile = folder.folderData.profile.map((number) =>
         Math.pow(number - meanProfile, 2)
       );
       const varianceProfile =
         squaredDifferencesProfile.reduce(
           (sum, squaredDifference) => sum + squaredDifference,
           0
-        ) / folderData.profile.length;
+        ) / folder.folderData.profile.length;
       const multipliedStandardDeviation = Math.sqrt(varianceProfile);
 
       const multipliedStat: StatData = {
@@ -170,18 +205,16 @@ const CreateProfile: React.FC = () => {
         min: multipliedMin,
         std: multipliedStandardDeviation,
       };
-      setMultipliedStatData(multipliedStat);
 
       const profile: Profile = {
-        excitation: folderData.excitation,
-        profile: folderData.profile,
+        excitation: folder.folderData.excitation,
+        profile: folder.folderData.profile,
       };
-      setProfileData(profile);
-    } else {
-      setMultiplied(false);
-    }
 
-    setChartData(dynamicChartData);
+      folder.multipliedStatData = multipliedStat;
+      folder.profileData = profile;
+      folder.multiplied = true;
+    } 
   };
 
   const loadProjectFromId = async () => {
@@ -198,7 +231,13 @@ const CreateProfile: React.FC = () => {
           }
         );
         setProjectData(response.data);
-        setFolderData(response.data.folders[selectedFolder]);
+        
+        const folders: AllFolderData[] = [];
+        response.data.folders.forEach(async folder => {
+          const filledFolder = await fillFolder(folder);
+          folders.push(filledFolder);
+        });
+        setProjectFolders(folders);
 
         const comparefolders: FolderDTO[] = [];
         response.data.folders.forEach((element) => {
@@ -206,23 +245,14 @@ const CreateProfile: React.FC = () => {
             comparefolders.push(element);
           }
         });
-
         setFoldersToCompare(comparefolders);
-
-        if (response.data.folders[selectedFolder].profile) {
-          setMultiplied(true);
-        }
       } catch (error) {
         console.error("Chyba pri získavaní dát zo servera:", error);
       }
     }
   };
 
-  const handleSelectFolder = () => {
-    if (inputRef.current) {
-      inputRef.current.click();
-    }
-  };
+
   const loadNewFolder = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (selectedFiles) {
@@ -289,15 +319,21 @@ const CreateProfile: React.FC = () => {
           console.error("Chyba pri načítavaní dát:", error);
         }
       } else {
-        let project: ProjectDTO = { ...projectData! };
+        const project: ProjectDTO = { ...projectData! };
+
         try {
           await axios
             .post(
               "https://localhost:44300/LoadedFolder/PostNewFolder",
               loadedFiles
             )
-            .then((response) => {
+            .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
+              const filledFolder = await fillFolder(objString);
+              const folders: AllFolderData[] = projectFolders ;
+              folders.push(filledFolder);
+              setProjectFolders(folders);
+
               project.folders.push(objString);
               setProjectData(project);
             });
@@ -308,30 +344,25 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-  const handleNodeSelect = (event: React.ChangeEvent<{}>, nodeId: string) => {
+  const handleNodeSelect = (event: React.ChangeEvent<unknown>, nodeId: string) => {
     projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
       if (value.id.toString() == nodeId && selectedFolder != index) {
-        setMultiplied(false);
-
         setSelectedFolder(index);
-        setFolderData(value);
-        if (value.data[0].intensity[0].multipliedintensity) {
-          setMultiplied(true);
-        } else {
-          setMultiplied(false);
-        }
-        setIsLoading(true);
-        await handleSelectedFolder();
         setIsLoading(false);
       }
     });
   };
 
+  const handleSelectFolder = () => {
+    if (inputRef.current) {
+      inputRef.current.click();
+    }
+  };
   const multiplyButtonClick = async () => {
     const factors: number[] = [];
     const ids: number[] = [];
     let wrongInput: boolean = false;
-    folderData?.data.forEach((element) => {
+    projectFolders[selectedFolder].folderData.data.forEach((element) => {
       const autocompleteInput = document.getElementById(
         `autocomplete-${element.id}`
       ) as HTMLInputElement | null;
@@ -350,12 +381,12 @@ const CreateProfile: React.FC = () => {
       return;
     }
 
-    if (factors.length !== folderData?.data.length || !folderData || !ids)
+    if (factors.length !== projectFolders[selectedFolder].folderData.data.length || !projectFolders[selectedFolder].folderData || !ids)
       return;
 
     if (loadedProjectId) {
       const dataToSend: MultiplyFolderDTO = {
-        IDFOLDER: folderData.id,
+        IDFOLDER: projectFolders[selectedFolder].folderData.id,
         FACTORS: factors,
         IDS: ids,
       };
@@ -378,9 +409,9 @@ const CreateProfile: React.FC = () => {
         console.error("Chyba pri načítavaní dát:", error);
       }
     } else {
-      let project: ProjectDTO = { ...projectData! };
+      const project: ProjectDTO = { ...projectData! };
 
-      let profile: number[] = [];
+      const profile: number[] = [];
       for (
         let row = 0;
         row < project.folders[selectedFolder].data[0].intensity.length;
@@ -403,18 +434,62 @@ const CreateProfile: React.FC = () => {
         profile.push(max);
       }
       const newProfile: Profile = {
-        excitation: folderData.excitation,
+        excitation: projectFolders[selectedFolder].folderData.excitation,
         profile: profile,
       };
       project.folders[selectedFolder].profile = profile;
-      setProfileData(newProfile);
+      const folders : AllFolderData[] = projectFolders;
+      folders[selectedFolder].folderData.profile = profile;
+      folders[selectedFolder].profileData = newProfile;
+      folders[selectedFolder].multiplied = true;
+      setProjectFolders(folders);
       setProjectData(project);
-      setMultiplied(true);
-      handleSelectedFolder();
+
+
     }
   };
 
-  if (!folderData) {
+  const saveFactorToDatabase = async (factor: number, spectrum: number) => {
+    try {
+      await axios
+        .post(
+          "https://localhost:44300/Project/SaveNewProject",
+          JSON.stringify(projectData),
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then(() => {
+          alert("Projekt bol uložený.");
+        });
+    } catch (error) {
+      console.error("Chyba pri načítavaní dát:", error);
+    }
+};
+
+  const saveToDbButtonClick = async () => {
+      try {
+        await axios
+          .post(
+            "https://localhost:44300/Project/SaveNewProject",
+            JSON.stringify(projectData),
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+          .then(() => {
+            alert("Projekt bol uložený.");
+          });
+      } catch (error) {
+        console.error("Chyba pri načítavaní dát:", error);
+      }
+  };
+
+  if (!projectFolders) {
     return <Box>Error loading data.</Box>;
   }
 
@@ -548,7 +623,7 @@ const CreateProfile: React.FC = () => {
                     Exportovať
                   </button>
                   <button
-                    onClick={multiplyButtonClick}
+                    onClick={saveToDbButtonClick}
                     className="button-1"
                     role="button"
                     style={{
@@ -582,7 +657,7 @@ const CreateProfile: React.FC = () => {
                 }}
               >
                 <Box className="table-container" style={{ width: "55%" }}>
-                  <DataTable folderData={folderData} showAutocomplete={true} />
+                  <DataTable folderData={projectFolders[selectedFolder].folderData} showAutocomplete={true} factors={factors} />
                 </Box>
                 <Box className="otherContainer" style={{ width: "45%" }}>
                   <Box className="buttonCreateProfil">
@@ -607,7 +682,7 @@ const CreateProfile: React.FC = () => {
                       Exportovať graf
                     </button>
                   </Box>
-                  {chartData ? (
+                  {projectFolders[selectedFolder].chartData ? (
                     <Box
                       style={{
                         height: "83%",
@@ -616,10 +691,10 @@ const CreateProfile: React.FC = () => {
                       }}
                     >
                       <ScatterChart
-                        series={chartData.map((data) => ({
+                        series={projectFolders[selectedFolder].chartData.map((data) => ({
                           label: data.label,
                           data: data.data.map((v, index) => ({
-                            x: folderData.excitation[index],
+                            x: projectFolders[selectedFolder].folderData.excitation[index],
                             y: v,
                             id: index,
                           })),
@@ -646,9 +721,9 @@ const CreateProfile: React.FC = () => {
                     <Skeleton />
                   ) : (
                     <>
-                      {multiplied && projectData ? (
+                      {projectFolders[selectedFolder].multiplied && projectData ? (
                         <DataTable
-                          folderData={folderData}
+                          folderData={projectFolders[selectedFolder].folderData}
                           showAutocomplete={false}
                         />
                       ) : (
@@ -666,7 +741,7 @@ const CreateProfile: React.FC = () => {
                   }}
                 >
                   <Box className="profileTab">
-                    {multiplied && projectData ? (
+                    {projectFolders[selectedFolder].multiplied && projectData ? (
                       <Box className="table-container">
                         <TableContainer component={Paper}>
                           <Table
@@ -687,12 +762,12 @@ const CreateProfile: React.FC = () => {
                             <TableBody>
                               <TableRow>
                                 <TableCell>
-                                  {profileData?.excitation.map((value, i) => (
+                                  {projectFolders[selectedFolder].profileData?.excitation.map((value, i) => (
                                     <Box key={i}>{value.toFixed(5)}</Box>
                                   ))}
                                 </TableCell>
                                 <TableCell>
-                                  {profileData?.profile.map((value, i) => (
+                                  {projectFolders[selectedFolder].profileData?.profile.map((value, i) => (
                                     <Box key={i}>{value.toFixed(5)}</Box>
                                   ))}
                                 </TableCell>
@@ -734,13 +809,13 @@ const CreateProfile: React.FC = () => {
                               <h4>Std</h4>
                             </Box>
                             <Box>
-                              <h5>{normalStatData?.max.toFixed(5)}</h5>
-                              <h5>{normalStatData?.min.toFixed(5)}</h5>
-                              <h5>{normalStatData?.std.toFixed(5)}</h5>
+                              <h5>{projectFolders[selectedFolder].normalStatData?.max.toFixed(5)}</h5>
+                              <h5>{projectFolders[selectedFolder].normalStatData?.min.toFixed(5)}</h5>
+                              <h5>{projectFolders[selectedFolder].normalStatData?.std.toFixed(5)}</h5>
                             </Box>
                           </Box>
                         </Box>
-                        {multiplied ? (
+                        projectFolders[selectedFolder].{projectFolders[selectedFolder].multiplied ? (
                           <Box className="statsColumn">
                             <h4>Prenásobené</h4>
                             <Box
@@ -758,9 +833,9 @@ const CreateProfile: React.FC = () => {
                                 <h4>Std</h4>
                               </Box>
                               <Box>
-                                <h5>{multipliedStatData?.max.toFixed(5)}</h5>
-                                <h5>{multipliedStatData?.min.toFixed(5)}</h5>
-                                <h5>{multipliedStatData?.std.toFixed(5)}</h5>
+                                <h5>{projectFolders[selectedFolder].multipliedStatData?.max.toFixed(5)}</h5>
+                                <h5>{projectFolders[selectedFolder].multipliedStatData?.min.toFixed(5)}</h5>
+                                <h5>{projectFolders[selectedFolder].multipliedStatData?.std.toFixed(5)}</h5>
                               </Box>
                             </Box>
                           </Box>

@@ -19,16 +19,17 @@ import {
 interface DataTableProps {
   folderData: FolderDTO;
   showAutocomplete: boolean;
+  factors?: Factors[];
 }
 
 const DataTable: React.FC<DataTableProps> = ({
   folderData,
   showAutocomplete,
+  factors
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<number[]>(
     Array(folderData.data.length).fill(0)
   );
-  const [factors, setFactors] = useState<Factors[]>([]);
 
   const handleComboBoxChange = (index: number, value: number | null) => {
     const newSelectedOptions = [...selectedOptions];
@@ -36,16 +37,6 @@ const DataTable: React.FC<DataTableProps> = ({
     setSelectedOptions(newSelectedOptions);
   };
 
-  useEffect(() => {
-    axios
-      .get<Factors[]>("https://localhost:44300/Factor")
-      .then((response) => {
-        setFactors(response.data);
-      })
-      .catch((error) => {
-        console.error("Chyba pri získavaní dát zo servera:", error);
-      });
-  }, []);
 
   const calculateColumnWidth = () => {
     const totalColumns = folderData.data.length;
@@ -71,7 +62,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 <React.Fragment key={tableData.filename}>
                   <TableCell style={{ width: calculateColumnWidth() }}>
                     <Box className="autocomplete">
-                      <CustomInputAutocomplete id={tableData.id} />
+                      <CustomInputAutocomplete id={tableData.id} allFactors={factors!} />
                     </Box>
                   </TableCell>
                 </React.Fragment>

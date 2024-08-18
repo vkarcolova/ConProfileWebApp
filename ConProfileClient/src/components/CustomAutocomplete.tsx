@@ -1,32 +1,25 @@
 import * as React from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import { Factors } from '../types';
-import axios from 'axios';
-import { Chip, TextField } from '@mui/material';
+import { TextField } from '@mui/material';
+import { useEffect } from 'react';
 
-const options = ['1', '2'];
-interface CustomInputAutocomplete {
+interface CustomInputAutocompleteProps {
   id: number;
+  allFactors: Factors[];
 }
 
-const CustomInputAutocomplete: React.FC<CustomInputAutocomplete> = ({id}) => {
-  const [factors, setFactors] = React.useState<Factors[]>([]);
+const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({ id, allFactors }) => {
   const [selectedValue, setSelectedValue] = React.useState<number | null>(null);
+  const [factors, setFactors] = React.useState<Factors[]>([]);
 
- 
-  React.useEffect(() => {
-    axios
-      .get<Factors[]>('https://localhost:44300/Factor')
-      .then(response => {
-        setFactors(response.data);
-        // Nájdi faktor podľa id
-        const defaultFactor = response.data.find(factor => factor.spectrum === id);
-        // Nastav default hodnotu
-        setSelectedValue(defaultFactor ? defaultFactor.factor : null);
-      })
-      .catch(error => {
-        console.error('Chyba pri získavaní dát zo servera:', error);
-      });
+
+  useEffect(() => {
+    const filtered = allFactors.filter(factor => factor.spectrum === id);
+    setFactors(filtered);  
+    const defaultFactor = allFactors.find(factor => factor.spectrum === id);
+    setSelectedValue(defaultFactor ? defaultFactor.factor : null);
+
   }, [id]);
 
 
@@ -37,31 +30,30 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocomplete> = ({id}) => {
     const parsedNumber = parseInt(input, 10);
     return isNaN(parsedNumber) ? null : parsedNumber;
   };
-   
-  const handleAutocompleteChange = (event: React.ChangeEvent<{}>, newValue: string | number | null) => {
+
+  const handleAutocompleteChange = (event: React.ChangeEvent<object>, newValue: string | number | null) => {
     setSelectedValue(parseNumber(newValue));
-    // Ďalšie spracovanie podľa potreby
   };
-  
+
 
   return (
     <label>
       <Autocomplete
-       disablePortal
+        disablePortal
         freeSolo
         size="small"
 
-         sx={{ width: 70 }}
+        sx={{ width: 70 }}
         id={`autocomplete-${id}`}
         options={factors.map(option => option.factor)}
         value={selectedValue}
         onChange={handleAutocompleteChange}
         renderInput={params => (
-            <TextField {...params} label="Faktor" />
+          <TextField {...params} label="Faktor" />
         )}
       />
     </label>
-     );
+  );
 
 }
 

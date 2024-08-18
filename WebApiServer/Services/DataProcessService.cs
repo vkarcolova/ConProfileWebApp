@@ -204,7 +204,6 @@ namespace WebApiServer.Services
             }
         }
 
-
         public async Task<IActionResult> AddProjectData(FileContent[] loadedFiles)
         //pridanie do existujueho proektu
 
@@ -299,18 +298,13 @@ namespace WebApiServer.Services
                                     _context.LoadedDatas.Add(newRow);
 
                                 }
-
-
-
-                                if (startReading == false && line == "#DATA")
-                                    startReading = true;
+                                if (startReading == false && line == "#DATA") startReading = true;
                             }
 
                         }
 
                     }
                     _context.SaveChanges();
-
                     return new OkResult(); // Odpoveď 200 OK
                 }
                 catch (Exception ex)
