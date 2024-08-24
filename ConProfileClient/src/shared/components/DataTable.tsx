@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import { FolderDTO, Factors } from "../types";
-import Autocomplete from "@mui/material/Autocomplete";
-import TextField from "@mui/material/TextField";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
 import {
@@ -25,7 +22,7 @@ interface DataTableProps {
 const DataTable: React.FC<DataTableProps> = ({
   folderData,
   showAutocomplete,
-  factors
+  factors,
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<number[]>(
     Array(folderData.data.length).fill(0)
@@ -36,7 +33,6 @@ const DataTable: React.FC<DataTableProps> = ({
     newSelectedOptions[index] = value ?? 0;
     setSelectedOptions(newSelectedOptions);
   };
-
 
   const calculateColumnWidth = () => {
     const totalColumns = folderData.data.length;
@@ -62,7 +58,11 @@ const DataTable: React.FC<DataTableProps> = ({
                 <React.Fragment key={tableData.filename}>
                   <TableCell style={{ width: calculateColumnWidth() }}>
                     <Box className="autocomplete">
-                      <CustomInputAutocomplete id={tableData.id} allFactors={factors!} />
+                      <CustomInputAutocomplete
+                        columnSpectrum={tableData.spectrum}
+                        allFactors={factors!}
+                        id={tableData.id}
+                      />
                     </Box>
                   </TableCell>
                 </React.Fragment>

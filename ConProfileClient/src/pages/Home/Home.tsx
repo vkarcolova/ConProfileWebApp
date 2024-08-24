@@ -1,7 +1,14 @@
 import axios from "axios";
 import "../../index.css";
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
-import { FolderDTO, FileContent, ProjectDTO } from "../../types";
+import React, {
+  AriaAttributes,
+  ChangeEvent,
+  DOMAttributes,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { FolderDTO, FileContent, ProjectDTO } from "../../shared/types";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 import {
@@ -20,7 +27,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 
 const Home: React.FC = () => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRefFolders = useRef<HTMLInputElement>(null);
+  const inputRefProject = useRef<HTMLInputElement>(null);
+
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
   const navigate = useNavigate();
 
@@ -30,8 +39,8 @@ const Home: React.FC = () => {
 
   const handleSelectFolder = () => {
     try {
-      if (inputRef.current) {
-        inputRef.current.click();
+      if (inputRefFolders.current) {
+        inputRefFolders.current.click();
       }
     } catch (error) {
       console.log(error);
@@ -79,7 +88,6 @@ const Home: React.FC = () => {
         }
         try {
           const token = localStorage.getItem("token");
-          console.log(token);
           let customHeaders:
             | { "Content-Type": string }
             | { "Content-Type": string; Authorization: string } = {
@@ -101,7 +109,6 @@ const Home: React.FC = () => {
               }
             )
             .then((response) => {
-              console.log(response.data);
               const token = response.data.token;
               localStorage.setItem("token", token);
               const objString = JSON.stringify(response.data.project);
@@ -114,6 +121,40 @@ const Home: React.FC = () => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const handleSelectProject = () => {
+    try {
+      if (inputRefProject.current) {
+        inputRefProject.current.click();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleUploadExportedProject = async (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    console.log("gere");
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        try {
+          const json = JSON.parse(event.target?.result as string);
+          sessionStorage.setItem("loadeddata", JSON.stringify(json));
+
+          navigate("/create-profile/");
+        } catch (error) {
+          console.error("Chyba pri čítaní alebo spracovaní súboru:", error);
+        }
+      };
+
+      reader.readAsText(file);
     }
   };
 
@@ -131,7 +172,6 @@ const Home: React.FC = () => {
         )
         .then((response) => {
           setProjecsData(response.data);
-          console.log(response.data);
         })
         .catch((error) => {
           console.error("Chyba pri získavaní dát zo servera:", error);
@@ -176,17 +216,28 @@ const Home: React.FC = () => {
           <button onClick={handleSelectFolder} className="large-button">
             Načítať dáta
           </button>
-          <button className="large-button">Načítať projekt</button>
+          <input
+            ref={inputRefFolders}
+            type="file"
+            directory=""
+            webkitdirectory=""
+            onChange={handleUploadNewData}
+            multiple
+            style={{ display: "none" }}
+          />
+          <button className="large-button" onClick={handleSelectProject}>
+            Načítať projekt
+          </button>
+          <input
+            type="file"
+            id="fileInput"
+            ref={inputRefProject}
+            onChange={handleUploadExportedProject}
+            accept=".cprj"
+            style={{ display: "none" }}
+          />
         </Box>
-        <input
-          ref={inputRef}
-          type="file"
-          directory=""
-          webkitdirectory=""
-          onChange={handleUploadNewData}
-          multiple
-          style={{ display: "none" }}
-        />
+
         <Box className="welcomebar">
           <Box className="small-text">
             Informacie o webe, projekty ktoré tu už boli vytvorené...

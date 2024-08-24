@@ -12,8 +12,8 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20231226200813_initial-migration")]
-    partial class initialmigration
+    [Migration("20240824071013_Migration1")]
+    partial class Migration1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -1,12 +1,12 @@
 // Comparison.tsx
-import React, { useEffect, useState } from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import CloseIcon from '@mui/icons-material/Close';
-import './index.css';
-import { FolderDTO } from '../../types';
-import { ScatterChart } from '@mui/x-charts/ScatterChart';
+import React, { useEffect, useState } from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import CloseIcon from "@mui/icons-material/Close";
+import "./index.css";
+import { FolderDTO } from "../../shared/types";
+import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import {
   Box,
   Checkbox,
@@ -20,9 +20,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material';
+} from "@mui/material";
 
-import List from '@mui/material/List/List';
+import List from "@mui/material/List/List";
 
 interface ComparisonProps {
   open: boolean;
@@ -49,7 +49,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    id: number,
+    id: number
   ) => {
     let list: number[] = [...checked];
     if (!list.includes(id)) {
@@ -65,7 +65,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
           ?.filter((data) => list.includes(data.id))
           .map((data) => ({
             data: data?.profile || [],
-            label: data?.foldername || 'Unknown',
+            label: data?.foldername || "Unknown",
           })) || [];
       setChartData(filteredFolders);
 
@@ -77,12 +77,12 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
           element.data.reduce((sum, number) => sum + number, 0) /
           element.data.length;
         const squaredDifferences = element.data.map((number) =>
-          Math.pow(number - mean, 2),
+          Math.pow(number - mean, 2)
         );
         const variance =
           squaredDifferences.reduce(
             (sum, squaredDifference) => sum + squaredDifference,
-            0,
+            0
           ) / element.data.length;
         const multipliedStandardDeviation = Math.sqrt(variance);
         const statistics: StatData = {
@@ -116,7 +116,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         aria-label="close"
         onClick={onClose}
         sx={{
-          position: 'absolute',
+          position: "absolute",
           right: 8,
           top: 8,
           color: (theme) => theme.palette.grey[500],
@@ -127,21 +127,21 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       <DialogContent dividers>
         <Box className="dialog-content">
           <Box
-            style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}
+            style={{ display: "flex", flexDirection: "row", minHeight: "100%" }}
           >
-            <Box style={{ width: '40%' }}>
+            <Box style={{ width: "40%" }}>
               <Box className="checkboxlitwindow">
                 <List dense={true}>
                   {folders?.map((value) => (
-                    <ListItem style={{ padding: '0px' }}>
+                    <ListItem style={{ padding: "0px" }}>
                       <Checkbox
                         onChange={(event) => handleChange(event, value.id)}
                         inputProps={{ id: `${value.id}` }}
                         style={{
-                          paddingTop: '0px',
-                          paddingBottom: '0px',
-                          paddingLeft: '2px',
-                          paddingRight: '2px',
+                          paddingTop: "0px",
+                          paddingBottom: "0px",
+                          paddingLeft: "2px",
+                          paddingRight: "2px",
                         }}
                       />
                       <ListItemText primary={value.foldername} />
@@ -150,11 +150,11 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                 </List>
               </Box>
               {chartData && statData && chartData.length >= 2 && (
-                <Box style={{ width: '100%', height: '40%', overflow: 'auto' }}>
-                  {' '}
+                <Box style={{ width: "100%", height: "40%", overflow: "auto" }}>
+                  {" "}
                   <TableContainer component={Paper}>
                     <Table
-                      sx={{ width: '100%' }}
+                      sx={{ width: "100%" }}
                       stickyHeader
                       size="small"
                       aria-label="a dense table"
@@ -163,32 +163,32 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                         <TableRow>
                           <TableCell
                             style={{
-                              fontFamily: 'Poppins',
-                              fontWeight: 'bolder',
+                              fontFamily: "Poppins",
+                              fontWeight: "bolder",
                             }}
                           >
                             Priečinok
                           </TableCell>
                           <TableCell
                             style={{
-                              fontFamily: 'Poppins',
-                              fontWeight: 'bolder',
+                              fontFamily: "Poppins",
+                              fontWeight: "bolder",
                             }}
                           >
                             Max
                           </TableCell>
                           <TableCell
                             style={{
-                              fontFamily: 'Poppins',
-                              fontWeight: 'bolder',
+                              fontFamily: "Poppins",
+                              fontWeight: "bolder",
                             }}
                           >
                             Min
                           </TableCell>
                           <TableCell
                             style={{
-                              fontFamily: 'Poppins',
-                              fontWeight: 'bolder',
+                              fontFamily: "Poppins",
+                              fontWeight: "bolder",
                             }}
                           >
                             Std
@@ -212,13 +212,13 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                 </Box>
               )}
             </Box>
-            <Box style={{ width: '60%' }}>
+            <Box style={{ width: "60%" }}>
               {chartData && folders ? (
                 <Box
                   style={{
-                    height: '50vh',
-                    margin: '10px',
-                    backgroundColor: 'white',
+                    height: "50vh",
+                    margin: "10px",
+                    backgroundColor: "white",
                   }}
                 >
                   <ScatterChart
@@ -235,7 +235,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                   />
                 </Box>
               ) : (
-                ''
+                ""
               )}
             </Box>
           </Box>

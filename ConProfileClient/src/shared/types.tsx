@@ -1,5 +1,6 @@
-export interface FileContent{ //na nacitanie suboru
-  FILENAME: string,
+export interface FileContent {
+  //na nacitanie suboru
+  FILENAME: string;
   FOLDERNAME: string;
   CONTENT: string;
   IDPROJECT: number;
@@ -34,7 +35,6 @@ export interface ProjectDTO {
   created: Date;
 }
 
-
 export interface Profile {
   excitation: number[];
   profile: number[];
@@ -56,6 +56,3 @@ export interface MultiplyFolderDTO {
 //   multipliedintensity: number[];
 //   factor: number;
 // }
-
-
-

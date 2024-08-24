@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiServer.Data;
+using WebApiServer.Models;
 using WebApiServer.Services;
 
 namespace WebApiServer.Controllers
@@ -24,6 +25,20 @@ namespace WebApiServer.Controllers
         public async Task<IActionResult> GetAll()
         {
             var allLoadedData = await _context.Factors.ToListAsync();
+            if(allLoadedData.Count == 0)
+            {
+                allLoadedData = new List<Factors>
+                {
+                new Factors { Factor = 1, Spectrum = 0 },
+                new Factors { Factor = 1.4, Spectrum = 2 },
+                new Factors { Factor = 2.2, Spectrum = 8 },
+                new Factors { Factor = 3.6, Spectrum = 32 },
+                new Factors { Factor = 5, Spectrum = 128 },
+                new Factors { Factor = 1, Spectrum = 512 }
+                };
+                _context.Factors.AddRange(allLoadedData);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(allLoadedData);
         }

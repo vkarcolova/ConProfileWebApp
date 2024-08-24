@@ -1,4 +1,10 @@
-import React, { useState, useEffect, ChangeEvent, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  ChangeEvent,
+  useRef,
+  useMemo,
+} from "react";
 import axios from "axios";
 import {
   FolderDTO,
@@ -7,8 +13,8 @@ import {
   Profile,
   ProjectDTO,
   Factors,
-} from "../../types";
-import DataTable from "../../components/DataTable";
+} from "../../shared/types";
+import DataTable from "../../shared/components/DataTable";
 import "./index.css";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -16,6 +22,7 @@ import { TreeView } from "@mui/x-tree-view/TreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
   Box,
+  Button,
   CircularProgress,
   IconButton,
   Input,
@@ -27,12 +34,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
+  tooltipClasses,
 } from "@mui/material";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import { CustomTreeItem } from "../../components/CustomTreeNode";
+import { CustomTreeItem } from "./Components/CustomTreeNode";
+import {
+  basicButtonStyle,
+  darkButtonStyle,
+  emptyTable,
+  lightButtonStyle,
+} from "../../shared/styles";
+import { ExportMenu } from "./Components/ExportMenu";
+import { SaveToDbButton } from "./Components/SaveToDbButton";
 
 interface ChartData {
   data: number[];
@@ -46,19 +63,18 @@ interface StatData {
 }
 
 interface AllFolderData {
-  chartData: ChartData[],
-  normalStatData: StatData,
-  multipliedStatData: StatData,
-  folderData: FolderDTO,
-  profileData: Profile,
-  multiplied: boolean,
+  chartData: ChartData[];
+  normalStatData: StatData;
+  multipliedStatData: StatData;
+  folderData: FolderDTO;
+  profileData: Profile;
+  multiplied: boolean;
 }
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
   const [factors, setFactors] = React.useState<Factors[]>([]);
-
 
   const [selectedFolder, setSelectedFolder] = useState(0);
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
@@ -73,6 +89,10 @@ const CreateProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const foldersExpand: string[] = [];
+
+  const currentFolderData = useMemo(() => {
+    return projectFolders[selectedFolder];
+  }, [projectFolders, selectedFolder]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -90,7 +110,7 @@ const CreateProfile: React.FC = () => {
           setProjectData(obj);
 
           const folders: AllFolderData[] = [];
-          obj.folders.forEach(async folder => {
+          obj.folders.forEach(async (folder) => {
             const filledFolder = await fillFolder(folder);
             folders.push(filledFolder);
           });
@@ -105,33 +125,43 @@ const CreateProfile: React.FC = () => {
     loadData();
   }, [loadedProjectId, navigate]);
 
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     setIsLoading(true);
-  //     await handleSelectedFolder();
-  //     setIsLoading(false);
-  //   };
-  //   loadData();
-    
-  // }, [selectedFolder]);
+  useEffect(() => {
+    console.log(factors);
+  }, [factors]);
 
   useEffect(() => {
-    console.log(isLoading);
-  }, [isLoading]);
+    const factorsdata = localStorage.getItem("factorsdata");
+    let localFactors: Factors[] = factorsdata ? JSON.parse(factorsdata) : [];
 
-  useEffect(() => {
+    console.log("local", localFactors);
+
     axios
-      .get<Factors[]>('https://localhost:44300/Factor')
-      .then(response => {
-        setFactors(response.data);
+      .get<Factors[]>("https://localhost:44300/Factor")
+      .then((response) => {
+        console.log(response.data);
+
+        // Remove any factors from localFactors that are present in response.data
+        localFactors = localFactors.filter(
+          (localFactor) =>
+            !response.data.some(
+              (responseFactor) =>
+                responseFactor.spectrum === localFactor.spectrum &&
+                responseFactor.factor === localFactor.factor
+            )
+        );
+
+        // Prepend response data factors to localFactors
+        localFactors = [...response.data, ...localFactors];
       })
-      .catch(error => {
-        console.error('Chyba pri získavaní dát zo servera:', error);
+      .catch((error) => {
+        console.error("Chyba pri získavaní dát zo servera:", error);
+      })
+      .finally(() => {
+        setFactors(localFactors);
       });
   }, []);
 
-
-  const fillFolder = async (folderData: FolderDTO) : Promise<AllFolderData> => {
+  const fillFolder = async (folderData: FolderDTO): Promise<AllFolderData> => {
     const dynamicChartData: ChartData[] = [];
     let allData: number[] = [];
 
@@ -162,9 +192,9 @@ const CreateProfile: React.FC = () => {
       std: standardDeviation,
     };
     const allFolderData: AllFolderData = {
-      chartData:  dynamicChartData ,
-      normalStatData:  normalStat ,
-      multipliedStatData: {  max: 0, min: 0, std: 0 },
+      chartData: dynamicChartData,
+      normalStatData: normalStat,
+      multipliedStatData: { max: 0, min: 0, std: 0 },
       folderData: folderData,
       profileData: { excitation: [], profile: [] },
       multiplied: false,
@@ -172,7 +202,7 @@ const CreateProfile: React.FC = () => {
 
     if (folderData.profile) {
       calculateMultipliedStats(allFolderData);
-    } 
+    }
 
     return allFolderData;
   };
@@ -190,8 +220,8 @@ const CreateProfile: React.FC = () => {
       const meanProfile =
         folder.folderData.profile.reduce((sum, number) => sum + number, 0) /
         folder.folderData.profile.length;
-      const squaredDifferencesProfile = folder.folderData.profile.map((number) =>
-        Math.pow(number - meanProfile, 2)
+      const squaredDifferencesProfile = folder.folderData.profile.map(
+        (number) => Math.pow(number - meanProfile, 2)
       );
       const varianceProfile =
         squaredDifferencesProfile.reduce(
@@ -214,7 +244,7 @@ const CreateProfile: React.FC = () => {
       folder.multipliedStatData = multipliedStat;
       folder.profileData = profile;
       folder.multiplied = true;
-    } 
+    }
   };
 
   const loadProjectFromId = async () => {
@@ -231,9 +261,9 @@ const CreateProfile: React.FC = () => {
           }
         );
         setProjectData(response.data);
-        
+
         const folders: AllFolderData[] = [];
-        response.data.folders.forEach(async folder => {
+        response.data.folders.forEach(async (folder) => {
           const filledFolder = await fillFolder(folder);
           folders.push(filledFolder);
         });
@@ -251,7 +281,6 @@ const CreateProfile: React.FC = () => {
       }
     }
   };
-
 
   const loadNewFolder = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -330,12 +359,13 @@ const CreateProfile: React.FC = () => {
             .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
               const filledFolder = await fillFolder(objString);
-              const folders: AllFolderData[] = projectFolders ;
+              const folders: AllFolderData[] = projectFolders;
               folders.push(filledFolder);
               setProjectFolders(folders);
 
               project.folders.push(objString);
               setProjectData(project);
+              saveSessionData(project);
             });
         } catch (error) {
           console.error("Chyba pri načítavaní dát:", error);
@@ -344,9 +374,13 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-  const handleNodeSelect = (event: React.ChangeEvent<unknown>, nodeId: string) => {
+  const handleNodeSelect = (
+    event: React.ChangeEvent<unknown>,
+    nodeId: string
+  ) => {
     projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
       if (value.id.toString() == nodeId && selectedFolder != index) {
+        setIsLoading(true);
         setSelectedFolder(index);
         setIsLoading(false);
       }
@@ -362,6 +396,9 @@ const CreateProfile: React.FC = () => {
     const factors: number[] = [];
     const ids: number[] = [];
     let wrongInput: boolean = false;
+
+    const factorsToSave: Factors[] = [];
+
     projectFolders[selectedFolder].folderData.data.forEach((element) => {
       const autocompleteInput = document.getElementById(
         `autocomplete-${element.id}`
@@ -369,9 +406,12 @@ const CreateProfile: React.FC = () => {
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
         : null;
+
       if (inputFactor) {
         factors.push(inputFactor);
         ids.push(element.id);
+
+        factorsToSave.push({ factor: inputFactor, spectrum: element.spectrum });
       } else {
         wrongInput = true;
       }
@@ -381,8 +421,15 @@ const CreateProfile: React.FC = () => {
       return;
     }
 
-    if (factors.length !== projectFolders[selectedFolder].folderData.data.length || !projectFolders[selectedFolder].folderData || !ids)
+    if (
+      factors.length !==
+        projectFolders[selectedFolder].folderData.data.length ||
+      !projectFolders[selectedFolder].folderData ||
+      !ids
+    )
       return;
+
+    saveFactorsToStorage(factorsToSave);
 
     if (loadedProjectId) {
       const dataToSend: MultiplyFolderDTO = {
@@ -438,55 +485,39 @@ const CreateProfile: React.FC = () => {
         profile: profile,
       };
       project.folders[selectedFolder].profile = profile;
-      const folders : AllFolderData[] = projectFolders;
+      const folders: AllFolderData[] = projectFolders;
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
       folders[selectedFolder].multiplied = true;
       setProjectFolders(folders);
       setProjectData(project);
-
-
+      saveSessionData(project);
     }
   };
 
-  const saveFactorToDatabase = async (factor: number, spectrum: number) => {
-    try {
-      await axios
-        .post(
-          "https://localhost:44300/Project/SaveNewProject",
-          JSON.stringify(projectData),
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
-        .then(() => {
-          alert("Projekt bol uložený.");
-        });
-    } catch (error) {
-      console.error("Chyba pri načítavaní dát:", error);
+  const saveFactorsToStorage = async (factorsToSave: Factors[]) => {
+    const factorsdata = localStorage.getItem("factorsdata");
+    let localFactors: Factors[] = [];
+    if (factorsdata) {
+      localFactors.push(...(JSON.parse(factorsdata) as Factors[]));
     }
-};
 
-  const saveToDbButtonClick = async () => {
-      try {
-        await axios
-          .post(
-            "https://localhost:44300/Project/SaveNewProject",
-            JSON.stringify(projectData),
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          )
-          .then(() => {
-            alert("Projekt bol uložený.");
-          });
-      } catch (error) {
-        console.error("Chyba pri načítavaní dát:", error);
+    const exists = (factor: Factors) => {
+      return localFactors.some(
+        (f) => f.spectrum === factor.spectrum && f.factor === factor.factor
+      );
+    };
+
+    factorsToSave.forEach((factor) => {
+      if (!exists(factor)) {
+        localFactors.push(factor);
       }
+    });
+
+    if (localFactors.length > 25) localFactors = localFactors.slice(-25);
+
+    const objString = JSON.stringify(localFactors);
+    localStorage.setItem("factorsdata", objString);
   };
 
   if (!projectFolders) {
@@ -499,16 +530,34 @@ const CreateProfile: React.FC = () => {
     else setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
+  const saveSessionData = (project: ProjectDTO) => {
+    if (loadedProjectId) return;
+    const objString = JSON.stringify(project);
+    sessionStorage.setItem("loadeddata", objString);
   };
 
   return (
     <Box>
       {isLoading ? (
-        <>
-          <CircularProgress />
-        </>
+        <Box
+          sx={{
+            width: "100%",
+            height: "100vh",
+            boxShadow: "none",
+            backgroundColor: "#d5d9d9",
+            alignContent: "center",
+          }}
+        >
+          <CircularProgress
+            sx={{
+              "& svg": {
+                "& circle": {
+                  r: 20,
+                },
+              },
+            }}
+          />
+        </Box>
       ) : (
         <>
           <Box
@@ -522,7 +571,9 @@ const CreateProfile: React.FC = () => {
           >
             <Comparison
               open={dialogOpen}
-              onClose={handleCloseDialog}
+              onClose={() => {
+                setDialogOpen(false);
+              }}
               folders={foldersToCompare}
             />
 
@@ -568,12 +619,19 @@ const CreateProfile: React.FC = () => {
                       defaultExpanded={foldersExpand}
                       onNodeSelect={handleNodeSelect}
                     >
-                      {projectData?.folders.map((folder) => (
+                      {projectData?.folders.map((folder, index) => (
                         <CustomTreeItem
                           nodeId={folder.id.toString()}
                           label={folder.foldername}
                           key={folder.foldername}
                           style={{ fontFamily: "Poppins", fontSize: "larger" }}
+                          sx={{
+                            "& .MuiTypography-root": {
+                              fontWeight:
+                                index === selectedFolder ? "bold" : "normal",
+                              color: "black",
+                            },
+                          }}
                         >
                           {folder.data.map((file) => (
                             <TreeItem
@@ -591,9 +649,27 @@ const CreateProfile: React.FC = () => {
                 </Box>
 
                 <Box className="buttonContainer">
-                  <IconButton aria-label="delete" onClick={handleSelectFolder}>
-                    <AddCircleOutlineRoundedIcon />
-                  </IconButton>
+                  <Tooltip
+                    slotProps={{
+                      popper: {
+                        sx: {
+                          [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                            {
+                              marginTop: "0px",
+                              fontSize: "12px",
+                            },
+                        },
+                      },
+                    }}
+                    title="Pridať ďalší priečinok"
+                  >
+                    <IconButton
+                      sx={{ width: "45px", height: "45px" }}
+                      onClick={handleSelectFolder}
+                    >
+                      <AddCircleOutlineRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
                   <input
                     ref={inputRef}
                     type="file"
@@ -603,39 +679,28 @@ const CreateProfile: React.FC = () => {
                     multiple
                     style={{ display: "none" }}
                   />
-                  <button
+                  <Button
+                    variant="contained"
                     onClick={handleOpenDialog}
-                    className="button-13"
                     role="button"
-                    style={{ padding: "0px", margin: "0px" }}
+                    sx={{
+                      ...basicButtonStyle,
+                      ...lightButtonStyle,
+                      marginBottom: "10px",
+                      fontWeight: "normal",
+                      marginTop: "5px",
+                    }}
                   >
                     Porovnať
-                  </button>
+                  </Button>
                 </Box>
 
                 <Box className="buttonContainerRows">
-                  <button
-                    onClick={multiplyButtonClick}
-                    className="button-13"
-                    role="button"
-                    style={{ padding: "0px", margin: "0px" }}
-                  >
-                    Exportovať
-                  </button>
-                  <button
-                    onClick={saveToDbButtonClick}
-                    className="button-1"
-                    role="button"
-                    style={{
-                      fontSize: "13px",
-                      marginTop: "10px",
-                      fontWeight: "bolder",
-                      margin: "0px",
-                      width: "auto",
-                    }}
-                  >
-                    Uložiť projekt
-                  </button>
+                  <ExportMenu projectData={projectData} />
+                  <SaveToDbButton
+                    loadedProjectId={loadedProjectId}
+                    projectData={projectData}
+                  />
                 </Box>
               </Box>
             </Box>
@@ -657,30 +722,42 @@ const CreateProfile: React.FC = () => {
                 }}
               >
                 <Box className="table-container" style={{ width: "55%" }}>
-                  <DataTable folderData={projectFolders[selectedFolder].folderData} showAutocomplete={true} factors={factors} />
+                  <DataTable
+                    folderData={currentFolderData.folderData}
+                    showAutocomplete={true}
+                    factors={factors}
+                  />
                 </Box>
                 <Box className="otherContainer" style={{ width: "45%" }}>
                   <Box className="buttonCreateProfil">
-                    <button
+                    <Button
+                      variant="contained"
                       onClick={multiplyButtonClick}
-                      className="button-1"
                       role="button"
-                      style={{ fontSize: "11px" }}
+                      sx={{
+                        ...basicButtonStyle,
+                        ...darkButtonStyle,
+                        marginLeft: "30px",
+                        maxWidth: "150px",
+                      }}
                     >
                       Vytvoriť profil
-                    </button>
-                    <button
+                    </Button>
+
+                    <Button
+                      variant="contained"
                       onClick={multiplyButtonClick}
-                      className="button-1"
                       role="button"
-                      style={{
-                        fontSize: "11px",
+                      sx={{
+                        ...basicButtonStyle,
+                        ...darkButtonStyle,
                         marginLeft: "auto",
                         marginRight: "30px",
+                        maxWidth: "150px",
                       }}
                     >
                       Exportovať graf
-                    </button>
+                    </Button>
                   </Box>
                   {projectFolders[selectedFolder].chartData ? (
                     <Box
@@ -691,14 +768,17 @@ const CreateProfile: React.FC = () => {
                       }}
                     >
                       <ScatterChart
-                        series={projectFolders[selectedFolder].chartData.map((data) => ({
-                          label: data.label,
-                          data: data.data.map((v, index) => ({
-                            x: projectFolders[selectedFolder].folderData.excitation[index],
-                            y: v,
-                            id: index,
-                          })),
-                        }))}
+                        series={projectFolders[selectedFolder].chartData.map(
+                          (data) => ({
+                            label: data.label,
+                            data: data.data.map((v, index) => ({
+                              x: projectFolders[selectedFolder].folderData
+                                .excitation[index],
+                              y: v,
+                              id: index,
+                            })),
+                          })
+                        )}
                         yAxis={[{ min: 0 }]}
                         xAxis={[{ min: 250 }]}
                       />
@@ -721,27 +801,34 @@ const CreateProfile: React.FC = () => {
                     <Skeleton />
                   ) : (
                     <>
-                      {projectFolders[selectedFolder].multiplied && projectData ? (
+                      {projectFolders[selectedFolder].multiplied &&
+                      projectData ? (
                         <DataTable
                           folderData={projectFolders[selectedFolder].folderData}
                           showAutocomplete={false}
                         />
                       ) : (
-                        <Box className="emptyTable"></Box>
+                        <Box sx={emptyTable}></Box>
                       )}
                     </>
                   )}
                 </Box>
                 <Box
-                  className="otherContainer"
                   style={{
                     width: "45%",
                     flexDirection: "row",
                     display: "flex",
                   }}
                 >
-                  <Box className="profileTab">
-                    {projectFolders[selectedFolder].multiplied && projectData ? (
+                  <Box
+                    sx={{
+                      paddingRight: "10px",
+                      paddingLeft: "10px",
+                      width: "40%",
+                    }}
+                  >
+                    {projectFolders[selectedFolder].multiplied &&
+                    projectData ? (
                       <Box className="table-container">
                         <TableContainer component={Paper}>
                           <Table
@@ -762,12 +849,16 @@ const CreateProfile: React.FC = () => {
                             <TableBody>
                               <TableRow>
                                 <TableCell>
-                                  {projectFolders[selectedFolder].profileData?.excitation.map((value, i) => (
+                                  {projectFolders[
+                                    selectedFolder
+                                  ].profileData?.excitation.map((value, i) => (
                                     <Box key={i}>{value.toFixed(5)}</Box>
                                   ))}
                                 </TableCell>
                                 <TableCell>
-                                  {projectFolders[selectedFolder].profileData?.profile.map((value, i) => (
+                                  {projectFolders[
+                                    selectedFolder
+                                  ].profileData?.profile.map((value, i) => (
                                     <Box key={i}>{value.toFixed(5)}</Box>
                                   ))}
                                 </TableCell>
@@ -809,13 +900,25 @@ const CreateProfile: React.FC = () => {
                               <h4>Std</h4>
                             </Box>
                             <Box>
-                              <h5>{projectFolders[selectedFolder].normalStatData?.max.toFixed(5)}</h5>
-                              <h5>{projectFolders[selectedFolder].normalStatData?.min.toFixed(5)}</h5>
-                              <h5>{projectFolders[selectedFolder].normalStatData?.std.toFixed(5)}</h5>
+                              <h5>
+                                {projectFolders[
+                                  selectedFolder
+                                ].normalStatData?.max.toFixed(5)}
+                              </h5>
+                              <h5>
+                                {projectFolders[
+                                  selectedFolder
+                                ].normalStatData?.min.toFixed(5)}
+                              </h5>
+                              <h5>
+                                {projectFolders[
+                                  selectedFolder
+                                ].normalStatData?.std.toFixed(5)}
+                              </h5>
                             </Box>
                           </Box>
                         </Box>
-                        projectFolders[selectedFolder].{projectFolders[selectedFolder].multiplied ? (
+                        {projectFolders[selectedFolder].multiplied && (
                           <Box className="statsColumn">
                             <h4>Prenásobené</h4>
                             <Box
@@ -833,14 +936,24 @@ const CreateProfile: React.FC = () => {
                                 <h4>Std</h4>
                               </Box>
                               <Box>
-                                <h5>{projectFolders[selectedFolder].multipliedStatData?.max.toFixed(5)}</h5>
-                                <h5>{projectFolders[selectedFolder].multipliedStatData?.min.toFixed(5)}</h5>
-                                <h5>{projectFolders[selectedFolder].multipliedStatData?.std.toFixed(5)}</h5>
+                                <h5>
+                                  {projectFolders[
+                                    selectedFolder
+                                  ].multipliedStatData?.max.toFixed(5)}
+                                </h5>
+                                <h5>
+                                  {projectFolders[
+                                    selectedFolder
+                                  ].multipliedStatData?.min.toFixed(5)}
+                                </h5>
+                                <h5>
+                                  {projectFolders[
+                                    selectedFolder
+                                  ].multipliedStatData?.std.toFixed(5)}
+                                </h5>
                               </Box>
                             </Box>
                           </Box>
-                        ) : (
-                          ""
                         )}
                       </Box>
                     </Box>

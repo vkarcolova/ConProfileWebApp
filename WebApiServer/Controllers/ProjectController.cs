@@ -105,79 +105,108 @@ namespace WebAPI.Controllers
         [HttpPost("SaveNewProject")]
         public async Task<IActionResult> SaveNewProject([FromBody] ProjectDTO projectData)
         {
-            // Spracovanie prijatých súborov
-            if (projectData != null && projectData.FOLDERS.Any())
-            {
-                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                string token;
-                if (userToken == "") token = _loadedDataService.GenerateJwtToken();
-                else token = userToken;
-
-                Project project = new Project {
-                    Created = projectData.CREATED,
-                    IdProject = _context.Projects.Count(),
-                    ProjectName = projectData.PROJECTNAME,
-                    Token = token
-                };
-                _context.Projects.Add(project);
-                foreach (FolderDTO folderData in projectData.FOLDERS)
+            try
+            {// Spracovanie prijatých súborov
+                if (projectData != null && projectData.FOLDERS.Any())
                 {
-                    LoadedFolder folder = new LoadedFolder
+                    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    string token;
+                    if (userToken == "") token = _loadedDataService.GenerateJwtToken();
+                    else token = userToken;
+
+                    Project project = new Project
                     {
-                        IdProject = project.IdProject,
-                        IdFolder = _context.LoadedFolders.Count(),
-                        FolderName = folderData.FOLDERNAME
+                        Created = projectData.CREATED.ToUniversalTime(),
+                        IdProject = _context.Projects.Count() + 1,
+                        ProjectName = projectData.PROJECTNAME,
+                        Token = token
                     };
-                    _context.LoadedFolders.Add(folder);
+                    _context.Projects.Add(project);
+                    int nextFileId = _context.LoadedFiles.Count() + 1;
+                    int nextFolderId = _context.LoadedFolders.Count() + 1;
+                    int nextDataId = _context.LoadedDatas.Count() + 1;
+                    int nextProfileId = _context.ProfileDatas.Count() + 1;
 
-                    foreach (FileDTO fileData in folderData.DATA)
+
+
+                    foreach (FolderDTO folderData in projectData.FOLDERS)
                     {
-                        LoadedFile file = new LoadedFile
+                        LoadedFolder folder = new LoadedFolder
                         {
-                            IdFolder = folder.IdFolder,
-                            IdFile = _context.LoadedFiles.Count(),
-                            FileName = fileData.FILENAME,
-                            Spectrum = fileData.SPECTRUM
+                            IdProject = project.IdProject,
+                            IdFolder = nextFolderId,
+                            FolderName = folderData.FOLDERNAME
                         };
-                        _context.LoadedFiles.Add(file);
+                        _context.LoadedFolders.Add(folder);
+                        nextFolderId++;
 
-                        for (int i = 0; i < fileData.INTENSITY.Count; i++)
+                        foreach (FileDTO fileData in folderData.DATA)
                         {
-                            LoadedData data = new LoadedData
-                            {
-                                IdFile = file.IdFile,
-                                IdData = _context.LoadedDatas.Count(),
-                                Excitation = fileData.INTENSITY[i].EXCITATION,
-                                Intensity = fileData.INTENSITY[i].INTENSITY,
-                                MultipliedIntensity = fileData.INTENSITY[i].MULTIPLIEDINTENSITY != null
-                                    ? fileData.INTENSITY[i].MULTIPLIEDINTENSITY : null
-                            };
-                            _context.LoadedDatas.Add(data);
-                        }
-                    }
-                    if (folderData.PROFILE != null) {
-                        for (int i = 0; i < folderData.PROFILE.Count; i++)
-                        {
-                            ProfileData data = new ProfileData
+                            LoadedFile file = new LoadedFile
                             {
                                 IdFolder = folder.IdFolder,
-                                IdProfileData = _context.ProfileDatas.Count(),
-                                Excitation = folderData.EXCITATION[i],
-                                MaxIntensity = folderData.PROFILE[i]
+                                IdFile = nextFileId,
+                                FileName = fileData.FILENAME,
+                                Spectrum = fileData.SPECTRUM
                             };
-                            _context.ProfileDatas.Add(data);
+                            _context.LoadedFiles.Add(file);
+                            nextFileId++;
+
+                            for (int i = 0; i < fileData.INTENSITY.Count; i++)
+                            {
+
+                                LoadedData data = new LoadedData
+                                {
+                                    IdFile = file.IdFile,
+                                    IdData = nextDataId,
+                                    Excitation = fileData.INTENSITY[i].EXCITATION,
+                                    Intensity = fileData.INTENSITY[i].INTENSITY,
+                                    MultipliedIntensity = fileData.INTENSITY[i].MULTIPLIEDINTENSITY != null
+                                 ? fileData.INTENSITY[i].MULTIPLIEDINTENSITY : null
+                                };
+                                _context.LoadedDatas.Add(data);
+                                nextDataId++;
+                            }
                         }
+                        if (folderData.PROFILE != null)
+                        {
+                            for (int i = 0; i < folderData.PROFILE.Count; i++)
+                            {
+                                ProfileData data = new ProfileData
+                                {
+                                    IdFolder = folder.IdFolder,
+                                    IdProfileData = nextDataId,
+                                    Excitation = folderData.EXCITATION[i],
+                                    MaxIntensity = folderData.PROFILE[i],
+                                };
+                                nextDataId++;
+                                _context.ProfileDatas.Add(data);
+                            }
+                        }
+
                     }
 
-                }
+                    _context.SaveChanges();
 
-                _context.SaveChanges();
-                return Ok();
+                    return Ok(new
+                    {
+                        ProjectId = project.IdProject,
+                        Token = token
+                    });
+                }
+                else
+                {
+                    return BadRequest("Chybný formát dát.");
+                }
             }
-            else
+            catch (System.Exception e)
             {
-                return BadRequest("Chybný formát dát.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Error = "Chyba pri uložení projektu: " + e.Message
+                });
             }
+
         }
 
         //GET PROJECT FROM ID POTREBUJEM

@@ -2,25 +2,34 @@
 
 - [x] Nahranie noveho priecinku
 - [x] Multiply
-- [ ] Uploadnutie a savnutie projektu - pri novom projekte proste vsetko pri starom staci iba profily, multiply, kedze zlozky sa hned savuju
-- [ ] Priebezne ukladanie do storagu lebo inak sa odtial vymazavaju veci
-- [ ] Prerobit podla desktopu nahravanie tych suborov
+- [x] Factory - tie basic do db, ostatne ako local storage
+- [ ] Prerobit podla desktopu nahravanie tych suborov, ziskavanie spektra
 - [ ] Vymazanie nepotrebneho
+
+Savnutie:
+
+- [x] Nahratie a savnutie projektu do db
+- [x] Pri ulozenom projekte sa hned vsetko nahrava
+- [x] Export do pc
+- [ ] Import projektu z desktop appky
+
+Vytvorenie pomocnych filov na funkcie
+
+- [ ] Tokenu
+- [ ] Nahravanie projektov
+- [ ] Rozdelenie do komponentov
 
 ##
 
 - [x] Upravit porovnanie, ked unchecknem
 - [x] Zmenit vsetko na MUI aj divka
+
+- [ ] Nefunguje nejako selectnuty priecinok v trieview jeho iny styl?
+- [ ] Sticky tabulky
 - [ ] Lepsie nacitanie uz treba este nejake koleicko alebo co ')
 - [ ] Zmenit nazvy tabuliek, lebo neviem čo sa deje
 - [ ] Premazanie starych dat v tabulkach napr pri vytvoreni noveho profilu
-- [ ] Factory, uloženie faktorov do db
 - [ ] Nejaké tutoriály, vysvetlenia, upozornenia
-
-# Small issues
-
-- [x] Keď je projekt uložený a nahrá sa nový s rovnakým názvom, síce je na frontende upozornenie že tento projekt je už nahraný, na backende sa aj tak nahrá všetko spadne
-- [x] Porovnanie niekedy nefunguje??? (posielanie zleho id do handle change)
 
 # NOTES
 
