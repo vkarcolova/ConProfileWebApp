@@ -223,14 +223,16 @@ namespace WebAPI.Controllers
             }
             else
             {
-                List<double> excitation = new List<double>();
                 List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
                 List<FolderDTO> folderList = new List<FolderDTO>();
 
                 foreach (LoadedFolder folder in folders)
                 {
+                    List<double> excitation = new List<double>();
+
                     List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).OrderBy(file => file.Spectrum).ToList();
-                    List<FileDTO> tabledata = new List<FileDTO>();
+                    List<FileDTO> fileList = new List<FileDTO>();
+                    bool excitacionLoaded = false;
 
                     foreach (LoadedFile file in files)
                     {
@@ -241,8 +243,16 @@ namespace WebAPI.Controllers
                         { INTENSITY = obj.Intensity, EXCITATION = obj.Excitation, MULTIPLIEDINTENSITY =obj.MultipliedIntensity, IDDATA = obj.IdData })
                             .ToList();
 
-                        if (excitation.Count == 0 || (excitation.Count < intensity.Count))
+                        if (excitacionLoaded)
                             excitation = loadedData.Select(data => data.Excitation).ToList();
+                        else
+                        {
+                            foreach(var loaded in loadedData)
+                            {
+                                double excitacionLoadedData = loaded.Excitation;
+                                if(!excitation.Contains(excitacionLoadedData)) excitation.Add(excitacionLoadedData);
+                            }
+                        }
 
                         FileDTO data = new FileDTO
                         {
@@ -252,19 +262,19 @@ namespace WebAPI.Controllers
                             SPECTRUM = file.Spectrum
                         };
 
-                        tabledata.Add(data);
+                        fileList.Add(data);
                     }
-
+                    excitation.Sort();
+                    fileList = fileList.OrderBy(x => x.SPECTRUM).ToList();
                     FolderDTO newFolder = new FolderDTO
                     {
                         ID = folder.IdFolder,
                         FOLDERNAME = folder.FolderName,
                         EXCITATION = excitation,
-                        DATA = tabledata
-
+                        DATA = fileList
                     };
 
-                    if (tabledata[0].INTENSITY[0].MULTIPLIEDINTENSITY.HasValue)
+                    if (fileList[0].INTENSITY[0].MULTIPLIEDINTENSITY.HasValue)
                     {
                         List<ProfileData> dataprofiles = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
                         List<double> profile = dataprofiles.Select(data => data.MaxIntensity).ToList();

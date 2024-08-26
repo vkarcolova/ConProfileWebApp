@@ -245,7 +245,7 @@ const Home: React.FC = () => {
           {projectsData && projectsData?.length > 0 && (
             <Box className="tab-container">
               {" "}
-              <TableContainer component={Paper}>
+              <TableContainer sx={{ maxHeight: "200px" }} component={Paper}>
                 <Table
                   sx={{ width: "100%" }}
                   stickyHeader

@@ -48,17 +48,47 @@ namespace WebApiServer.Services
             if (loadedFiles != null)
             {
                 try
-                { 
-                    int rowCount = 0;
+                {
                     List<FileDTO> files = new List<FileDTO>();
                     List<double> excitactionList = new List<double>();
+                    bool excitacieNacitane = false;
+                    for (int i = 0; i < loadedFiles.Length; i++) //nacitanie iba exitacii
+                    {
+                        FileContent file = loadedFiles[i];
+                        string[] lines = file.CONTENT.Split('\n');
+                        bool startReading = false;
+
+                        foreach (var row in lines)
+                        {
+                            string line = row.Replace("\r", "");
+                            int index = 0;
+                            int lastNumOfRows = 0;
+
+                            if (line != null)
+                            {
+                                if (startReading == true && !string.IsNullOrWhiteSpace(line))
+                                {
+                                    string[] words = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                                    if (double.TryParse(words[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
+                                    {
+                                        if (!excitacieNacitane || (excitacieNacitane && lastNumOfRows < index && !excitactionList.Contains(x)))
+                                            excitactionList.Add(x);
+                                    }
+                                }
+
+                                if (startReading == false && line == "#DATA")
+                                    startReading = true;
+                            }
+                        }
+                    }
+                    excitactionList.Sort();
 
                     for (int i = 0; i < loadedFiles.Length; i++)
                     {
                         FileContent file = loadedFiles[i];
                         List<IntensityDTO> intensityList = new List<IntensityDTO>();
                         int spectrum = -1;
-                        string pattern = @"(?<=m)\d+(?=\.)"; //cisla co su po m a pred . 
+                        string pattern = @"\d+(?=(\.sp|sp\.sp))";     //cisla co su po m a pred . 
                         Match typeOfData = Regex.Match(file.FILENAME, pattern);
                         if (int.TryParse(typeOfData.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out int resultType))
                         {
@@ -70,34 +100,27 @@ namespace WebApiServer.Services
                         foreach (var row in lines)
                         {
                             string line = row.Replace("\r", "");
-                            double excitacion = -1;
-                            double data = -1;
-
                             if (line != null)
                             {
                                 if (startReading == true && !string.IsNullOrWhiteSpace(line))
                                 {
                                     string[] words = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries); //rozdelenie slov v riadku
+                                    int index = -1;
                                     if (double.TryParse(words[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
                                     {
-                                        excitacion = x;
+                                        index = excitactionList.BinarySearch(x);
                                     }
 
                                     if (double.TryParse(words[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) //skusam slovo dat na double
                                     {
-                                        data = result;
+                                        intensityList.Add(new IntensityDTO { EXCITATION = excitactionList[i], INTENSITY = result });
                                     }
-                                    rowCount++;
-
-                                    if (!excitactionList.Contains(excitacion))
-                                        excitactionList.Add(excitacion);
-                                    intensityList.Add(new IntensityDTO{ EXCITATION = excitacion, INTENSITY = data});
                                 }
 
                                 if (startReading == false && line == "#DATA")
                                     startReading = true;
                             }
-                            
+
                         }
                         files.Add(new FileDTO
                         {
@@ -105,18 +128,19 @@ namespace WebApiServer.Services
                             FILENAME = loadedFiles[i].FILENAME,
                             SPECTRUM = spectrum,
                             INTENSITY = intensityList
-                        }); ;
+                        });
 
                     }
+                    files = files.OrderBy(file => file.SPECTRUM).ToList();
 
-                    FolderDTO newFolder = new FolderDTO
+                    FolderDTO newFolder = new()
                     {
                         ID = -1,
                         FOLDERNAME = loadedFiles[0].FOLDERNAME,
                         EXCITATION = excitactionList,
                         DATA = files
                     };
-                    return newFolder; 
+                    return newFolder;
                 }
                 catch (Exception ex)
                 {
@@ -244,7 +268,7 @@ namespace WebApiServer.Services
                     {
                         FileContent file = loadedFiles[i];
                         int spectrum = -1;
-                        string pattern = @"(?<=m)\d+(?=\.)"; //cisla co su po m a pred . 
+                        string pattern = @"\d+(?=(\.sp|sp\.sp))"; //cisla co su po m a pred . 
                         Match typeOfData = Regex.Match(file.FILENAME, pattern);
                         if (int.TryParse(typeOfData.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out int resultType))
                         {

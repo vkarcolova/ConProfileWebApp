@@ -1,9 +1,20 @@
-import React from 'react';
-import clsx from 'clsx';
-import Typography from '@mui/material/Typography';
-import { TreeItem, TreeItemProps, useTreeItem, TreeItemContentProps } from '@mui/x-tree-view/TreeItem';
+import React from "react";
+import clsx from "clsx";
+import Typography from "@mui/material/Typography";
+import {
+  TreeItem,
+  TreeItemProps,
+  useTreeItem,
+  TreeItemContentProps,
+} from "@mui/x-tree-view/TreeItem";
 
-const CustomContent: React.FC<TreeItemContentProps> = (props) => {
+interface CustomContentProps {
+  selected: boolean;
+}
+
+const CustomContent: React.FC<TreeItemContentProps, CustomContentProps> = (
+  props
+) => {
   const {
     classes,
     className,
@@ -26,15 +37,21 @@ const CustomContent: React.FC<TreeItemContentProps> = (props) => {
 
   const icon = iconProp || expansionIcon || displayIcon;
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseDown = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     preventSelection(event);
   };
 
-  const handleExpansionClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleExpansionClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     handleExpansion(event);
   };
 
-  const handleSelectionClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleSelectionClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     handleSelection(event);
   };
 
@@ -51,7 +68,11 @@ const CustomContent: React.FC<TreeItemContentProps> = (props) => {
       <div onClick={handleExpansionClick} className={classes.iconContainer}>
         {icon}
       </div>
-      <Typography onClick={handleSelectionClick} component="div" className={classes.label}>
+      <Typography
+        onClick={handleSelectionClick}
+        component="div"
+        className={classes.label}
+      >
         {label}
       </Typography>
     </div>

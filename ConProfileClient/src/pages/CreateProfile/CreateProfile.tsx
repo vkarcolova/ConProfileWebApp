@@ -596,7 +596,7 @@ const CreateProfile: React.FC = () => {
                   fontWeight: "bold",
                 }}
               >
-                <h4 style={{ marginLeft: "5px", fontWeight: "bold" }}>
+                <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
                   Názov projektu
                 </h4>
                 <Input
@@ -626,7 +626,7 @@ const CreateProfile: React.FC = () => {
                           key={folder.foldername}
                           style={{ fontFamily: "Poppins", fontSize: "larger" }}
                           sx={{
-                            "& .MuiTypography-root": {
+                            "& .MuiTypography-root.MuiTreeItem-label": {
                               fontWeight:
                                 index === selectedFolder ? "bold" : "normal",
                               color: "black",

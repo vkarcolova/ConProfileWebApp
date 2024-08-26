@@ -51,6 +51,18 @@ export interface MultiplyFolderDTO {
   IDS: number[];
 }
 
+export interface TableData {
+  excitacion: number[];
+  intensities: TableDataColumn[];
+  multipliedintensities?: TableDataColumn[];
+  profileintensities?: TableDataColumn;
+}
+
+export interface TableDataColumn {
+  name: string;
+  intensities: (number | null | undefined)[];
+}
+
 // export interface MultipliedTableDataDTO {
 //   filename: string;
 //   multipliedintensity: number[];

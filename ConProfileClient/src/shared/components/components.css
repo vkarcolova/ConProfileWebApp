@@ -1,59 +1,60 @@
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
-.MuiTableCell-root .MuiTableCell-head .MuiTableCell-stickyHeader .MuiTableCell-sizeSmall .css-1h37f49-MuiTableCell-root
-{
+.MuiTableCell-root
+  .MuiTableCell-head
+  .MuiTableCell-stickyHeader
+  .MuiTableCell-sizeSmall
+  .css-1h37f49-MuiTableCell-root {
   padding: 0px;
 }
 
-.css-1h37f49-MuiTableCell-root{
+.css-1h37f49-MuiTableCell-root {
   padding: 5px !important;
   background-color: #bfc3d9 !important;
   margin-top: 5px;
-  font-weight: bold;
+  font-weight: "200";
 }
 
-.css-1f5iuft-MuiAutocomplete-root .MuiOutlinedInput-root.MuiInputBase-sizeSmall {
+.css-1f5iuft-MuiAutocomplete-root
+  .MuiOutlinedInput-root.MuiInputBase-sizeSmall {
   background-color: white;
 }
-.TableRowName
-{
+.TableRowName {
   padding-top: 2px;
   padding-bottom: 2px;
   padding-left: 5px;
-  font-family: 'Poppins';
-
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
 }
 
-.autocomplete{
-    margin-top: 5px;
+.autocomplete {
+  margin-top: 5px;
 }
 
-  th, td {
-    padding: 3px;
-    text-align: center;
-    border: 1px solid #ddd; /* Hranice stĺpcov a riadkov */
-  }
-  
+th,
+td {
+  padding: 3px;
+  text-align: center;
+  border: 1px solid #ddd; /* Hranice stĺpcov a riadkov */
+}
 
+html {
+  font-size: 75.5%;
+}
 
-  html{
-    font-size: 75.5%;
-  }
-
-
-body{
+body {
   font-size: 1.4rem;
   color: #222;
   margin: 0;
-  -webkit-overflow-scrolling: touch;   
+  -webkit-overflow-scrolling: touch;
 }
 
-a{
+a {
   text-decoration: none;
   color: #5668ca;
 }
 
-a:hover, a:focus{
+a:hover,
+a:focus {
   text-decoration: underline;
 }
-

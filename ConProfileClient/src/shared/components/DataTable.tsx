@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FolderDTO, Factors } from "../types";
+import { FolderDTO, Factors, TableData, TableDataColumn } from "../types";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
 import {
@@ -24,15 +24,41 @@ const DataTable: React.FC<DataTableProps> = ({
   showAutocomplete,
   factors,
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState<number[]>(
-    Array(folderData.data.length).fill(0)
-  );
+  // const [selectedOptions, setSelectedOptions] = useState<number[]>(
+  //   Array(folderData.data.length).fill(0)
+  // );
 
-  const handleComboBoxChange = (index: number, value: number | null) => {
-    const newSelectedOptions = [...selectedOptions];
-    newSelectedOptions[index] = value ?? 0;
-    setSelectedOptions(newSelectedOptions);
-  };
+  // const handleComboBoxChange = (index: number, value: number | null) => {
+  //   const newSelectedOptions = [...selectedOptions];
+  //   newSelectedOptions[index] = value ?? 0;
+  //   setSelectedOptions(newSelectedOptions);
+  // };
+
+  const processDataForTable = () => {
+    // podla excitacii dat do intexov
+    const tableData : TableData = {
+      excitacion: folderData.excitation,
+      intensities: [],
+      multipliedintensities: [],
+      profileintensities: {name: "profile", intensities: []},
+    };
+
+    const intensitiesColumns : TableDataColumn[] = [];
+    folderData.data.forEach((file) => {
+
+      var intensities : (number | null)[] = [];
+      intensities = folderData.excitation.map(value => {
+        const singleIntenzity = file.intensity.find(x => x.excitacion === value);
+        return singleIntenzity ? singleIntenzity.intensity : null;
+      });
+      //TODO tuto returnut DTO intenzity a teda podla toho vytiahnem aj multiplied 
+            const column : TableDataColumn = {name: file.filename, intensities: intensities};
+      intensitiesColumns.push(column);
+     }
+
+
+    
+  }
 
   const calculateColumnWidth = () => {
     const totalColumns = folderData.data.length;
@@ -40,14 +66,16 @@ const DataTable: React.FC<DataTableProps> = ({
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table stickyHeader size="small" aria-label="a dense table">
+    <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
+      <Table stickyHeader size="small" aria-label="sticky table">
         <TableHead>
           <TableRow>
             {folderData.data.map((tableData) => (
               <React.Fragment key={tableData.filename}>
                 <TableCell style={{ width: calculateColumnWidth() }}>
-                  <Box className="TableRowName">{tableData.filename}</Box>
+                  <Box sx={{ fontWeight: "bold" }} className="TableRowName">
+                    {tableData.filename}
+                  </Box>
                 </TableCell>
               </React.Fragment>
             ))}
