@@ -59,6 +59,8 @@ export interface TableData {
 }
 
 export interface TableDataColumn {
+  id?: number;
+  spectrum?: number;
   name: string;
   intensities: (number | null | undefined)[];
 }
@@ -68,3 +70,25 @@ export interface TableDataColumn {
 //   multipliedintensity: number[];
 //   factor: number;
 // }
+
+
+export interface ChartData {
+  data: number[];
+  label: string;
+}
+
+export interface StatData {
+  max: number;
+  min: number;
+  std: number;
+}
+
+export interface AllFolderData {
+  chartData: ChartData[];
+  normalStatData: StatData;
+  multipliedStatData: StatData;
+  folderData: FolderDTO;
+  profileData: Profile;
+  multiplied: boolean;
+  tableData?: TableData;
+}

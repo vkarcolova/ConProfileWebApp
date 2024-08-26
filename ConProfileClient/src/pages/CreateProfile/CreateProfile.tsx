@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {
   useState,
   useEffect,
@@ -13,6 +14,12 @@ import {
   Profile,
   ProjectDTO,
   Factors,
+  TableDataColumn,
+  IntensityDTO,
+  TableData,
+  AllFolderData,
+  ChartData,
+  StatData,
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
@@ -51,25 +58,7 @@ import {
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 
-interface ChartData {
-  data: number[];
-  label: string;
-}
 
-interface StatData {
-  max: number;
-  min: number;
-  std: number;
-}
-
-interface AllFolderData {
-  chartData: ChartData[];
-  normalStatData: StatData;
-  multipliedStatData: StatData;
-  folderData: FolderDTO;
-  profileData: Profile;
-  multiplied: boolean;
-}
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -203,7 +192,7 @@ const CreateProfile: React.FC = () => {
     if (folderData.profile) {
       calculateMultipliedStats(allFolderData);
     }
-
+    allFolderData.tableData = processDataForTable(allFolderData);
     return allFolderData;
   };
 
@@ -392,6 +381,7 @@ const CreateProfile: React.FC = () => {
       inputRef.current.click();
     }
   };
+
   const multiplyButtonClick = async () => {
     const factors: number[] = [];
     const ids: number[] = [];
@@ -489,6 +479,7 @@ const CreateProfile: React.FC = () => {
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
       folders[selectedFolder].multiplied = true;
+      folders[selectedFolder].tableData = processDataForTable(folders[selectedFolder]);
       setProjectFolders(folders);
       setProjectData(project);
       saveSessionData(project);
@@ -535,6 +526,60 @@ const CreateProfile: React.FC = () => {
     const objString = JSON.stringify(project);
     sessionStorage.setItem("loadeddata", objString);
   };
+
+  
+  const processDataForTable = (folder: AllFolderData): TableData => {
+    let intensitiesColumns : TableDataColumn[] = [];
+    const multipliedIntensitiesColumns : TableDataColumn[] = [];
+    let profileIntensitiesColumn : number[] = [];
+
+    //ak neexistuje ziadne table data vytvori sa nove, ak existuje pouzije sa stare a aktualizuju sa multiplied a profile
+
+    if(folder.tableData){
+      intensitiesColumns = folder.tableData.intensities;
+
+      if(folder.multiplied){      folder.folderData.data.forEach((file) => {
+        let intensities : (IntensityDTO | null)[] = [];
+        intensities = folder.folderData.excitation.map(value => {
+          const singleIntensity = file.intensity.find(x => x.excitacion === value);
+          return singleIntensity ? singleIntensity : null;
+        });
+        const multipliedColumn : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.multipliedintensity)};
+        multipliedIntensitiesColumns.push(multipliedColumn);
+      });
+    }
+
+    } else { 
+      folder.folderData.data.forEach((file) => {
+        let intensities : (IntensityDTO | null)[] = [];
+        intensities = folder.folderData.excitation.map(value => {
+          const singleIntensity = file.intensity.find(x => x.excitacion === value);
+          return singleIntensity ? singleIntensity : null;
+        });
+        
+        const column : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.intensity), id: file.id, spectrum: file.spectrum};
+        intensitiesColumns.push(column);
+  
+        if(intensities[0]?.multipliedintensity){
+          const multipliedColumn : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.multipliedintensity)};
+          multipliedIntensitiesColumns.push(multipliedColumn);
+        }
+      });
+    }
+
+    if(folder.folderData.profile){
+      profileIntensitiesColumn = folder.folderData.profile;
+    }
+
+    const result : TableData = {
+      excitacion: folder.folderData.excitation,
+      intensities: intensitiesColumns,
+      multipliedintensities: multipliedIntensitiesColumns,
+      profileintensities: {name: "profile", intensities: profileIntensitiesColumn},
+    };
+    return result;
+  }
+
 
   return (
     <Box>
@@ -723,7 +768,7 @@ const CreateProfile: React.FC = () => {
               >
                 <Box className="table-container" style={{ width: "55%" }}>
                   <DataTable
-                    folderData={currentFolderData.folderData}
+                    tableData={projectFolders[selectedFolder].tableData!}
                     showAutocomplete={true}
                     factors={factors}
                   />
@@ -804,7 +849,7 @@ const CreateProfile: React.FC = () => {
                       {projectFolders[selectedFolder].multiplied &&
                       projectData ? (
                         <DataTable
-                          folderData={projectFolders[selectedFolder].folderData}
+                          tableData={projectFolders[selectedFolder].tableData!}
                           showAutocomplete={false}
                         />
                       ) : (
@@ -828,7 +873,7 @@ const CreateProfile: React.FC = () => {
                     }}
                   >
                     {projectFolders[selectedFolder].multiplied &&
-                    projectData ? (
+                    projectData && projectFolders[selectedFolder].tableData!.profileintensities!.intensities ? (
                       <Box className="table-container">
                         <TableContainer component={Paper}>
                           <Table
@@ -851,15 +896,15 @@ const CreateProfile: React.FC = () => {
                                 <TableCell>
                                   {projectFolders[
                                     selectedFolder
-                                  ].profileData?.excitation.map((value, i) => (
+                                  ].tableData?.excitacion.map((value, i) => (
                                     <Box key={i}>{value.toFixed(5)}</Box>
                                   ))}
                                 </TableCell>
                                 <TableCell>
                                   {projectFolders[
                                     selectedFolder
-                                  ].profileData?.profile.map((value, i) => (
-                                    <Box key={i}>{value.toFixed(5)}</Box>
+                                  ].tableData!.profileintensities!.intensities.map((value, i) => (
+                                    <Box key={i}>{value ? value.toFixed(5) : ''}</Box>
                                   ))}
                                 </TableCell>
                               </TableRow>

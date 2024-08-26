@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FolderDTO, Factors, TableData, TableDataColumn } from "../types";
+import React, {  } from "react";
+import { Factors, TableData } from "../types";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
 import {
@@ -14,13 +14,13 @@ import {
 } from "@mui/material";
 
 interface DataTableProps {
-  folderData: FolderDTO;
+  tableData: TableData;
   showAutocomplete: boolean;
   factors?: Factors[];
 }
 
 const DataTable: React.FC<DataTableProps> = ({
-  folderData,
+  tableData,
   showAutocomplete,
   factors,
 }) => {
@@ -34,34 +34,9 @@ const DataTable: React.FC<DataTableProps> = ({
   //   setSelectedOptions(newSelectedOptions);
   // };
 
-  const processDataForTable = () => {
-    // podla excitacii dat do intexov
-    const tableData : TableData = {
-      excitacion: folderData.excitation,
-      intensities: [],
-      multipliedintensities: [],
-      profileintensities: {name: "profile", intensities: []},
-    };
-
-    const intensitiesColumns : TableDataColumn[] = [];
-    folderData.data.forEach((file) => {
-
-      var intensities : (number | null)[] = [];
-      intensities = folderData.excitation.map(value => {
-        const singleIntenzity = file.intensity.find(x => x.excitacion === value);
-        return singleIntenzity ? singleIntenzity.intensity : null;
-      });
-      //TODO tuto returnut DTO intenzity a teda podla toho vytiahnem aj multiplied 
-            const column : TableDataColumn = {name: file.filename, intensities: intensities};
-      intensitiesColumns.push(column);
-     }
-
-
-    
-  }
-
+ 
   const calculateColumnWidth = () => {
-    const totalColumns = folderData.data.length;
+    const totalColumns = tableData.intensities.length;
     return `${100 / totalColumns}%`;
   };
 
@@ -70,11 +45,11 @@ const DataTable: React.FC<DataTableProps> = ({
       <Table stickyHeader size="small" aria-label="sticky table">
         <TableHead>
           <TableRow>
-            {folderData.data.map((tableData) => (
-              <React.Fragment key={tableData.filename}>
+            {tableData.intensities.map((tableData) => (
+              <React.Fragment key={tableData.name}>
                 <TableCell style={{ width: calculateColumnWidth() }}>
                   <Box sx={{ fontWeight: "bold" }} className="TableRowName">
-                    {tableData.filename}
+                    {tableData.name}
                   </Box>
                 </TableCell>
               </React.Fragment>
@@ -82,14 +57,14 @@ const DataTable: React.FC<DataTableProps> = ({
           </TableRow>
           {showAutocomplete ? (
             <TableRow>
-              {folderData.data.map((tableData) => (
-                <React.Fragment key={tableData.filename}>
+              {tableData.intensities.map((tableData) => (
+                <React.Fragment key={tableData.name}>
                   <TableCell style={{ width: calculateColumnWidth() }}>
                     <Box className="autocomplete">
                       <CustomInputAutocomplete
-                        columnSpectrum={tableData.spectrum}
+                        columnSpectrum={tableData.spectrum!}
                         allFactors={factors!}
-                        id={tableData.id}
+                        id={tableData.id!}
                       />
                     </Box>
                   </TableCell>
@@ -102,11 +77,11 @@ const DataTable: React.FC<DataTableProps> = ({
           <TableRow>
             {showAutocomplete ? (
               <>
-                {folderData.data.map((tableData) => (
-                  <React.Fragment key={tableData.filename}>
+                {tableData.intensities.map((tableData) => (
+                  <React.Fragment key={tableData.name}>
                     <TableCell style={{ width: calculateColumnWidth() }}>
-                      {tableData.intensity.map((intensity, i) => (
-                        <Box key={i}>{intensity.intensity.toFixed(5)}</Box>
+                      {tableData.intensities.map((intensity, i) => (
+                        <Box key={i}>{intensity ? intensity.toFixed(5) : ''}</Box>
                       ))}
                     </TableCell>
                   </React.Fragment>
@@ -114,12 +89,12 @@ const DataTable: React.FC<DataTableProps> = ({
               </>
             ) : (
               <>
-                {folderData.data.map((tableData) => (
-                  <React.Fragment key={tableData.filename}>
+                {tableData.multipliedintensities!.map((tableData) => (
+                  <React.Fragment key={tableData.name}>
                     <TableCell style={{ width: calculateColumnWidth() }}>
-                      {tableData.intensity.map((intensity, i) => (
+                      {tableData.intensities.map((intensity, i) => (
                         <Box key={i}>
-                          {intensity.multipliedintensity?.toFixed(5)}
+                          {intensity ? intensity.toFixed(5) : ''}
                         </Box>
                       ))}
                     </TableCell>
