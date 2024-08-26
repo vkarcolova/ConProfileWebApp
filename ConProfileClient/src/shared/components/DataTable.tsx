@@ -1,4 +1,4 @@
-import React, {  } from "react";
+import React, { useEffect } from "react";
 import { Factors, TableData } from "../types";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
@@ -24,21 +24,14 @@ const DataTable: React.FC<DataTableProps> = ({
   showAutocomplete,
   factors,
 }) => {
-  // const [selectedOptions, setSelectedOptions] = useState<number[]>(
-  //   Array(folderData.data.length).fill(0)
-  // );
-
-  // const handleComboBoxChange = (index: number, value: number | null) => {
-  //   const newSelectedOptions = [...selectedOptions];
-  //   newSelectedOptions[index] = value ?? 0;
-  //   setSelectedOptions(newSelectedOptions);
-  // };
-
- 
   const calculateColumnWidth = () => {
     const totalColumns = tableData.intensities.length;
     return `${100 / totalColumns}%`;
   };
+
+  // useEffect(() => {
+  //   console.log(tableData.multipliedintensities);
+  // }, [tableData]);
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
@@ -64,7 +57,7 @@ const DataTable: React.FC<DataTableProps> = ({
                       <CustomInputAutocomplete
                         columnSpectrum={tableData.spectrum!}
                         allFactors={factors!}
-                        id={tableData.id!}
+                        id={tableData.spectrum!}
                       />
                     </Box>
                   </TableCell>
@@ -81,7 +74,9 @@ const DataTable: React.FC<DataTableProps> = ({
                   <React.Fragment key={tableData.name}>
                     <TableCell style={{ width: calculateColumnWidth() }}>
                       {tableData.intensities.map((intensity, i) => (
-                        <Box key={i}>{intensity ? intensity.toFixed(5) : ''}</Box>
+                        <Box key={i}>
+                          {intensity != undefined ? intensity.toFixed(5) : "-"}
+                        </Box>
                       ))}
                     </TableCell>
                   </React.Fragment>
@@ -94,7 +89,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     <TableCell style={{ width: calculateColumnWidth() }}>
                       {tableData.intensities.map((intensity, i) => (
                         <Box key={i}>
-                          {intensity ? intensity.toFixed(5) : ''}
+                          {intensity != undefined ? intensity.toFixed(5) : "-"}
                         </Box>
                       ))}
                     </TableCell>

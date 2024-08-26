@@ -10,7 +10,7 @@ export interface IntensityDTO {
   idData?: number;
   intensity: number;
   multipliedintensity?: number;
-  excitacion: number;
+  excitation: number;
 }
 
 export interface FileDTO {
@@ -49,20 +49,19 @@ export interface MultiplyFolderDTO {
   IDFOLDER: number;
   FACTORS: number[];
   IDS: number[];
+  EXCITATION: number[];
 }
 
 export interface TableData {
-  excitacion: number[];
+  excitation: number[];
   intensities: TableDataColumn[];
   multipliedintensities?: TableDataColumn[];
-  profileintensities?: TableDataColumn;
 }
 
 export interface TableDataColumn {
-  id?: number;
   spectrum?: number;
   name: string;
-  intensities: (number | null | undefined)[];
+  intensities: (number | undefined)[];
 }
 
 // export interface MultipliedTableDataDTO {
@@ -70,7 +69,6 @@ export interface TableDataColumn {
 //   multipliedintensity: number[];
 //   factor: number;
 // }
-
 
 export interface ChartData {
   data: number[];

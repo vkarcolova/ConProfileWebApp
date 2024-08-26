@@ -90,7 +90,7 @@ namespace WebAPI.Controllers
                     CREATED = DateTime.Now,
                     FOLDERS = folders,
                     IDPROJECT = -1,
-                    PROJECTNAME = loadedFiles[0].FOLDERNAME
+                    PROJECTNAME = "NovyProjekt"
                 };
                 if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
                 else return BadRequest(result);
@@ -117,16 +117,15 @@ namespace WebAPI.Controllers
                     Project project = new Project
                     {
                         Created = projectData.CREATED.ToUniversalTime(),
-                        IdProject = _context.Projects.Count() + 1,
+                        IdProject = _context.Projects.Max(project => project.IdProject) + 1,
                         ProjectName = projectData.PROJECTNAME,
                         Token = token
                     };
                     _context.Projects.Add(project);
-                    int nextFileId = _context.LoadedFiles.Count() + 1;
-                    int nextFolderId = _context.LoadedFolders.Count() + 1;
-                    int nextDataId = _context.LoadedDatas.Count() + 1;
-                    int nextProfileId = _context.ProfileDatas.Count() + 1;
-
+                    int nextFileId = (_context.LoadedFiles.OrderByDescending(obj => obj.IdFile).FirstOrDefault()?.IdFile ?? 0) + 1; 
+                    int nextFolderId = (_context.LoadedFolders.OrderByDescending(obj => obj.IdFolder).FirstOrDefault()?.IdFolder ?? 0) + 1;
+                    int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
+                    int nextProfileId = (_context.ProfileDatas.OrderByDescending(p => p.IdProfileData).FirstOrDefault()?.IdProfileData ?? 0) + 1;
 
 
                     foreach (FolderDTO folderData in projectData.FOLDERS)
@@ -175,18 +174,18 @@ namespace WebAPI.Controllers
                                 ProfileData data = new ProfileData
                                 {
                                     IdFolder = folder.IdFolder,
-                                    IdProfileData = nextDataId,
+                                    IdProfileData = nextProfileId,
                                     Excitation = folderData.EXCITATION[i],
                                     MaxIntensity = folderData.PROFILE[i],
                                 };
-                                nextDataId++;
+                                nextProfileId++;
                                 _context.ProfileDatas.Add(data);
                             }
                         }
 
                     }
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     return Ok(new
                     {
@@ -209,7 +208,7 @@ namespace WebAPI.Controllers
 
         }
 
-        //GET PROJECT FROM ID POTREBUJEM
+        //GET PROJECT FROM ID z db
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
         {

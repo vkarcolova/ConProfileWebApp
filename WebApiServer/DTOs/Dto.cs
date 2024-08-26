@@ -47,6 +47,8 @@
         public List<double> FACTORS { get; set; }
         public List<int> IDS { get; set; }
 
+        public double[] EXCITATION { get; set; }
+
     }
 
 }

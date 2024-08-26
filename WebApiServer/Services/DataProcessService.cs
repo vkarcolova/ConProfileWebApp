@@ -71,7 +71,7 @@ namespace WebApiServer.Services
                                     string[] words = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                                     if (double.TryParse(words[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
                                     {
-                                        if (!excitacieNacitane || (excitacieNacitane && lastNumOfRows < index && !excitactionList.Contains(x)))
+                                        if (!excitacieNacitane || (excitacieNacitane && !excitactionList.Contains(x)))
                                             excitactionList.Add(x);
                                     }
                                 }
@@ -80,6 +80,8 @@ namespace WebApiServer.Services
                                     startReading = true;
                             }
                         }
+                        excitacieNacitane = true;
+
                     }
                     excitactionList.Sort();
 
@@ -113,7 +115,7 @@ namespace WebApiServer.Services
 
                                     if (double.TryParse(words[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) //skusam slovo dat na double
                                     {
-                                        intensityList.Add(new IntensityDTO { EXCITATION = excitactionList[i], INTENSITY = result });
+                                        intensityList.Add(new IntensityDTO { EXCITATION = excitactionList[index], INTENSITY = result });
                                     }
                                 }
 
@@ -160,10 +162,12 @@ namespace WebApiServer.Services
                 try
                 {
                     List<List<LoadedData>> allData = new List<List<LoadedData>>();
+                    int maxCount = -1;
 
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
                     {
                         List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
+                        if (datas.Count > maxCount) maxCount = datas.Count;
 
                         allData.Add(datas);
 
@@ -183,24 +187,71 @@ namespace WebApiServer.Services
 
                     if (allData[0][0].MultipliedIntensity.HasValue)
                     {
-                        List<ProfileData> profileData =  _context.ProfileDatas.Where(item => item.IdFolder == multiplyDatas.IDFOLDER).ToList();
+                        List<ProfileData> profileData = _context.ProfileDatas.Where(item => item.IdFolder == multiplyDatas.IDFOLDER).ToList();
                         _context.ProfileDatas.RemoveRange(profileData);
                     }
+                    //for (int i = 0; i< allData.Count;i++) //kazdy stlpec
+                    //{
+                    //    double maxIntensity = -1;
+
+                    //    for (int j = 0; j < allData[i].Count; j++) //kazdy riadok
+                    //    {
+                    //        {
+                    //            var local = allData[i][j].MultipliedIntensity;
+
+                    //            if (allData[i][j].MultipliedIntensity != null && allData[i][j].MultipliedIntensity > maxIntensity)
+                    //                maxIntensity = (double)allData[i][j].MultipliedIntensity;
+
+                    //        }
 
 
-                    for (int i = 0; i < allData[0].Count; i++) //kazdy riadok
+                    //    }
+
+                    //    //create profile 
+                    //    ProfileData profile = new ProfileData
+                    //    {
+                    //        IdProfileData = idProfile,
+                    //        IdFolder = multiplyDatas.IDFOLDER,
+                    //        MaxIntensity = maxIntensity,
+                    //        Excitation = multiplyDatas.EXCITATION
+                    //    };
+                    //    _context.ProfileDatas.Add(profile);
+                    //    idProfile++;
+
+                    //}
+                    double?[][] dataForExcitacion = new double?[allData.Count][];
+                    for (int i = 0; i < allData.Count; i++) //kazdy stlpec
+                    {
+                        dataForExcitacion[i] = new double?[maxCount];
+                        var datalist = allData[i];
+                        int index = 0;
+                        foreach (var excitacion in multiplyDatas.EXCITATION)
+                        {
+                            if (datalist.Count == 0) { 
+                                continue;
+                            };
+                            var intensity = datalist.FirstOrDefault(i => i.Excitation == excitacion);
+                            if (intensity != null) dataForExcitacion[i][index] = intensity.MultipliedIntensity;
+                            else dataForExcitacion[i][index] = null;
+
+                            index++;
+                        }
+                    }
+                    for (int i = 0; i < dataForExcitacion[0].Length; i++) //kazdy riadok
                     {
                         double maxIntensity = -1;
-                        for (int j = 0; j < allData.Count; j++) //kazdy folder
+
+                        for (int j = 0; j < dataForExcitacion.Length; j++) // každý folder
                         {
-                            var local = allData[j][i].MultipliedIntensity;
 
-                            if (allData[j][i].MultipliedIntensity > maxIntensity)
-                                maxIntensity = (double)allData[j][i].MultipliedIntensity;
+                            var local = dataForExcitacion[j][i].HasValue ? dataForExcitacion[j][i] : null;
 
+                            if (local.HasValue && local > maxIntensity)
+                            {
+                                maxIntensity = local.Value;
+                            }
                         }
 
-                        //create profile 
                         ProfileData profile = new ProfileData
                         {
                             IdProfileData = idProfile,
@@ -218,7 +269,7 @@ namespace WebApiServer.Services
                 }
                 catch (Exception ex)
                 {
-                    
+
                     return new BadRequestResult(); ;
                 }
             }

@@ -8,11 +8,13 @@ import { useNavigate } from "react-router-dom";
 interface SaveToDbButtonProps {
   loadedProjectId: string | undefined;
   projectData: ProjectDTO | null;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
   loadedProjectId,
   projectData,
+  setLoading,
 }) => {
   const navigate = useNavigate();
 
@@ -32,6 +34,7 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
       };
     }
     if (!loadedProjectId) {
+      setLoading(true);
       try {
         await axios
           .post(
@@ -46,9 +49,11 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             console.log(response);
             sessionStorage.removeItem("loadeddata");
             navigate("/create-profile/" + response.data.projectId);
+            setLoading(false);
           });
       } catch (error) {
         alert("Chyba pri uložení dát:");
+        setLoading(false);
       }
     }
   };

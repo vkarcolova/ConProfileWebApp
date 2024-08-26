@@ -51,9 +51,10 @@ const Home: React.FC = () => {
     try {
       const selectedFiles = e.target.files;
       if (selectedFiles) {
-        const filesArray: File[] = Array.from(selectedFiles).filter((file) =>
-          file.name.endsWith(".sp")
-        );
+        const filesArray: File[] = Array.from(selectedFiles).filter((file) => {
+          const pathParts = file.webkitRelativePath.split("/");
+          return file.name.endsWith(".sp") && pathParts.length === 2;
+        });
         const folderName = filesArray[0].webkitRelativePath.split("/")[0];
         const loadedFiles: FileContent[] = [];
 

@@ -57,8 +57,8 @@ import {
 } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
-
-
+import { ProfileDataTable } from "./Components/ProfileDataTable";
+import { StatsBox } from "./Components/StatsBox";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -115,21 +115,12 @@ const CreateProfile: React.FC = () => {
   }, [loadedProjectId, navigate]);
 
   useEffect(() => {
-    console.log(factors);
-  }, [factors]);
-
-  useEffect(() => {
     const factorsdata = localStorage.getItem("factorsdata");
     let localFactors: Factors[] = factorsdata ? JSON.parse(factorsdata) : [];
-
-    console.log("local", localFactors);
 
     axios
       .get<Factors[]>("https://localhost:44300/Factor")
       .then((response) => {
-        console.log(response.data);
-
-        // Remove any factors from localFactors that are present in response.data
         localFactors = localFactors.filter(
           (localFactor) =>
             !response.data.some(
@@ -138,8 +129,6 @@ const CreateProfile: React.FC = () => {
                 responseFactor.factor === localFactor.factor
             )
         );
-
-        // Prepend response data factors to localFactors
         localFactors = [...response.data, ...localFactors];
       })
       .catch((error) => {
@@ -160,8 +149,56 @@ const CreateProfile: React.FC = () => {
       allData = allData.concat(intensities);
     });
 
-    const normalMax: number = Math.max(...allData);
-    const normalMin: number = Math.min(...allData);
+    const normalStat: StatData = calculateStats(allData);
+
+    const allFolderData: AllFolderData = {
+      chartData: dynamicChartData,
+      normalStatData: normalStat,
+      multipliedStatData: { max: 0, min: 0, std: 0 },
+      folderData: folderData,
+      profileData: { excitation: [], profile: [] },
+      multiplied: false,
+    };
+
+    if (folderData.profile) {
+      fillMultipliedFolder(allFolderData);
+    }
+    allFolderData.tableData = processDataForTable(allFolderData);
+    return allFolderData;
+  };
+
+  const fillMultipliedFolder = (folder: AllFolderData) => {
+    if (folder.folderData.profile) {
+      folder.chartData.push({
+        data: folder.folderData.profile,
+        label: "Profil",
+      });
+
+      let allData: number[] = [];
+
+      folder.folderData.data.forEach((file) => {
+        const intensities: number[] = file.intensity.map(
+          (dto) => dto.multipliedintensity!
+        );
+        allData = allData.concat(intensities);
+      });
+
+      const multipliedStat: StatData = calculateStats(allData);
+
+      const profile: Profile = {
+        excitation: folder.folderData.excitation,
+        profile: folder.folderData.profile,
+      };
+
+      folder.multipliedStatData = multipliedStat;
+      folder.profileData = profile;
+      folder.multiplied = true;
+    }
+  };
+
+  const calculateStats = (allData: number[]): StatData => {
+    const max: number = Math.max(...allData);
+    const min: number = Math.min(...allData);
 
     const mean =
       allData.reduce((sum, number) => sum + number, 0) / allData.length;
@@ -175,65 +212,12 @@ const CreateProfile: React.FC = () => {
       ) / allData.length;
     const standardDeviation = Math.sqrt(variance);
 
-    const normalStat: StatData = {
-      max: normalMax,
-      min: normalMin,
+    const stats: StatData = {
+      max: max,
+      min: min,
       std: standardDeviation,
     };
-    const allFolderData: AllFolderData = {
-      chartData: dynamicChartData,
-      normalStatData: normalStat,
-      multipliedStatData: { max: 0, min: 0, std: 0 },
-      folderData: folderData,
-      profileData: { excitation: [], profile: [] },
-      multiplied: false,
-    };
-
-    if (folderData.profile) {
-      calculateMultipliedStats(allFolderData);
-    }
-    allFolderData.tableData = processDataForTable(allFolderData);
-    return allFolderData;
-  };
-
-  const calculateMultipliedStats = (folder: AllFolderData) => {
-    if (folder.folderData.profile) {
-      folder.chartData.push({
-        data: folder.folderData.profile,
-        label: "Profil",
-      });
-
-      const multipliedMax: number = Math.max(...folder.folderData.profile);
-      const multipliedMin: number = Math.min(...folder.folderData.profile);
-
-      const meanProfile =
-        folder.folderData.profile.reduce((sum, number) => sum + number, 0) /
-        folder.folderData.profile.length;
-      const squaredDifferencesProfile = folder.folderData.profile.map(
-        (number) => Math.pow(number - meanProfile, 2)
-      );
-      const varianceProfile =
-        squaredDifferencesProfile.reduce(
-          (sum, squaredDifference) => sum + squaredDifference,
-          0
-        ) / folder.folderData.profile.length;
-      const multipliedStandardDeviation = Math.sqrt(varianceProfile);
-
-      const multipliedStat: StatData = {
-        max: multipliedMax,
-        min: multipliedMin,
-        std: multipliedStandardDeviation,
-      };
-
-      const profile: Profile = {
-        excitation: folder.folderData.excitation,
-        profile: folder.folderData.profile,
-      };
-
-      folder.multipliedStatData = multipliedStat;
-      folder.profileData = profile;
-      folder.multiplied = true;
-    }
+    return stats;
   };
 
   const loadProjectFromId = async () => {
@@ -250,18 +234,21 @@ const CreateProfile: React.FC = () => {
           }
         );
         setProjectData(response.data);
-
         const folders: AllFolderData[] = [];
         response.data.folders.forEach(async (folder) => {
           const filledFolder = await fillFolder(folder);
+          console.log(filledFolder.tableData?.excitation);
+          console.log(filledFolder.folderData.excitation);
+
+          console.log(folder);
           folders.push(filledFolder);
         });
         setProjectFolders(folders);
 
         const comparefolders: FolderDTO[] = [];
-        response.data.folders.forEach((element) => {
-          if (element.profile) {
-            comparefolders.push(element);
+        folders.forEach((element) => {
+          if (element.multiplied) {
+            comparefolders.push(element.folderData);
           }
         });
         setFoldersToCompare(comparefolders);
@@ -391,7 +378,7 @@ const CreateProfile: React.FC = () => {
 
     projectFolders[selectedFolder].folderData.data.forEach((element) => {
       const autocompleteInput = document.getElementById(
-        `autocomplete-${element.id}`
+        `autocomplete-${element.spectrum}`
       ) as HTMLInputElement | null;
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
@@ -426,6 +413,7 @@ const CreateProfile: React.FC = () => {
         IDFOLDER: projectFolders[selectedFolder].folderData.id,
         FACTORS: factors,
         IDS: ids,
+        EXCITATION: projectFolders[selectedFolder].folderData.excitation,
       };
 
       try {
@@ -460,13 +448,19 @@ const CreateProfile: React.FC = () => {
           file < project.folders[selectedFolder].data.length;
           file++
         ) {
-          const multiplied: number =
-            project.folders[selectedFolder].data[file].intensity[row]
-              .intensity * factors[file];
-          project.folders[selectedFolder].data[file].intensity[
-            row
-          ].multipliedintensity = multiplied;
-          if (multiplied > max) max = multiplied;
+          let multiplied: number | undefined = undefined;
+          if (
+            project.folders[selectedFolder].data[file].intensity[row] !=
+            undefined
+          ) {
+            multiplied =
+              project.folders[selectedFolder].data[file].intensity[row]
+                .intensity * factors[file];
+            project.folders[selectedFolder].data[file].intensity[
+              row
+            ].multipliedintensity = multiplied;
+            if (multiplied > max) max = multiplied;
+          }
         }
         profile.push(max);
       }
@@ -479,7 +473,11 @@ const CreateProfile: React.FC = () => {
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
       folders[selectedFolder].multiplied = true;
-      folders[selectedFolder].tableData = processDataForTable(folders[selectedFolder]);
+      folders[selectedFolder].tableData = processDataForTable(
+        folders[selectedFolder]
+      );
+
+      fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
       setProjectData(project);
       saveSessionData(project);
@@ -511,10 +509,6 @@ const CreateProfile: React.FC = () => {
     localStorage.setItem("factorsdata", objString);
   };
 
-  if (!projectFolders) {
-    return <Box>Error loading data.</Box>;
-  }
-
   const handleOpenDialog = () => {
     if (foldersToCompare && foldersToCompare.length < 2)
       alert("Vytvorte aspoň 2 profily na porovnanie");
@@ -527,59 +521,73 @@ const CreateProfile: React.FC = () => {
     sessionStorage.setItem("loadeddata", objString);
   };
 
-  
   const processDataForTable = (folder: AllFolderData): TableData => {
-    let intensitiesColumns : TableDataColumn[] = [];
-    const multipliedIntensitiesColumns : TableDataColumn[] = [];
-    let profileIntensitiesColumn : number[] = [];
+    let intensitiesColumns: TableDataColumn[] = [];
+    const multipliedIntensitiesColumns: TableDataColumn[] = [];
+    let profileIntensitiesColumn: number[] = [];
 
-    //ak neexistuje ziadne table data vytvori sa nove, ak existuje pouzije sa stare a aktualizuju sa multiplied a profile
-
-    if(folder.tableData){
+    if (folder.tableData) {
       intensitiesColumns = folder.tableData.intensities;
 
-      if(folder.multiplied){      folder.folderData.data.forEach((file) => {
-        let intensities : (IntensityDTO | null)[] = [];
-        intensities = folder.folderData.excitation.map(value => {
-          const singleIntensity = file.intensity.find(x => x.excitacion === value);
-          return singleIntensity ? singleIntensity : null;
+      if (folder.multiplied) {
+        folder.folderData.data.forEach((file) => {
+          let intensities: (IntensityDTO | null)[] = [];
+          intensities = folder.folderData.excitation.map((value) => {
+            const singleIntensity = file.intensity.find(
+              (x) => x.excitation === value
+            );
+            return singleIntensity ? singleIntensity : null;
+          });
+          const multipliedColumn: TableDataColumn = {
+            name: file.filename,
+            intensities: intensities.map((x) => x?.multipliedintensity),
+          };
+          multipliedIntensitiesColumns.push(multipliedColumn);
         });
-        const multipliedColumn : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.multipliedintensity)};
-        multipliedIntensitiesColumns.push(multipliedColumn);
-      });
-    }
-
-    } else { 
+      }
+    } else {
       folder.folderData.data.forEach((file) => {
-        let intensities : (IntensityDTO | null)[] = [];
-        intensities = folder.folderData.excitation.map(value => {
-          const singleIntensity = file.intensity.find(x => x.excitacion === value);
+        let intensities: (IntensityDTO | null)[] = [];
+
+        intensities = folder.folderData.excitation.map((value) => {
+          const singleIntensity = file.intensity.find(
+            (x) => x.excitation === value
+          );
           return singleIntensity ? singleIntensity : null;
         });
-        
-        const column : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.intensity), id: file.id, spectrum: file.spectrum};
+        const column: TableDataColumn = {
+          name: file.filename,
+          intensities: intensities.map((x) => x?.intensity),
+          spectrum: file.spectrum,
+        };
         intensitiesColumns.push(column);
-  
-        if(intensities[0]?.multipliedintensity){
-          const multipliedColumn : TableDataColumn = {name: file.filename, intensities: intensities.map(x => x?.multipliedintensity)};
+        let index = 0;
+        if (folder.multiplied) {
+          index += 1;
+          const multipliedColumn: TableDataColumn = {
+            name: file.filename,
+            intensities: intensities.map((x) => x?.multipliedintensity),
+          };
           multipliedIntensitiesColumns.push(multipliedColumn);
         }
       });
     }
 
-    if(folder.folderData.profile){
+    if (folder.folderData.profile) {
       profileIntensitiesColumn = folder.folderData.profile;
     }
 
-    const result : TableData = {
-      excitacion: folder.folderData.excitation,
+    const result: TableData = {
+      excitation: folder.folderData.excitation,
       intensities: intensitiesColumns,
       multipliedintensities: multipliedIntensitiesColumns,
-      profileintensities: {name: "profile", intensities: profileIntensitiesColumn},
     };
     return result;
-  }
+  };
 
+  if (!projectFolders) {
+    return <Box>Error loading data.</Box>;
+  }
 
   return (
     <Box>
@@ -651,6 +659,14 @@ const CreateProfile: React.FC = () => {
                     "--Input-minHeight": "41px",
                   }}
                   id="inputName"
+                  onChange={() => {
+                    setProjectData({
+                      ...projectData!,
+                      projectname: (
+                        document.getElementById("inputName") as HTMLInputElement
+                      ).value,
+                    });
+                  }}
                 />
               </Box>
               <Box className="treeView">
@@ -745,6 +761,7 @@ const CreateProfile: React.FC = () => {
                   <SaveToDbButton
                     loadedProjectId={loadedProjectId}
                     projectData={projectData}
+                    setLoading={setIsLoading}
                   />
                 </Box>
               </Box>
@@ -873,136 +890,20 @@ const CreateProfile: React.FC = () => {
                     }}
                   >
                     {projectFolders[selectedFolder].multiplied &&
-                    projectData && projectFolders[selectedFolder].tableData!.profileintensities!.intensities ? (
-                      <Box className="table-container">
-                        <TableContainer component={Paper}>
-                          <Table
-                            stickyHeader
-                            size="small"
-                            aria-label="a dense table"
-                          >
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>
-                                  <Box className="TableRowName">Excitácie</Box>
-                                </TableCell>
-                                <TableCell>
-                                  <Box className="TableRowName">Intenzity</Box>
-                                </TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              <TableRow>
-                                <TableCell>
-                                  {projectFolders[
-                                    selectedFolder
-                                  ].tableData?.excitacion.map((value, i) => (
-                                    <Box key={i}>{value.toFixed(5)}</Box>
-                                  ))}
-                                </TableCell>
-                                <TableCell>
-                                  {projectFolders[
-                                    selectedFolder
-                                  ].tableData!.profileintensities!.intensities.map((value, i) => (
-                                    <Box key={i}>{value ? value.toFixed(5) : ''}</Box>
-                                  ))}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      </Box>
+                    projectData ? (
+                      <ProfileDataTable
+                        profile={projectFolders[selectedFolder].profileData}
+                      />
                     ) : (
                       <Box className="emptyTable"></Box>
                     )}
                   </Box>
-                  <Box className="statsContainer">
-                    <Box className="stats">
-                      <Box className="statsHead">
-                        <h3>Štatistiky</h3>
-                      </Box>
-                      <Box
-                        style={{
-                          flexDirection: "row",
-                          display: "flex",
-                          marginTop: "10px",
-                        }}
-                      >
-                        <Box className="statsColumn">
-                          <h4>Originálne</h4>
-                          <Box
-                            className="center-items"
-                            style={{
-                              marginTop: "20px",
-                              flexDirection: "row",
-                              display: "flex",
-                              textAlign: "center",
-                            }}
-                          >
-                            <Box>
-                              <h4>Max</h4>
-                              <h4>Min</h4>
-                              <h4>Std</h4>
-                            </Box>
-                            <Box>
-                              <h5>
-                                {projectFolders[
-                                  selectedFolder
-                                ].normalStatData?.max.toFixed(5)}
-                              </h5>
-                              <h5>
-                                {projectFolders[
-                                  selectedFolder
-                                ].normalStatData?.min.toFixed(5)}
-                              </h5>
-                              <h5>
-                                {projectFolders[
-                                  selectedFolder
-                                ].normalStatData?.std.toFixed(5)}
-                              </h5>
-                            </Box>
-                          </Box>
-                        </Box>
-                        {projectFolders[selectedFolder].multiplied && (
-                          <Box className="statsColumn">
-                            <h4>Prenásobené</h4>
-                            <Box
-                              className="center-items"
-                              style={{
-                                marginTop: "20px",
-                                flexDirection: "row",
-                                display: "flex",
-                                textAlign: "center",
-                              }}
-                            >
-                              <Box>
-                                <h4>Max</h4>
-                                <h4>Min</h4>
-                                <h4>Std</h4>
-                              </Box>
-                              <Box>
-                                <h5>
-                                  {projectFolders[
-                                    selectedFolder
-                                  ].multipliedStatData?.max.toFixed(5)}
-                                </h5>
-                                <h5>
-                                  {projectFolders[
-                                    selectedFolder
-                                  ].multipliedStatData?.min.toFixed(5)}
-                                </h5>
-                                <h5>
-                                  {projectFolders[
-                                    selectedFolder
-                                  ].multipliedStatData?.std.toFixed(5)}
-                                </h5>
-                              </Box>
-                            </Box>
-                          </Box>
-                        )}
-                      </Box>
-                    </Box>
-                  </Box>
+                  <StatsBox
+                    statsData={projectFolders[selectedFolder].normalStatData}
+                    multipliedStatsData={
+                      projectFolders[selectedFolder].multipliedStatData
+                    }
+                  />
                 </Box>
               </Box>
             </Box>
