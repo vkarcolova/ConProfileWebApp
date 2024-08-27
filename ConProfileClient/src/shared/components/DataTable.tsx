@@ -29,9 +29,7 @@ const DataTable: React.FC<DataTableProps> = ({
     return `${100 / totalColumns}%`;
   };
 
-  // useEffect(() => {
-  //   console.log(tableData.multipliedintensities);
-  // }, [tableData]);
+ 
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>

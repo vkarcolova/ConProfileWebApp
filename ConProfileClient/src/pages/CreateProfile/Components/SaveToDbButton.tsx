@@ -4,6 +4,7 @@ import { basicButtonStyle, darkButtonStyle } from "../../../shared/styles";
 import { ProjectDTO } from "../../../shared/types";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 interface SaveToDbButtonProps {
   loadedProjectId: string | undefined;
@@ -20,7 +21,6 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
 
   const saveToDbButtonClick = async () => {
     const token = localStorage.getItem("token");
-    console.log(token);
     let customHeaders:
       | { "Content-Type": string }
       | { "Content-Type": string; Authorization: string } = {
@@ -45,14 +45,13 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             }
           )
           .then((response) => {
-            alert("Projekt bol uložený.");
-            console.log(response);
+            toast.success("Projekt bol úspešne uložený do databázy.");
             sessionStorage.removeItem("loadeddata");
             navigate("/create-profile/" + response.data.projectId);
             setLoading(false);
           });
       } catch (error) {
-        alert("Chyba pri uložení dát:");
+        toast.error("Nepodarilo sa uložiť projekt.");
         setLoading(false);
       }
     }

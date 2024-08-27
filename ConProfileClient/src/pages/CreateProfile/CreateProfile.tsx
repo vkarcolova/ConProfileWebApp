@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ToastContainer, Bounce, toast } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
+
 import React, {
   useState,
   useEffect,
   ChangeEvent,
   useRef,
-  useMemo,
 } from "react";
 import axios from "axios";
 import {
@@ -33,14 +34,7 @@ import {
   CircularProgress,
   IconButton,
   Input,
-  Paper,
   Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Tooltip,
   tooltipClasses,
 } from "@mui/material";
@@ -79,9 +73,9 @@ const CreateProfile: React.FC = () => {
 
   const foldersExpand: string[] = [];
 
-  const currentFolderData = useMemo(() => {
-    return projectFolders[selectedFolder];
-  }, [projectFolders, selectedFolder]);
+  // const currentFolderData = useMemo(() => {
+  //   return projectFolders[selectedFolder];
+  // }, [projectFolders, selectedFolder]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -97,13 +91,19 @@ const CreateProfile: React.FC = () => {
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
           setProjectData(obj);
-
+          const comparefolders: FolderDTO[] = [];
           const folders: AllFolderData[] = [];
           obj.folders.forEach(async (folder) => {
             const filledFolder = await fillFolder(folder);
+            if(filledFolder.multiplied) {
+              comparefolders.push(folder);
+            }
             folders.push(filledFolder);
           });
+          setFoldersToCompare(comparefolders);
+
           setProjectFolders(folders);
+
         }
       } catch (error) {
         console.error("Chyba pri načítavaní dát:", error);
@@ -169,6 +169,8 @@ const CreateProfile: React.FC = () => {
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
     if (folder.folderData.profile) {
+      folder.chartData = folder.chartData.filter((item) => item.label !== "Profil");
+
       folder.chartData.push({
         data: folder.folderData.profile,
         label: "Profil",
@@ -193,6 +195,7 @@ const CreateProfile: React.FC = () => {
       folder.multipliedStatData = multipliedStat;
       folder.profileData = profile;
       folder.multiplied = true;
+
     }
   };
 
@@ -234,23 +237,17 @@ const CreateProfile: React.FC = () => {
           }
         );
         setProjectData(response.data);
+        const comparefolders: FolderDTO[] = [];
+
         const folders: AllFolderData[] = [];
         response.data.folders.forEach(async (folder) => {
           const filledFolder = await fillFolder(folder);
-          console.log(filledFolder.tableData?.excitation);
-          console.log(filledFolder.folderData.excitation);
-
-          console.log(folder);
+          if(filledFolder.multiplied) {
+            comparefolders.push(folder);}
           folders.push(filledFolder);
         });
         setProjectFolders(folders);
 
-        const comparefolders: FolderDTO[] = [];
-        folders.forEach((element) => {
-          if (element.multiplied) {
-            comparefolders.push(element.folderData);
-          }
-        });
         setFoldersToCompare(comparefolders);
       } catch (error) {
         console.error("Chyba pri získavaní dát zo servera:", error);
@@ -270,7 +267,8 @@ const CreateProfile: React.FC = () => {
           (element) => element.foldername === folderName
         )
       ) {
-        alert("Priečinok s týmto menom už bol nahraný.");
+        console.log('hererr');
+        toast.info("Priečinok s rovnakým názvom už bol do projektu nahraný.");
         return;
       }
       const loadedFiles: FileContent[] = [];
@@ -394,7 +392,9 @@ const CreateProfile: React.FC = () => {
       }
     });
     if (wrongInput) {
-      alert("Nesprávne zadané hodnoty!");
+      toast.error("Chýbajúce alebo nesprávne zadané hodnoty faktorov.");
+      toast("Chýbajúce alebo nesprávne zadané hodnoty faktorov.");
+
       return;
     }
 
@@ -509,12 +509,6 @@ const CreateProfile: React.FC = () => {
     localStorage.setItem("factorsdata", objString);
   };
 
-  const handleOpenDialog = () => {
-    if (foldersToCompare && foldersToCompare.length < 2)
-      alert("Vytvorte aspoň 2 profily na porovnanie");
-    else setDialogOpen(true);
-  };
-
   const saveSessionData = (project: ProjectDTO) => {
     if (loadedProjectId) return;
     const objString = JSON.stringify(project);
@@ -524,8 +518,6 @@ const CreateProfile: React.FC = () => {
   const processDataForTable = (folder: AllFolderData): TableData => {
     let intensitiesColumns: TableDataColumn[] = [];
     const multipliedIntensitiesColumns: TableDataColumn[] = [];
-    let profileIntensitiesColumn: number[] = [];
-
     if (folder.tableData) {
       intensitiesColumns = folder.tableData.intensities;
 
@@ -561,9 +553,7 @@ const CreateProfile: React.FC = () => {
           spectrum: file.spectrum,
         };
         intensitiesColumns.push(column);
-        let index = 0;
         if (folder.multiplied) {
-          index += 1;
           const multipliedColumn: TableDataColumn = {
             name: file.filename,
             intensities: intensities.map((x) => x?.multipliedintensity),
@@ -571,10 +561,6 @@ const CreateProfile: React.FC = () => {
           multipliedIntensitiesColumns.push(multipliedColumn);
         }
       });
-    }
-
-    if (folder.folderData.profile) {
-      profileIntensitiesColumn = folder.folderData.profile;
     }
 
     const result: TableData = {
@@ -742,7 +728,11 @@ const CreateProfile: React.FC = () => {
                   />
                   <Button
                     variant="contained"
-                    onClick={handleOpenDialog}
+                    onClick={() => {
+                      if (foldersToCompare != null && foldersToCompare.length < 2)
+                        toast.info("Pre porovnanie je potrebné mať vytvorené aspoň dva profily.");
+                      else setDialogOpen(true);
+                    }}
                     role="button"
                     sx={{
                       ...basicButtonStyle,
@@ -901,7 +891,9 @@ const CreateProfile: React.FC = () => {
                   <StatsBox
                     statsData={projectFolders[selectedFolder].normalStatData}
                     multipliedStatsData={
-                      projectFolders[selectedFolder].multipliedStatData
+                      projectFolders[selectedFolder].multiplied
+                        ? projectFolders[selectedFolder].multipliedStatData
+                        : undefined
                     }
                   />
                 </Box>
@@ -910,6 +902,7 @@ const CreateProfile: React.FC = () => {
           </Box>
         </>
       )}
+      <ToastContainer transition={Bounce} />
     </Box>
   );
 };

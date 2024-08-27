@@ -1,5 +1,5 @@
 // Comparison.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -43,26 +43,34 @@ interface StatData {
 }
 
 const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
-  const [checked, setChecked] = useState<number[]>([]);
+  const [checked, setChecked] = useState<string[]>([]);
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
   const [statData, setStatData] = useState<StatData[]>([]);
 
+
+  // useEffect(() => { 
+  //   console.log('folders, statdata,chartdata,cheked');
+  // console.log(folders);
+  // console.log(statData); 
+  // console.log(chartData);
+  // console.log( checked);}
+  // ), [statData, chartData, checked];
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    id: number
+    name: string
   ) => {
-    let list: number[] = [...checked];
-    if (!list.includes(id)) {
-      list.push(id);
+    let list: string[] = [...checked];
+    if (!list.includes(name)) {
+      list.push(name);
     } else {
-      list = list.filter((item) => item !== id);
+      list = list.filter((item) => item !== name);
     }
     setChecked(list);
 
     if (list.length >= 2) {
       const filteredFolders =
         folders
-          ?.filter((data) => list.includes(data.id))
+          ?.filter((data) => list.includes(data.foldername))
           .map((data) => ({
             data: data?.profile || [],
             label: data?.foldername || "Unknown",
@@ -107,9 +115,10 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       }}
       aria-labelledby="customized-dialog-title"
       open={open}
-      maxWidth="md"
+      fullWidth={true}
+      maxWidth="lg"
     >
-      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
+      <DialogTitle sx={{ m: 0, p: 2,}} id="customized-dialog-title">
         Porovnanie profilov
       </DialogTitle>
       <IconButton
@@ -124,7 +133,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       >
         <CloseIcon />
       </IconButton>
-      <DialogContent dividers>
+      <DialogContent dividers >
         <Box className="dialog-content">
           <Box
             style={{ display: "flex", flexDirection: "row", minHeight: "100%" }}
@@ -135,8 +144,8 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                   {folders?.map((value) => (
                     <ListItem style={{ padding: "0px" }}>
                       <Checkbox
-                        onChange={(event) => handleChange(event, value.id)}
-                        inputProps={{ id: `${value.id}` }}
+                        onChange={(event) => handleChange(event, value.foldername)}
+                        inputProps={{ name: `${value.foldername}` }}
                         style={{
                           paddingTop: "0px",
                           paddingBottom: "0px",

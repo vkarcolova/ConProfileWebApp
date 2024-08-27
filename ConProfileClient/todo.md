@@ -8,7 +8,7 @@ NAJSKOR
 - [ ] Excitacie stlpik inou farbou
 - [x] Excitacie iba na 1 desatinne miesto mozno pridat aj do prvych tabuliek
 - [ ] Krajsie scrollbary
-- [ ] Pri vytvarani profilu sa stale pridavaju tie data do grafu
+- [x] Pri vytvarani profilu sa stale pridavaju tie data do grafu
 - [ ] Nejaky loading na vytvaranie projektu
 - [ ] Toasty/upozornenia
 - [ ] Zmena nazvu projektu, ako samostatna funkcia

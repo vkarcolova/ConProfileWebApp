@@ -186,7 +186,7 @@ const Home: React.FC = () => {
 
     if (token != undefined || token != null) {
       try {
-        const response = await axios.delete(
+        await axios.delete(
           "https://localhost:44300/Project/DeleteProject/" + id,
           {
             headers: {
@@ -195,7 +195,6 @@ const Home: React.FC = () => {
           }
         );
         getProjectsByUser();
-        console.log(response.data);
       } catch (error) {
         console.error("Chyba pri získavaní dát zo servera:", error);
       }
