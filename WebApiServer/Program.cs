@@ -9,7 +9,7 @@ var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDataProcessService, DataProcessService>();
-
+builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
 builder.Services.AddCors(options =>
 {
@@ -22,9 +22,7 @@ options.AddPolicy(name: AllowSpecificOrigins,
                       });
 });
 
-
 // Konfigurácia JWT
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -44,6 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 
+
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApiDbContext>(options => options.UseNpgsql(connectionString));
@@ -54,6 +53,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+    if (dbContext.Database.GetPendingMigrations().Any())
+    {
+        dbContext.Database.Migrate();
+    }
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
