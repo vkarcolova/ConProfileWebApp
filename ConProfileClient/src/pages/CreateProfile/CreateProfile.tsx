@@ -1,12 +1,7 @@
-import { ToastContainer, Bounce, toast } from 'react-toastify';
+import { ToastContainer, Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import React, {
-  useState,
-  useEffect,
-  ChangeEvent,
-  useRef,
-} from "react";
+import React, { useState, useEffect, ChangeEvent, useRef } from "react";
 import axios from "axios";
 import {
   FolderDTO,
@@ -53,6 +48,7 @@ import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
 import { StatsBox } from "./Components/StatsBox";
+import config from "../../../config";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -95,7 +91,7 @@ const CreateProfile: React.FC = () => {
           const folders: AllFolderData[] = [];
           obj.folders.forEach(async (folder) => {
             const filledFolder = await fillFolder(folder);
-            if(filledFolder.multiplied) {
+            if (filledFolder.multiplied) {
               comparefolders.push(folder);
             }
             folders.push(filledFolder);
@@ -103,7 +99,6 @@ const CreateProfile: React.FC = () => {
           setFoldersToCompare(comparefolders);
 
           setProjectFolders(folders);
-
         }
       } catch (error) {
         console.error("Chyba pri načítavaní dát:", error);
@@ -119,7 +114,7 @@ const CreateProfile: React.FC = () => {
     let localFactors: Factors[] = factorsdata ? JSON.parse(factorsdata) : [];
 
     axios
-      .get<Factors[]>("https://localhost:44300/Factor")
+      .get<Factors[]>(`${config.apiUrl}/Factor`)
       .then((response) => {
         localFactors = localFactors.filter(
           (localFactor) =>
@@ -169,7 +164,9 @@ const CreateProfile: React.FC = () => {
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
     if (folder.folderData.profile) {
-      folder.chartData = folder.chartData.filter((item) => item.label !== "Profil");
+      folder.chartData = folder.chartData.filter(
+        (item) => item.label !== "Profil"
+      );
 
       folder.chartData.push({
         data: folder.folderData.profile,
@@ -195,7 +192,6 @@ const CreateProfile: React.FC = () => {
       folder.multipliedStatData = multipliedStat;
       folder.profileData = profile;
       folder.multiplied = true;
-
     }
   };
 
@@ -229,7 +225,7 @@ const CreateProfile: React.FC = () => {
 
       try {
         const response = await axios.get<ProjectDTO>(
-          `https://localhost:44300/Project/GetProject/${idProject}`,
+          `${config.apiUrl}/Project/GetProject/${idProject}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -242,8 +238,9 @@ const CreateProfile: React.FC = () => {
         const folders: AllFolderData[] = [];
         response.data.folders.forEach(async (folder) => {
           const filledFolder = await fillFolder(folder);
-          if(filledFolder.multiplied) {
-            comparefolders.push(folder);}
+          if (filledFolder.multiplied) {
+            comparefolders.push(folder);
+          }
           folders.push(filledFolder);
         });
         setProjectFolders(folders);
@@ -267,7 +264,6 @@ const CreateProfile: React.FC = () => {
           (element) => element.foldername === folderName
         )
       ) {
-        console.log('hererr');
         toast.info("Priečinok s rovnakým názvom už bol do projektu nahraný.");
         return;
       }
@@ -306,7 +302,7 @@ const CreateProfile: React.FC = () => {
         try {
           await axios
             .post(
-              "https://localhost:44300/LoadedFolder/PostNewFolderToProject",
+              `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
               JSON.stringify(loadedFiles),
               {
                 headers: {
@@ -326,10 +322,7 @@ const CreateProfile: React.FC = () => {
 
         try {
           await axios
-            .post(
-              "https://localhost:44300/LoadedFolder/PostNewFolder",
-              loadedFiles
-            )
+            .post(`${config.apiUrl}/LoadedFolder/PostNewFolder`, loadedFiles)
             .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
               const filledFolder = await fillFolder(objString);
@@ -419,7 +412,7 @@ const CreateProfile: React.FC = () => {
       try {
         await axios
           .post(
-            "https://localhost:44300/LoadedFolder/PostFactorsMultiply",
+            `${config.apiUrl}/LoadedFolder/PostFactorsMultiply`,
             JSON.stringify(dataToSend),
             {
               headers: {
@@ -729,8 +722,13 @@ const CreateProfile: React.FC = () => {
                   <Button
                     variant="contained"
                     onClick={() => {
-                      if (foldersToCompare != null && foldersToCompare.length < 2)
-                        toast.info("Pre porovnanie je potrebné mať vytvorené aspoň dva profily.");
+                      if (
+                        foldersToCompare != null &&
+                        foldersToCompare.length < 2
+                      )
+                        toast.info(
+                          "Pre porovnanie je potrebné mať vytvorené aspoň dva profily."
+                        );
                       else setDialogOpen(true);
                     }}
                     role="button"

@@ -25,6 +25,7 @@ import {
 import moment from "moment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
+import config from "../../../config";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -103,7 +104,7 @@ const Home: React.FC = () => {
           }
           await axios
             .post(
-              "https://localhost:44300/Project/CreateNewProject",
+              `${config.apiUrl}/Project/CreateNewProject`,
               JSON.stringify(loadedFiles),
               {
                 headers: customHeaders,
@@ -164,7 +165,7 @@ const Home: React.FC = () => {
     if (token != undefined || token != null) {
       axios
         .get<ProjectDTO[]>(
-          "https://localhost:44300/Project/GetProjectsByToken/" + token,
+          `${config.apiUrl}/Project/GetProjectsByToken/` + token,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -186,14 +187,11 @@ const Home: React.FC = () => {
 
     if (token != undefined || token != null) {
       try {
-        await axios.delete(
-          "https://localhost:44300/Project/DeleteProject/" + id,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axios.delete(`${config.apiUrl}/Project/DeleteProject/` + id, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         getProjectsByUser();
       } catch (error) {
         console.error("Chyba pri získavaní dát zo servera:", error);

@@ -5,6 +5,7 @@ import { ProjectDTO } from "../../../shared/types";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import config from "../../../../config";
 
 interface SaveToDbButtonProps {
   loadedProjectId: string | undefined;
@@ -38,7 +39,7 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
       try {
         await axios
           .post(
-            "https://localhost:44300/Project/SaveNewProject",
+            `${config.apiUrl}/Project/SaveNewProject`,
             JSON.stringify(projectData),
             {
               headers: customHeaders,
