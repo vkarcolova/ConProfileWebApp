@@ -22,7 +22,7 @@ options.AddPolicy(name: AllowSpecificOrigins,
                       });
 });
 
-// Konfigurácia JWT
+// Konfigurï¿½cia JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -54,13 +54,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-    if (dbContext.Database.GetPendingMigrations().Any())
+try { 
+    using (var scope = app.Services.CreateScope())
     {
-        dbContext.Database.Migrate();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+        if (dbContext.Database.GetPendingMigrations().Any())
+        {
+            dbContext.Database.Migrate();
+        }
     }
+} catch {
+    Console.WriteLine("No migrations.");
 }
 
 app.UseAuthentication();
