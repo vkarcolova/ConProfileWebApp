@@ -3,6 +3,7 @@ version: "3.8"
 services:
   backend:
     environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:3000
       - ASPNETCORE_HTTP_PORTS=3000
       - ASPNETCORE_HTTPS_PORTS=3001
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=ConcentrationDataDb;Username=postgres;Password=postgres
@@ -15,7 +16,11 @@ services:
     depends_on:
       - db
     command:
-      ["sh", "-c", "dotnet ef database update && dotnet WebApiServer.dll"]
+      [
+        "sh",
+        "-c",
+        "dotnet ef database update && dotnet WebApiServer.dll --urls http://0.0.0.0:3000",
+      ]
 
   frontend:
     build:

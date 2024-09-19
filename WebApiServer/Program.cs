@@ -11,18 +11,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDataProcessService, DataProcessService>();
 builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
+//DEV
+//const string frontendURL = "http://localhost:5000";
+//const string backendURL = "http://localhost:3000";
+
+//PROD
+const string frontendURL = "http://frontend:5000";
+const string backendURL = "http://backend:3000";
+
+
 builder.Services.AddCors(options =>
 {
 options.AddPolicy(name: AllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:5000")
+                          policy.WithOrigins(frontendURL)
                             .AllowAnyHeader()
                             .AllowAnyMethod(); ;
                       });
 });
 
-// Konfigurácia JWT
+// Konfigurï¿½cia JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -32,8 +41,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "http://localhost:3000/",
-                    ValidAudience = "http://localhost:5000/",
+                    ValidIssuer = backendURL,
+                    ValidAudience = frontendURL,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v"))
                 };
             })
@@ -53,14 +62,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-    if (dbContext.Database.GetPendingMigrations().Any())
+try { 
+    using (var scope = app.Services.CreateScope())
     {
-        dbContext.Database.Migrate();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+        if (dbContext.Database.GetPendingMigrations().Any())
+        {
+            dbContext.Database.Migrate();
+        }
     }
+} catch {
+    Console.WriteLine("No migrations.");
 }
 
 app.UseAuthentication();
