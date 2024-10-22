@@ -50,10 +50,10 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
         disablePortal
         freeSolo
         size="small"
-        sx={{ width: 70 }}
+        sx={{ width: 70, backgroundColor: "white" , borderRadius: 1}}
         id={`autocomplete-${id}`}
         options={factors.map((option) => option.factor)}
-        value={selectedValue}
+        value={selectedValue?.toString()}
         onChange={handleAutocompleteChange}
         renderInput={(params) => <TextField {...params} label="Faktor" />}
       />

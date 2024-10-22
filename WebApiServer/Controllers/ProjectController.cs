@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -218,7 +219,7 @@ namespace WebAPI.Controllers
 
             if (project == null)
             {
-                return NotFound(); // vráti HTTP 404, ak žiadne položky nie sú nájdené
+                return NotFound(); 
             }
             else
             {
@@ -295,6 +296,25 @@ namespace WebAPI.Controllers
                 return result;
             }
         }
+
+        //GET PROJECT FROM ID z db
+        [HttpPut("UpdateProjectName/{id}")]
+        public async Task<ActionResult<ProjectDTO>> UpdateProjectNameAsync(int idproject, string projectname)
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            Project project = _context.Projects.Where(project => project.IdProject == idproject && project.Token == userToken).FirstOrDefault();
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            project.ProjectName = projectname;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
 
         [HttpDelete("DeleteProject/{id}")]
         public ActionResult<ProjectDTO> DeleteItemById(int id)

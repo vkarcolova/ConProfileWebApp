@@ -19,16 +19,12 @@ import {
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { TreeView } from "@mui/x-tree-view/TreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
   Box,
   Button,
   CircularProgress,
   IconButton,
-  Input,
   Skeleton,
   Tooltip,
   tooltipClasses,
@@ -37,7 +33,7 @@ import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRou
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import { CustomTreeItem } from "./Components/CustomTreeNode";
+import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import {
   basicButtonStyle,
   darkButtonStyle,
@@ -49,6 +45,7 @@ import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
 import { StatsBox } from "./Components/StatsBox";
 import config from "../../../config";
+import { ProjectNameInput } from "./Components/ProjectNameInput";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -64,15 +61,16 @@ const CreateProfile: React.FC = () => {
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
   );
-
   const [isLoading, setIsLoading] = useState(true);
 
-  const foldersExpand: string[] = [];
+  //const foldersExpand: string[] = [];
 
   // const currentFolderData = useMemo(() => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
+
+  useEffect(() => {console.log(selectedFolder); }, [selectedFolder]);
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -342,16 +340,22 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleNodeSelect = (
-    event: React.ChangeEvent<unknown>,
-    nodeId: string
+    event: React.SyntheticEvent, 
+    nodeId: string | null
   ) => {
+    const target = event.target as HTMLElement;
+    const isExpandIconClick = target.closest('.MuiTreeItem-iconContainer');
+
+    if (!isExpandIconClick) {
     projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
-      if (value.id.toString() == nodeId && selectedFolder != index) {
+      console.log(value.id.toString(), nodeId, selectedFolder, index);
+      if (value.foldername.toString() == nodeId && selectedFolder != index) {
+        console.log('vybrany folder: ', index);
         setIsLoading(true);
         setSelectedFolder(index);
         setIsLoading(false);
       }
-    });
+    });}
   };
 
   const handleSelectFolder = () => {
@@ -497,7 +501,6 @@ const CreateProfile: React.FC = () => {
     });
 
     if (localFactors.length > 25) localFactors = localFactors.slice(-25);
-
     const objString = JSON.stringify(localFactors);
     localStorage.setItem("factorsdata", objString);
   };
@@ -562,6 +565,37 @@ const CreateProfile: React.FC = () => {
       multipliedintensities: multipliedIntensitiesColumns,
     };
     return result;
+  };
+
+  const handleProjectNameSave = (projectName: string) => {
+    console.log("here");
+
+    const newProject: ProjectDTO = {
+      ...projectData!,
+      projectname: projectName,
+    };
+    setProjectData(newProject);
+
+    if (loadedProjectId) {
+      const dataToSend = {
+        idproject: parseInt(loadedProjectId),
+        projectname: projectName,
+      };
+      axios
+        .post(`${config.apiUrl}/Project/UpdateProjectName`, dataToSend, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        .then(() => {
+          toast.success("Názov projektu bol zmenený.");
+        })
+        .catch(() => {
+          toast.error("Nepodarilo sa zmeniť názov projektu.");
+        });
+    } else {
+      saveSessionData(newProject);
+    }
   };
 
   if (!projectFolders) {
@@ -631,60 +665,47 @@ const CreateProfile: React.FC = () => {
                 <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
                   Názov projektu
                 </h4>
-                <Input
-                  placeholder="Názov projektu"
-                  value={projectData?.projectname}
-                  sx={{
-                    "--Input-minHeight": "41px",
-                  }}
-                  id="inputName"
-                  onChange={() => {
-                    setProjectData({
-                      ...projectData!,
-                      projectname: (
-                        document.getElementById("inputName") as HTMLInputElement
-                      ).value,
-                    });
-                  }}
+                <ProjectNameInput
+                  savedProjectName={projectData?.projectname}
+                  saveToProjectData={handleProjectNameSave}
                 />
               </Box>
               <Box className="treeView">
                 <p>Načítané priečinky</p>
                 <Box className="treeViewWindow">
-                  {projectData != undefined ? (
-                    <TreeView
+                  {projectData != undefined && (
+                    <>
+                      <SimpleTreeView
                       aria-label="controlled"
-                      defaultCollapseIcon={<ExpandMoreIcon />}
-                      defaultExpandIcon={<ChevronRightIcon />}
-                      defaultExpanded={foldersExpand}
-                      onNodeSelect={handleNodeSelect}
-                    >
+                      onItemClick={handleNodeSelect}
+                      >
                       {projectData?.folders.map((folder, index) => (
-                        <CustomTreeItem
-                          nodeId={folder.id.toString()}
-                          label={folder.foldername}
-                          key={folder.foldername}
-                          style={{ fontFamily: "Poppins", fontSize: "larger" }}
-                          sx={{
-                            "& .MuiTypography-root.MuiTreeItem-label": {
-                              fontWeight:
-                                index === selectedFolder ? "bold" : "normal",
-                              color: "black",
-                            },
-                          }}
+                        <TreeItem 
+                        itemId={folder.foldername}
+                        label={folder.foldername}
+                        key={folder.foldername}
+                        style={{
+                          fontFamily: "Poppins",
+                          fontWeight: "larger",
+                        }}
+                        sx={{
+                          "& .MuiTreeItem-label": {
+                            fontWeight:
+                              index === selectedFolder ? "bold" : "normal",
+                          },
+                        }}
                         >
-                          {folder.data.map((file) => (
-                            <TreeItem
-                              nodeId={file.filename}
-                              label={file.filename}
-                              key={file.filename}
-                            />
-                          ))}
-                        </CustomTreeItem>
-                      ))}
-                    </TreeView>
-                  ) : (
-                    ""
+                           {folder.data.map((file) => (
+                             <TreeItem
+                               itemId={file.filename}
+                               label={file.filename}
+                               key={file.filename}
+                               sx={{paddingBottom: "0px"}}
+                             />
+                           ))}
+                          </TreeItem> ))}
+                      </SimpleTreeView>
+                    </>
                   )}
                 </Box>
 

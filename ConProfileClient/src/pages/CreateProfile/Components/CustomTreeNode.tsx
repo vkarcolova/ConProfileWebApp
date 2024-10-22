@@ -8,13 +8,12 @@ import {
   TreeItemContentProps,
 } from "@mui/x-tree-view/TreeItem";
 
-interface CustomContentProps {
-  selected: boolean;
+// Typ pre kombinované props
+interface CustomContentProps extends TreeItemContentProps {
+  selected?: boolean;
 }
 
-const CustomContent: React.FC<TreeItemContentProps, CustomContentProps> = (
-  props
-) => {
+const CustomContent: React.FC<CustomContentProps> = (props) => {
   const {
     classes,
     className,
