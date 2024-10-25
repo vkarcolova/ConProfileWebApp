@@ -2,51 +2,45 @@
 
 NAJSKOR
 
-- [x] Porovnat s datami v appke
-- [ ] Najst iny graf
-- [x] Sticky profil
-- [ ] Excitacie stlpik inou farbou
-- [x] Excitacie iba na 1 desatinne miesto mozno pridat aj do prvych tabuliek
-- [ ] Krajsie scrollbary
-- [x] Pri vytvarani profilu sa stale pridavaju tie data do grafu
-- [ ] Nejaky loading na vytvaranie projektu
-- [ ] Toasty/upozornenia
-- [ ] Zmena nazvu projektu, ako samostatna funkcia
+- [x] Dat klientApi funkcie do osobitneho suboru
 
----
+OPTIMALIZACIA
 
-- [x] Nahranie noveho priecinku
-- [x] Multiply
-- [x] Factory - tie basic do db, ostatne ako local storage
-- [x] Prerobit podla desktopu nahravanie tych suborov, ziskavanie spektra
-- [ ] Vymazanie nepotrebneho
+- Dat doprec graf nepomohlo, tabulky ano
 
-Savnutie:
+- [ ] Vyskusat dat do prec tabulky,
+- [ ] Zmenit graf
+- [ ] React Memo
+- [ ] Tabulky ine
+- [ ] Rozdelit projekt data
+- [ ] Zobrazit mozno nasobenu tabulku iba ako basic \* ulozeny faktor?
 
-- [x] Nahratie a savnutie projektu do db
-- [x] Pri ulozenom projekte sa hned vsetko nahrava
-- [x] Export do pc
+#
+
+OSTATNE
+
+- [ ] Zmazanie priecinku
+- [ ] Upravit StatsBox
 - [ ] Import projektu z desktop appky
+- [ ] Prerobit hlavnu stranku
+- [ ] Excitacie stlpik inou farbou
+- [ ] Krajsie scrollbary
+- [ ] Prerobit autocomplete
 
-Vytvorenie pomocnych filov na funkcie
+<!-- Vytvorenie pomocnych filov na funkcie
 
 - [ ] Tokenu
 - [ ] Nahravanie projektov
-- [ ] Rozdelenie do komponentov
+- [ ] Rozdelenie do komponentov -->
 
 ##
 
-- [x] Upravit porovnanie, ked unchecknem
-- [x] Zmenit vsetko na MUI aj divka
+HADAM RAZ
 
--
-- [x] Nefunguje nejako selectnuty priecinok v trieview jeho iny styl?
-- [x] Sticky tabulky
-
-- [ ] Lepsie nacitanie uz treba este nejake koleicko alebo co ')
-- [ ] Zmenit nazvy tabuliek, lebo neviem čo sa deje
+- [ ] Zmenit nazvy tabuliek (?)
 - [ ] Premazanie starych dat v tabulkach napr pri vytvoreni noveho profilu
 - [ ] Nejaké tutoriály, vysvetlenia, upozornenia
+- [ ] Vymazanie nepotrebneho
 
 # NOTES
 

@@ -26,6 +26,7 @@ import moment from "moment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import config from "../../../config";
+import { clientApi } from "../../shared/apis";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -89,34 +90,13 @@ const Home: React.FC = () => {
           }
         }
         try {
-          const token = localStorage.getItem("token");
-          let customHeaders:
-            | { "Content-Type": string }
-            | { "Content-Type": string; Authorization: string } = {
-            "Content-Type": "application/json",
-          };
-
-          if (token != undefined || token != null) {
-            customHeaders = {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            };
-          }
-          await axios
-            .post(
-              `${config.apiUrl}/Project/CreateNewProject`,
-              JSON.stringify(loadedFiles),
-              {
-                headers: customHeaders,
-              }
-            )
-            .then((response) => {
-              const token = response.data.token;
-              localStorage.setItem("token", token);
-              const objString = JSON.stringify(response.data.project);
-              sessionStorage.setItem("loadeddata", objString);
-              navigate("/create-profile/");
-            });
+          await clientApi.createProject(loadedFiles).then((response) => {
+            const token = response.data.token;
+            localStorage.setItem("token", token);
+            const objString = JSON.stringify(response.data.project);
+            sessionStorage.setItem("loadeddata", objString);
+            navigate("/create-profile/");
+          });
         } catch (error) {
           console.error("Chyba pri načítavaní dát:", error);
         }
@@ -163,15 +143,8 @@ const Home: React.FC = () => {
   const getProjectsByUser = async () => {
     const token = localStorage.getItem("token");
     if (token != undefined || token != null) {
-      axios
-        .get<ProjectDTO[]>(
-          `${config.apiUrl}/Project/GetProjectsByToken/` + token,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
+      await clientApi
+        .getProjectByUser(token)
         .then((response) => {
           setProjecsData(response.data);
         })

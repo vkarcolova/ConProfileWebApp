@@ -29,8 +29,6 @@ const DataTable: React.FC<DataTableProps> = ({
     return `${100 / totalColumns}%`;
   };
 
- 
-
   return (
     <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
       <Table stickyHeader size="small" aria-label="sticky table">

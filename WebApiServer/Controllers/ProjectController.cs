@@ -298,8 +298,8 @@ namespace WebAPI.Controllers
         }
 
         //GET PROJECT FROM ID z db
-        [HttpPut("UpdateProjectName/{id}")]
-        public async Task<ActionResult<ProjectDTO>> UpdateProjectNameAsync(int idproject, string projectname)
+        [HttpPut("UpdateProjectName")]
+        public async Task<ActionResult<ProjectDTO>> UpdateProjectNameAsync([FromQuery] int idproject, [FromQuery] string projectname)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 

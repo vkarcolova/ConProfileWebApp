@@ -1,8 +1,6 @@
 import { ToastContainer, Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import React, { useState, useEffect, ChangeEvent, useRef } from "react";
-import axios from "axios";
 import {
   FolderDTO,
   FileContent,
@@ -19,7 +17,6 @@ import {
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
-import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
   Box,
   Button,
@@ -33,7 +30,6 @@ import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRou
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import {
   basicButtonStyle,
   darkButtonStyle,
@@ -44,8 +40,9 @@ import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
 import { StatsBox } from "./Components/StatsBox";
-import config from "../../../config";
 import { ProjectNameInput } from "./Components/ProjectNameInput";
+import { clientApi } from "../../shared/apis";
+import { FolderTreeView } from "./Components/FolderTreeView";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -69,8 +66,9 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
-
-  useEffect(() => {console.log(selectedFolder); }, [selectedFolder]);
+  // useEffect(() => {
+  //   console.log(selectedFolder);
+  // }, [selectedFolder]);
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -105,32 +103,19 @@ const CreateProfile: React.FC = () => {
       }
     };
     loadData();
-  }, [loadedProjectId, navigate]);
+  }, [loadedProjectId, navigate]); //load project from id or session
 
   useEffect(() => {
-    const factorsdata = localStorage.getItem("factorsdata");
-    let localFactors: Factors[] = factorsdata ? JSON.parse(factorsdata) : [];
-
-    axios
-      .get<Factors[]>(`${config.apiUrl}/Factor`)
-      .then((response) => {
-        localFactors = localFactors.filter(
-          (localFactor) =>
-            !response.data.some(
-              (responseFactor) =>
-                responseFactor.spectrum === localFactor.spectrum &&
-                responseFactor.factor === localFactor.factor
-            )
-        );
-        localFactors = [...response.data, ...localFactors];
-      })
-      .catch((error) => {
-        console.error("Chyba pri získavaní dát zo servera:", error);
-      })
-      .finally(() => {
-        setFactors(localFactors);
-      });
-  }, []);
+    const fetchFactors = async () => {
+      const factorsdata = localStorage.getItem("factorsdata");
+      const localFactors: Factors[] = factorsdata
+        ? JSON.parse(factorsdata)
+        : [];
+      const updatedFactors = await clientApi.getFactors(localFactors);
+      setFactors(updatedFactors);
+    };
+    fetchFactors();
+  }, []); //load factors
 
   const fillFolder = async (folderData: FolderDTO): Promise<AllFolderData> => {
     const dynamicChartData: ChartData[] = [];
@@ -219,22 +204,14 @@ const CreateProfile: React.FC = () => {
 
   const loadProjectFromId = async () => {
     if (loadedProjectId) {
-      const idProject = parseInt(loadedProjectId, 10);
-
       try {
-        const response = await axios.get<ProjectDTO>(
-          `${config.apiUrl}/Project/GetProject/${idProject}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setProjectData(response.data);
+        const project = await clientApi.loadProjectFromId(loadedProjectId);
+        setProjectData(project);
         const comparefolders: FolderDTO[] = [];
+        console.log(project.folders.length);
 
         const folders: AllFolderData[] = [];
-        response.data.folders.forEach(async (folder) => {
+        project.folders.forEach(async (folder) => {
           const filledFolder = await fillFolder(folder);
           if (filledFolder.multiplied) {
             comparefolders.push(folder);
@@ -298,20 +275,9 @@ const CreateProfile: React.FC = () => {
       }
       if (loadedProjectId) {
         try {
-          await axios
-            .post(
-              `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
-              JSON.stringify(loadedFiles),
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            )
-            .then(() => {
-              loadProjectFromId();
-            });
+          await clientApi.postFolderToProject(loadedFiles).then(() => {
+            loadProjectFromId();
+          });
         } catch (error) {
           console.error("Chyba pri načítavaní dát:", error);
         }
@@ -319,8 +285,8 @@ const CreateProfile: React.FC = () => {
         const project: ProjectDTO = { ...projectData! };
 
         try {
-          await axios
-            .post(`${config.apiUrl}/LoadedFolder/PostNewFolder`, loadedFiles)
+          await clientApi
+            .postFolderToSession(loadedFiles)
             .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
               const filledFolder = await fillFolder(objString);
@@ -340,22 +306,23 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleNodeSelect = (
-    event: React.SyntheticEvent, 
+    event: React.SyntheticEvent,
     nodeId: string | null
   ) => {
     const target = event.target as HTMLElement;
-    const isExpandIconClick = target.closest('.MuiTreeItem-iconContainer');
+    const isExpandIconClick = target.closest(".MuiTreeItem-iconContainer");
 
     if (!isExpandIconClick) {
-    projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
-      console.log(value.id.toString(), nodeId, selectedFolder, index);
-      if (value.foldername.toString() == nodeId && selectedFolder != index) {
-        console.log('vybrany folder: ', index);
-        setIsLoading(true);
-        setSelectedFolder(index);
-        setIsLoading(false);
-      }
-    });}
+      projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
+        console.log(value.id.toString(), nodeId, selectedFolder, index);
+        if (value.foldername.toString() == nodeId && selectedFolder != index) {
+          console.log("vybrany folder: ", index);
+          setIsLoading(true);
+          setSelectedFolder(index);
+          setIsLoading(false);
+        }
+      });
+    }
   };
 
   const handleSelectFolder = () => {
@@ -414,19 +381,9 @@ const CreateProfile: React.FC = () => {
       };
 
       try {
-        await axios
-          .post(
-            `${config.apiUrl}/LoadedFolder/PostFactorsMultiply`,
-            JSON.stringify(dataToSend),
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          )
-          .then(() => {
-            loadProjectFromId();
-          });
+        await clientApi.postFolderMultiply(dataToSend).then(() => {
+          loadProjectFromId();
+        });
       } catch (error) {
         console.error("Chyba pri načítavaní dát:", error);
       }
@@ -567,7 +524,7 @@ const CreateProfile: React.FC = () => {
     return result;
   };
 
-  const handleProjectNameSave = (projectName: string) => {
+  const handleProjectNameSave = async (projectName: string) => {
     console.log("here");
 
     const newProject: ProjectDTO = {
@@ -577,22 +534,7 @@ const CreateProfile: React.FC = () => {
     setProjectData(newProject);
 
     if (loadedProjectId) {
-      const dataToSend = {
-        idproject: parseInt(loadedProjectId),
-        projectname: projectName,
-      };
-      axios
-        .post(`${config.apiUrl}/Project/UpdateProjectName`, dataToSend, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-        .then(() => {
-          toast.success("Názov projektu bol zmenený.");
-        })
-        .catch(() => {
-          toast.error("Nepodarilo sa zmeniť názov projektu.");
-        });
+      await clientApi.updateProjectName(loadedProjectId, projectName);
     } else {
       saveSessionData(newProject);
     }
@@ -671,44 +613,11 @@ const CreateProfile: React.FC = () => {
                 />
               </Box>
               <Box className="treeView">
-                <p>Načítané priečinky</p>
-                <Box className="treeViewWindow">
-                  {projectData != undefined && (
-                    <>
-                      <SimpleTreeView
-                      aria-label="controlled"
-                      onItemClick={handleNodeSelect}
-                      >
-                      {projectData?.folders.map((folder, index) => (
-                        <TreeItem 
-                        itemId={folder.foldername}
-                        label={folder.foldername}
-                        key={folder.foldername}
-                        style={{
-                          fontFamily: "Poppins",
-                          fontWeight: "larger",
-                        }}
-                        sx={{
-                          "& .MuiTreeItem-label": {
-                            fontWeight:
-                              index === selectedFolder ? "bold" : "normal",
-                          },
-                        }}
-                        >
-                           {folder.data.map((file) => (
-                             <TreeItem
-                               itemId={file.filename}
-                               label={file.filename}
-                               key={file.filename}
-                               sx={{paddingBottom: "0px"}}
-                             />
-                           ))}
-                          </TreeItem> ))}
-                      </SimpleTreeView>
-                    </>
-                  )}
-                </Box>
-
+                <FolderTreeView
+                  projectData={projectData}
+                  selectedFolder={selectedFolder}
+                  handleNodeSelect={handleNodeSelect}
+                />
                 <Box className="buttonContainer">
                   <Tooltip
                     slotProps={{

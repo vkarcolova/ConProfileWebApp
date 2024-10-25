@@ -23,22 +23,21 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
       (factor) => factor.spectrum === columnSpectrum
     );
     setFactors(filtered);
-    const defaultFactor = allFactors.find(
-      (factor) => factor.spectrum === columnSpectrum
-    );
-    setSelectedValue(defaultFactor ? defaultFactor.factor : null);
+
+    const defaultFactor = filtered.length > 0 ? filtered[0].factor : null;
+    setSelectedValue(defaultFactor);
   }, [columnSpectrum, allFactors]);
 
   const parseNumber = (input: string | number | null): number | null => {
     if (input === null || typeof input === "number") {
       return input;
     }
-    const parsedNumber = parseInt(input, 10);
+    const parsedNumber = parseFloat(input);
     return isNaN(parsedNumber) ? null : parsedNumber;
   };
 
   const handleAutocompleteChange = (
-    event: React.ChangeEvent<object>,
+    event: React.SyntheticEvent,
     newValue: string | number | null
   ) => {
     setSelectedValue(parseNumber(newValue));
@@ -50,10 +49,11 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
         disablePortal
         freeSolo
         size="small"
-        sx={{ width: 70, backgroundColor: "white" , borderRadius: 1}}
+        sx={{ width: 70, backgroundColor: "white", borderRadius: 1 }}
         id={`autocomplete-${id}`}
         options={factors.map((option) => option.factor)}
-        value={selectedValue?.toString()}
+        value={selectedValue !== null ? selectedValue.toString() : ""}
+        getOptionLabel={(option) => option.toString()}
         onChange={handleAutocompleteChange}
         renderInput={(params) => <TextField {...params} label="Faktor" />}
       />
