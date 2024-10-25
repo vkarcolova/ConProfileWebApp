@@ -8,8 +8,9 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import { Profile } from "../../../shared/types";
+import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
 interface ProfileDataTableProps {
   profile: Profile;
@@ -17,44 +18,131 @@ interface ProfileDataTableProps {
 export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
   profile,
 }) => {
+  interface RowData {
+    excitation: number;
+    intensity: number;
+  }
+
+  useEffect(() => {
+    const rowCount = profile.profile.length;
+    const rows: RowData[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const row: RowData = {
+        excitation: profile.excitation[i],
+        intensity: profile.profile[i],
+      };
+      rows.push(row);
+    }
+
+    setTableRows(rows);
+  }, []);
+
+  const VirtuosoTableComponents: TableComponents<RowData> = {
+    Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
+      <TableContainer component={Paper} {...props} ref={ref} />
+    )),
+    Table: (props) => (
+      <Table
+        {...props}
+        sx={{ borderCollapse: "separate", tableLayout: "fixed" }}
+      />
+    ),
+    TableHead: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableHead {...props} ref={ref} />
+    )),
+    TableRow,
+    TableBody: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableBody {...props} ref={ref} />
+    )),
+  };
+
+  function fixedHeaderContent() {
+    return (
+      <>
+        <TableRow>
+          <TableCell
+            style={{
+              textAlign: "center",
+              border: "none",
+              padding: "0",
+            }}
+          >
+            <Box
+              sx={{
+                fontWeight: "bold",
+                backgroundColor: "#bfc3d9",
+                margin: 0,
+                paddingBlock: "5px",
+              }}
+              className="TableRowName"
+            >
+              Excitácie
+            </Box>
+          </TableCell>
+          <TableCell
+            style={{
+              textAlign: "center",
+              border: "none",
+              padding: "0",
+            }}
+          >
+            <Box
+              sx={{
+                fontWeight: "bold",
+                backgroundColor: "#bfc3d9",
+                margin: 0,
+                paddingBlock: "5px",
+              }}
+              className="TableRowName"
+            >
+              Intenzity
+            </Box>
+          </TableCell>
+        </TableRow>
+      </>
+    );
+  }
+
+  function rowContent(_index: number, rows: RowData) {
+    return (
+      <>
+        <React.Fragment>
+          <TableCell
+            style={{
+              padding: "1px",
+              textAlign: "center",
+              borderBlock: "none",
+            }}
+          >
+            {rows.excitation.toFixed(5)}
+          </TableCell>
+          <TableCell
+            style={{
+              padding: "1px",
+              textAlign: "center",
+              borderBlock: "none",
+            }}
+          >
+            {rows.intensity.toFixed(5)}
+          </TableCell>
+        </React.Fragment>
+      </>
+    );
+  }
+
+  const [tableRows, setTableRows] = React.useState<RowData[]>([]);
+
   return (
     <Box className="table-container">
       <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
-        <Table
-          stickyHeader
-          size="small"
-          aria-label="a dense table"
-          sx={{ maxHeight: "45vh" }}
-        >
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <Box sx={{ fontWeight: "bold" }} className="TableRowName">
-                  Excitácie
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ fontWeight: "bold" }} className="TableRowName">
-                  Intenzity
-                </Box>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell>
-                {profile.excitation.map((value: number, i) => (
-                  <Box key={i}> {value.toFixed(1)}</Box>
-                ))}
-              </TableCell>
-              <TableCell>
-                {profile.profile.map((value: number, i) => (
-                  <Box key={i}>{value ? value.toFixed(5) : ""}</Box>
-                ))}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <TableVirtuoso
+          style={{ height: "45vh", width: "100%" }}
+          data={tableRows}
+          components={VirtuosoTableComponents}
+          itemContent={rowContent}
+          fixedHeaderContent={fixedHeaderContent}
+        />
       </TableContainer>
     </Box>
   );

@@ -3,29 +3,16 @@
 NAJSKOR
 
 - [x] Dat klientApi funkcie do osobitneho suboru
-
-OPTIMALIZACIA
-
-- Dat doprec graf nepomohlo, tabulky ano
-
-- [ ] Vyskusat dat do prec tabulky,
-- [ ] Zmenit graf
-- [ ] React Memo
-- [ ] Tabulky ine
-- [ ] Rozdelit projekt data
-- [ ] Zobrazit mozno nasobenu tabulku iba ako basic \* ulozeny faktor?
-
-#
-
-OSTATNE
-
+- [x] Rychlejsie preklikavanie
+- [ ] Prerobit treeview aj mazanie pridat
+- [ ] Prerobit autocomplete
+- [ ] Toast ku zmazaniu projektu
 - [ ] Zmazanie priecinku
 - [ ] Upravit StatsBox
 - [ ] Import projektu z desktop appky
 - [ ] Prerobit hlavnu stranku
 - [ ] Excitacie stlpik inou farbou
 - [ ] Krajsie scrollbary
-- [ ] Prerobit autocomplete
 
 <!-- Vytvorenie pomocnych filov na funkcie
 

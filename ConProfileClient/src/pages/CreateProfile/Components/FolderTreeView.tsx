@@ -11,6 +11,7 @@ interface FolderTreeViewProps {
   selectedFolder: number;
   handleNodeSelect: (event: React.SyntheticEvent, value: string) => void;
 }
+
 export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
   projectData,
   selectedFolder,
@@ -21,12 +22,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
       <p>Načítané priečinky</p>
       <Box className="treeViewWindow">
         {projectData && (
-          <TreeView
-            aria-label="controlled"
-            onNodeSelect={handleNodeSelect}
-            defaultCollapseIcon={<ExpandMoreIcon />}
-            defaultExpandIcon={<ChevronRightIcon />}
-          >
+          <TreeView aria-label="controlled" onNodeSelect={handleNodeSelect}>
             {projectData.folders.map((folder, index) => (
               <TreeItem
                 nodeId={folder.foldername}
@@ -37,6 +33,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                   "& .MuiTreeItem-label": {
                     fontWeight: index === selectedFolder ? "bold" : "normal",
                   },
+                  fontWeight: index === selectedFolder ? "bold" : "normal",
                 }}
               >
                 {folder.data.map((file) => (

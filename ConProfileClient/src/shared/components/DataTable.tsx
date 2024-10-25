@@ -12,6 +12,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
 interface DataTableProps {
   tableData: TableData;
@@ -24,78 +25,171 @@ const DataTable: React.FC<DataTableProps> = ({
   showAutocomplete,
   factors,
 }) => {
+  interface RowData {
+    excitation: number;
+    intensities: (number | undefined)[];
+    multipliedIntensities?: (number | undefined)[];
+  }
+
+  useEffect(() => {
+    const rowCount = tableData.intensities[0].intensities.length;
+    const rows: RowData[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const row: RowData = {
+        excitation: tableData.excitation[i],
+        intensities: tableData.intensities.map((col) => col.intensities[i]),
+        multipliedIntensities: tableData.multipliedintensities
+          ? tableData.multipliedintensities.map((col) => col.intensities[i])
+          : undefined,
+      };
+      rows.push(row);
+    }
+
+    setIntensityRows(rows);
+  }, []);
+
+  const [intensityRows, setIntensityRows] = React.useState<RowData[]>([]);
   const calculateColumnWidth = () => {
     const totalColumns = tableData.intensities.length;
     return `${100 / totalColumns}%`;
   };
+  const VirtuosoTableComponents: TableComponents<RowData> = {
+    Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
+      <TableContainer component={Paper} {...props} ref={ref} />
+    )),
+    Table: (props) => (
+      <Table
+        {...props}
+        sx={{ borderCollapse: "separate", tableLayout: "fixed" }}
+      />
+    ),
+    TableHead: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableHead {...props} ref={ref} />
+    )),
+    TableRow,
+    TableBody: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableBody {...props} ref={ref} />
+    )),
+  };
 
-  return (
-    <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
-      <Table stickyHeader size="small" aria-label="sticky table">
-        <TableHead>
+  function fixedHeaderContent() {
+    return (
+      <>
+        <TableRow>
+          {tableData.intensities.map((tableData) => (
+            <React.Fragment key={tableData.name}>
+              <TableCell
+                style={{
+                  width: calculateColumnWidth(),
+                  textAlign: "center",
+                  border: "none",
+                  padding: "0",
+                }}
+              >
+                <Box
+                  sx={{
+                    fontWeight: "bold",
+                    backgroundColor: "#bfc3d9",
+                    margin: 0,
+                    paddingBlock: "5px",
+                  }}
+                  className="TableRowName"
+                >
+                  {tableData.name}
+                </Box>
+              </TableCell>
+            </React.Fragment>
+          ))}
+        </TableRow>
+        {showAutocomplete && (
           <TableRow>
             {tableData.intensities.map((tableData) => (
               <React.Fragment key={tableData.name}>
-                <TableCell style={{ width: calculateColumnWidth() }}>
-                  <Box sx={{ fontWeight: "bold" }} className="TableRowName">
-                    {tableData.name}
+                <TableCell
+                  style={{
+                    width: calculateColumnWidth(),
+                    textAlign: "center",
+                    border: "none",
+                    padding: "0",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box
+                    className="autocomplete"
+                    sx={{
+                      fontWeight: "bold",
+                      backgroundColor: "#bfc3d9",
+                      margin: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      paddingBlock: "5px",
+                    }}
+                  >
+                    <CustomInputAutocomplete
+                      columnSpectrum={tableData.spectrum!}
+                      allFactors={factors!}
+                      id={tableData.spectrum!}
+                    />
                   </Box>
                 </TableCell>
               </React.Fragment>
             ))}
           </TableRow>
-          {showAutocomplete ? (
-            <TableRow>
-              {tableData.intensities.map((tableData) => (
-                <React.Fragment key={tableData.name}>
-                  <TableCell style={{ width: calculateColumnWidth() }}>
-                    <Box className="autocomplete">
-                      <CustomInputAutocomplete
-                        columnSpectrum={tableData.spectrum!}
-                        allFactors={factors!}
-                        id={tableData.spectrum!}
-                      />
-                    </Box>
-                  </TableCell>
-                </React.Fragment>
-              ))}
-            </TableRow>
-          ) : null}
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            {showAutocomplete ? (
-              <>
-                {tableData.intensities.map((tableData) => (
-                  <React.Fragment key={tableData.name}>
-                    <TableCell style={{ width: calculateColumnWidth() }}>
-                      {tableData.intensities.map((intensity, i) => (
-                        <Box key={i}>
-                          {intensity != undefined ? intensity.toFixed(5) : "-"}
-                        </Box>
-                      ))}
-                    </TableCell>
-                  </React.Fragment>
-                ))}
-              </>
-            ) : (
-              <>
-                {tableData.multipliedintensities!.map((tableData) => (
-                  <React.Fragment key={tableData.name}>
-                    <TableCell style={{ width: calculateColumnWidth() }}>
-                      {tableData.intensities.map((intensity, i) => (
-                        <Box key={i}>
-                          {intensity != undefined ? intensity.toFixed(5) : "-"}
-                        </Box>
-                      ))}
-                    </TableCell>
-                  </React.Fragment>
-                ))}
-              </>
-            )}
-          </TableRow>
-        </TableBody>
-      </Table>
+        )}
+      </>
+    );
+  }
+
+  function rowContent(_index: number, row: RowData) {
+    return (
+      <>
+        {showAutocomplete ? (
+          <React.Fragment>
+            {row.intensities.map((data) => (
+              <TableCell
+                style={{
+                  width: calculateColumnWidth(),
+                  padding: "1px",
+                  textAlign: "center",
+                  borderBlock: "none",
+                }}
+              >
+                {data?.toFixed(5)}
+              </TableCell>
+            ))}
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            {row.multipliedIntensities!.map((data) => (
+              <TableCell
+                style={{
+                  width: calculateColumnWidth(),
+                  padding: "1px",
+                  textAlign: "center",
+                  borderBlock: "none",
+                }}
+              >
+                {data?.toFixed(5)}
+              </TableCell>
+            ))}
+          </React.Fragment>
+        )}
+      </>
+    );
+  }
+  return (
+    <TableContainer
+      component={Paper}
+      sx={{ maxHeight: "45vh", textAlign: "center" }}
+    >
+      <TableVirtuoso
+        style={{ height: "45vh", width: "100%" }}
+        data={intensityRows}
+        components={VirtuosoTableComponents}
+        itemContent={rowContent}
+        fixedHeaderContent={fixedHeaderContent}
+      />
     </TableContainer>
   );
 };
