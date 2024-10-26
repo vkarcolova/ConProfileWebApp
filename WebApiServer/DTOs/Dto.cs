@@ -51,4 +51,10 @@
 
     }
 
+    public class FolderDeleteRequestDTO
+    {
+        public int PROJECTID { get; set; }
+        public List<int> FOLDERIDS { get; set; } = new List<int>();
+    }
+
 }

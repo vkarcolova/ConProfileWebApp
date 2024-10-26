@@ -123,7 +123,7 @@ namespace WebAPI.Controllers
                         Token = token
                     };
                     _context.Projects.Add(project);
-                    int nextFileId = (_context.LoadedFiles.OrderByDescending(obj => obj.IdFile).FirstOrDefault()?.IdFile ?? 0) + 1; 
+                    int nextFileId = (_context.LoadedFiles.OrderByDescending(obj => obj.IdFile).FirstOrDefault()?.IdFile ?? 0) + 1;
                     int nextFolderId = (_context.LoadedFolders.OrderByDescending(obj => obj.IdFolder).FirstOrDefault()?.IdFolder ?? 0) + 1;
                     int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
                     int nextProfileId = (_context.ProfileDatas.OrderByDescending(p => p.IdProfileData).FirstOrDefault()?.IdProfileData ?? 0) + 1;
@@ -219,7 +219,7 @@ namespace WebAPI.Controllers
 
             if (project == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
             else
             {
@@ -240,17 +240,17 @@ namespace WebAPI.Controllers
                         List<LoadedData> loadedData = _context.LoadedDatas.Where(data => data.IdFile == file.IdFile).ToList();
 
                         List<IntensityDTO> intensity = loadedData.Select(obj => new IntensityDTO
-                        { INTENSITY = obj.Intensity, EXCITATION = obj.Excitation, MULTIPLIEDINTENSITY =obj.MultipliedIntensity, IDDATA = obj.IdData })
+                        { INTENSITY = obj.Intensity, EXCITATION = obj.Excitation, MULTIPLIEDINTENSITY = obj.MultipliedIntensity, IDDATA = obj.IdData })
                             .ToList();
 
                         if (excitacionLoaded)
                             excitation = loadedData.Select(data => data.Excitation).ToList();
                         else
                         {
-                            foreach(var loaded in loadedData)
+                            foreach (var loaded in loadedData)
                             {
                                 double excitacionLoadedData = loaded.Excitation;
-                                if(!excitation.Contains(excitacionLoadedData)) excitation.Add(excitacionLoadedData);
+                                if (!excitation.Contains(excitacionLoadedData)) excitation.Add(excitacionLoadedData);
                             }
                         }
 
@@ -345,5 +345,52 @@ namespace WebAPI.Controllers
             return Ok();
         }
 
+        [HttpDelete("DeleteFoldersFromProject")]
+        public async Task<IActionResult> DeleteFoldersFromProject([FromBody] FolderDeleteRequestDTO request)
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var projectId = request.PROJECTID;
+            var folderIds = request.FOLDERIDS;
+            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == projectId && project.Token == userToken);
+            if (projectToRemove == null) return NotFound();
+            List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == projectId).ToList();
+            List<string> failedToDelete = new List<string>();
+            foreach (int folderId in folderIds)
+            {
+                LoadedFolder folderToDelete = folders.Where(value => value.IdFolder == folderId).FirstOrDefault();
+                if (folderToDelete == null)
+                {
+                    failedToDelete.Add(folderToDelete.FolderName);
+                }
+                else
+                {
+                    try
+                    {
+                        List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folderId).ToList();
+                        foreach (LoadedFile file in files)
+                        {
+                            List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
+
+                            _context.LoadedDatas.RemoveRange(data);
+                        }
+                        _context.LoadedFiles.RemoveRange(files);
+
+                        List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folderId).ToList();
+                        _context.ProfileDatas.RemoveRange(profile);
+                        _context.LoadedFolders.Remove(folderToDelete);
+                    }
+                    catch
+                    {
+                        failedToDelete.Add(folderToDelete.FolderName);
+                    }
+                }
+            }
+
+            _context.SaveChanges();
+            if(failedToDelete.Count == 0) return Ok();
+            else 
+                return NotFound("Nasledujúce priečinky sa nepodarilo vymazať: " + string.Join(", ", failedToDelete));
+
+        }
     }
 }

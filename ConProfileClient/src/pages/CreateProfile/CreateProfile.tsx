@@ -44,6 +44,7 @@ import { ProjectNameInput } from "./Components/ProjectNameInput";
 import { clientApi } from "../../shared/apis";
 import { FolderTreeView } from "./Components/FolderTreeView";
 import DeleteIcon from "@mui/icons-material/Delete";
+import axios from "axios";
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
@@ -315,9 +316,7 @@ const CreateProfile: React.FC = () => {
 
     if (!isExpandIconClick) {
       projectData?.folders.forEach(async (value: FolderDTO, index: number) => {
-        console.log(value.id.toString(), nodeId, selectedFolder, index);
         if (value.foldername.toString() == nodeId && selectedFolder != index) {
-          console.log("vybrany folder: ", index);
           setIsLoading(true);
           setSelectedFolder(index);
           setIsLoading(false);
@@ -541,6 +540,55 @@ const CreateProfile: React.FC = () => {
     }
   };
 
+  const deleteProjectFolders = async (selectedFolders: string[]) => {
+    if (loadedProjectId) {
+      console.log("deleteProjectFolders");
+      const folderIdToDelete: number[] = [];
+      projectFolders.forEach((value) => {
+        if (selectedFolders.includes(value.folderData.foldername))
+          folderIdToDelete.push(value.folderData.id);
+      });
+
+      await clientApi
+        .deleteFoldersFromProject(folderIdToDelete, loadedProjectId)
+        .then(async () => {
+          await loadProjectFromId();
+          toast.success("Priečinky boli vymazané.");
+        })
+        .catch((error: unknown) => {
+          if (axios.isAxiosError(error)) {
+            toast.error(error.message);
+          }
+        });
+    } else {
+      const project: ProjectDTO = { ...projectData! };
+      let folders: AllFolderData[] = projectFolders;
+      const foldersToDelete: FolderDTO[] = [];
+      project.folders.forEach((value) => {
+        if (selectedFolders.includes(value.foldername)) {
+          foldersToDelete.push(value);
+        }
+      });
+      project.folders = project.folders.filter((value) =>
+        selectedFolders.includes(value.foldername)
+      );
+
+      folders = folders.filter((value) =>
+        selectedFolders.includes(value.folderData.foldername)
+      );
+      project.folders = project.folders.filter(
+        (value) =>
+          value.foldername !== project.folders[selectedFolder].foldername
+      );
+
+      setProjectData(project);
+      setProjectFolders(folders);
+      saveSessionData(project);
+    }
+    setDeletingFolders(false);
+    setSelectedFolder(0);
+  };
+
   if (!projectFolders) {
     return <Box>Error loading data.</Box>;
   }
@@ -619,6 +667,8 @@ const CreateProfile: React.FC = () => {
                   selectedFolder={selectedFolder}
                   handleNodeSelect={handleNodeSelect}
                   deleting={deletingFolders}
+                  setDeleting={setDeletingFolders}
+                  deleteProjectFolders={deleteProjectFolders}
                 />
                 <Box className="buttonContainer">
                   <Box
@@ -649,7 +699,7 @@ const CreateProfile: React.FC = () => {
                             height: "35px",
                           }}
                           onClick={() => {
-                            setDeletingFolders(true);
+                            setDeletingFolders(!deletingFolders);
                           }}
                         >
                           <DeleteIcon />

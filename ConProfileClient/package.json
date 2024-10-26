@@ -18,7 +18,7 @@
     "@mui/material": "^5.15.14",
     "@mui/x-charts": "^6.18.4",
     "@mui/x-data-grid": "^7.21.0",
-    "@mui/x-tree-view": "^6.17.0",
+    "@mui/x-tree-view": "^7.22.0",
     "@rpldy/upload-button": "^1.6.1",
     "@rpldy/upload-drop-zone": "^1.6.1",
     "@rpldy/uploader": "^1.6.1",

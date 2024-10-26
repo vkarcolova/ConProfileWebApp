@@ -4,11 +4,11 @@ NAJSKOR
 
 - [x] Dat klientApi funkcie do osobitneho suboru
 - [x] Rychlejsie preklikavanie
-- [ ] Prerobit treeview aj mazanie pridat
-- [ ] Prerobit autocomplete
-- [ ] Toast ku zmazaniu projektu
-- [ ] Zmazanie priecinku
+- [x] Prerobit treeview aj mazanie pridat
+- [x] Toast ku zmazaniu projektu
+- [x] Zmazanie priecinku
 - [ ] Upravit StatsBox
+- [ ] Prerobit autocomplete
 - [ ] Import projektu z desktop appky
 - [ ] Prerobit hlavnu stranku
 - [ ] Excitacie stlpik inou farbou

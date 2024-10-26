@@ -67,19 +67,6 @@ export const clientApi = {
     return response.data;
   },
 
-  postFolderToProject: async (loadedFiles: FileContent[]) => {
-    return axios.post(
-      `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
-      JSON.stringify(loadedFiles),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-  },
-
   createProject: async (loadedFiles: FileContent[]) => {
     const token = localStorage.getItem("token");
 
@@ -104,6 +91,19 @@ export const clientApi = {
     );
   },
 
+  postFolderToProject: async (loadedFiles: FileContent[]) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
+      JSON.stringify(loadedFiles),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+  },
+
   postFolderToSession: async (loadedFiles: FileContent[]) => {
     return axios.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolder`,
@@ -119,6 +119,38 @@ export const clientApi = {
         headers: {
           "Content-Type": "application/json",
         },
+      }
+    );
+  },
+
+  deleteProject: async (projectId: number) => {
+    const token = localStorage.getItem("token");
+    if (!token || token == null) return;
+    return await axios.delete(
+      `${config.apiUrl}/Project/DeleteProject/` + projectId,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+  },
+
+  deleteFoldersFromProject: async (folderIds: number[], projectId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token || token == null) return;
+    const request = {
+      projectid: parseInt(projectId),
+      folderids: folderIds,
+    };
+
+    console.log(JSON.stringify(request));
+    return await axios.delete(
+      `${config.apiUrl}/Project/DeleteFoldersFromProject`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: request,
       }
     );
   },

@@ -1,13 +1,5 @@
-import axios from "axios";
 import "../../index.css";
-import React, {
-  AriaAttributes,
-  ChangeEvent,
-  DOMAttributes,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { FolderDTO, FileContent, ProjectDTO } from "../../shared/types";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
@@ -25,8 +17,8 @@ import {
 import moment from "moment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
-import config from "../../../config";
 import { clientApi } from "../../shared/apis";
+import { toast } from "react-toastify";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -156,19 +148,12 @@ const Home: React.FC = () => {
   };
 
   const handleDeleteProject = async (id: number) => {
-    const token = localStorage.getItem("token");
-
-    if (token != undefined || token != null) {
-      try {
-        await axios.delete(`${config.apiUrl}/Project/DeleteProject/` + id, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        getProjectsByUser();
-      } catch (error) {
-        console.error("Chyba pri získavaní dát zo servera:", error);
-      }
+    try {
+      await clientApi.deleteProject(id);
+      getProjectsByUser();
+      toast.success("Projekt bol úspešne vymazaný.");
+    } catch (error) {
+      toast.error("Chyba pri získavaní dát zo servera:" + error);
     }
   };
 

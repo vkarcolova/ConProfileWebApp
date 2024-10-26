@@ -50,7 +50,6 @@ circle {
   font-family: "Poppins", sans-serif;
   width: 70%;
   font-size: 15px;
-  overflow-y: auto;
   min-height: 250px;
   max-height: 250px;
   border-style: solid;
