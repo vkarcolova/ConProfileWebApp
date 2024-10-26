@@ -48,7 +48,8 @@ circle {
 
 .treeViewWindow {
   font-family: "Poppins", sans-serif;
-  width: 50%;
+  width: 70%;
+  font-size: 15px;
   overflow-y: auto;
   min-height: 250px;
   max-height: 250px;
@@ -62,6 +63,8 @@ circle {
   display: flex;
   justify-content: center;
   padding-top: 20px;
+  justify-content: space-between;
+  width: 60%;
 }
 
 .buttonContainerRows {

@@ -34,7 +34,7 @@ import {
   basicButtonStyle,
   darkButtonStyle,
   emptyTable,
-  lightButtonStyle,
+  greenButtonStyle,
 } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
@@ -43,7 +43,7 @@ import { StatsBox } from "./Components/StatsBox";
 import { ProjectNameInput } from "./Components/ProjectNameInput";
 import { clientApi } from "../../shared/apis";
 import { FolderTreeView } from "./Components/FolderTreeView";
-
+import DeleteIcon from "@mui/icons-material/Delete";
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
@@ -59,6 +59,7 @@ const CreateProfile: React.FC = () => {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingFolders, setDeletingFolders] = useState(false);
 
   //const foldersExpand: string[] = [];
 
@@ -617,29 +618,70 @@ const CreateProfile: React.FC = () => {
                   projectData={projectData}
                   selectedFolder={selectedFolder}
                   handleNodeSelect={handleNodeSelect}
+                  deleting={deletingFolders}
                 />
                 <Box className="buttonContainer">
-                  <Tooltip
-                    slotProps={{
-                      popper: {
-                        sx: {
-                          [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                            {
-                              marginTop: "0px",
-                              fontSize: "12px",
-                            },
-                        },
-                      },
+                  <Box
+                    sx={{
+                      marginTop: "5px",
+                      justifyContent: "space-between",
+                      width: "35%",
                     }}
-                    title="Pridať ďalší priečinok"
                   >
-                    <IconButton
-                      sx={{ width: "45px", height: "45px" }}
-                      onClick={handleSelectFolder}
+                    {projectData?.folders.length != 0 && (
+                      <Tooltip
+                        slotProps={{
+                          popper: {
+                            sx: {
+                              [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                                {
+                                  marginTop: "0px",
+                                  fontSize: "12px",
+                                },
+                            },
+                          },
+                        }}
+                        title="Vymazať priečinky z projektu"
+                      >
+                        <IconButton
+                          sx={{
+                            width: "35px",
+                            height: "35px",
+                          }}
+                          onClick={() => {
+                            setDeletingFolders(true);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+
+                    <Tooltip
+                      slotProps={{
+                        popper: {
+                          sx: {
+                            [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                              {
+                                marginTop: "0px",
+                                fontSize: "12px",
+                              },
+                          },
+                        },
+                      }}
+                      title="Pridať ďalší priečinok"
                     >
-                      <AddCircleOutlineRoundedIcon />
-                    </IconButton>
-                  </Tooltip>
+                      <IconButton
+                        sx={{
+                          width: "35px",
+                          height: "35px",
+                        }}
+                        onClick={handleSelectFolder}
+                      >
+                        <AddCircleOutlineRoundedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                   <input
                     ref={inputRef}
                     type="file"
@@ -664,10 +706,14 @@ const CreateProfile: React.FC = () => {
                     role="button"
                     sx={{
                       ...basicButtonStyle,
-                      ...lightButtonStyle,
+                      ...greenButtonStyle,
                       marginBottom: "10px",
-                      fontWeight: "normal",
-                      marginTop: "5px",
+                      fontWeight: "bold",
+                      marginTop: { md: "10px", lg: "5px" },
+                      width: "60%",
+                      fontSize: { md: "1.2rem", lg: "1.2rem" },
+                      padding: { md: "1px" },
+                      height: { md: "50px" },
                     }}
                   >
                     Porovnať

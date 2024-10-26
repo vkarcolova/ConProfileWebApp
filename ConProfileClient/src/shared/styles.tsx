@@ -19,6 +19,17 @@ export const lightButtonStyle = {
   },
 };
 
+export const greenButtonStyle = {
+  backgroundColor: "#bbdfdf",
+  border: "1px solid #c4c7c7",
+  color: "#0f1111",
+
+  "&:hover": {
+    backgroundColor: "#d4dfdf",
+    borderColor: "#b0b0b0",
+  },
+};
+
 export const darkButtonStyle = {
   backgroundColor: "#222122;",
   border: "1px solid #222122",
