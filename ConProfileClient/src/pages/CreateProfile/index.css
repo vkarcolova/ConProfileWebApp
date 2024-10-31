@@ -85,13 +85,6 @@ circle {
   background-color: #f7f6f6;
 }
 
-.statsContainer {
-  min-height: 100%;
-  min-width: 55%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 .stats {
   max-width: 90%;

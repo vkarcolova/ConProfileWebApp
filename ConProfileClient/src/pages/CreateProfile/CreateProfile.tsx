@@ -21,6 +21,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Grid,
   IconButton,
   Skeleton,
   Tooltip,
@@ -594,7 +595,7 @@ const CreateProfile: React.FC = () => {
   }
 
   return (
-    <Box>
+    <>
       {isLoading ? (
         <Box
           sx={{
@@ -617,14 +618,8 @@ const CreateProfile: React.FC = () => {
         </Box>
       ) : (
         <>
-          <Box
+          <Grid container spacing={0}
             className="center-items main"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "flex-start",
-              justifyContent: "flex-start",
-            }}
           >
             <Comparison
               open={dialogOpen}
@@ -634,15 +629,13 @@ const CreateProfile: React.FC = () => {
               folders={foldersToCompare}
             />
 
-            <Box
-              className="first center-items"
+            <Grid
+              xs={2}
+              className="center-items"
               style={{
-                display: "flex",
                 flexDirection: "column",
-                width: "25%",
                 minHeight: "100vh",
-                paddingRight: "20px",
-                paddingLeft: "20px",
+
               }}
             >
               <Box
@@ -779,15 +772,15 @@ const CreateProfile: React.FC = () => {
                   />
                 </Box>
               </Box>
-            </Box>
-            <Box
-              className="second"
+            </Grid>
+            <Grid
               style={{
                 display: "flex",
                 flexDirection: "column",
                 minHeight: "100vh",
                 width: "75%",
               }}
+              xs={10}
             >
               <Box
                 className="upperContainer"
@@ -922,12 +915,12 @@ const CreateProfile: React.FC = () => {
                   />
                 </Box>
               </Box>
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </>
       )}
       <ToastContainer transition={Bounce} />
-    </Box>
+    </>
   );
 };
 export default CreateProfile;

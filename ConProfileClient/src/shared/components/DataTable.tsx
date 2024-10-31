@@ -82,6 +82,8 @@ const DataTable: React.FC<DataTableProps> = ({
               <TableCell
                 style={{
                   width: calculateColumnWidth(),
+                  backgroundColor: "#bfc3d9",
+
                   textAlign: "center",
                   border: "none",
                   padding: "0",
