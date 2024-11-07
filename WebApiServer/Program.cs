@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 options.AddPolicy(name: AllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:5000")
+                          policy.WithOrigins("http://conprofile.fri.uniza.sk:5000/")
                             .AllowAnyHeader()
                             .AllowAnyMethod(); ;
                       });
@@ -32,8 +32,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "http://localhost:3000/",
-                    ValidAudience = "http://localhost:5000/",
+                    ValidIssuer = "http://conprofile.fri.uniza.sk:3000/",
+                    ValidAudience = "http://conprofile.fri.uniza.sk:5000/",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v"))
                 };
             })
