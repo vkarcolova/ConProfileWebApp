@@ -28,14 +28,12 @@ namespace WebApiServer.Services
         //public Task<IActionResult> SaveNewFolder(FileContent[] loadedFiles, string token, int idProject);
         public Task<IActionResult> AddProjectData(FileContent[] loadedFiles);
         public FolderDTO ProcessUploadedFolder(FileContent[] loadedFiles);
-
-        public string GenerateJwtToken();
     }
 
     public class DataProcessService : IDataProcessService
     {
         private readonly ApiDbContext _context;
-
+        
         public DataProcessService(ApiDbContext context)
         {
             _context = context;
@@ -395,19 +393,6 @@ namespace WebApiServer.Services
 
         }
 
-        public string GenerateJwtToken()
-        {
-            // Generovanie JWT tokenu bez identifikátora užívate¾a
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v");
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Expires = DateTime.UtcNow.AddDays(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
 
     }
 }

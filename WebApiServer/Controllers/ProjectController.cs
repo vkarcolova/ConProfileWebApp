@@ -24,12 +24,15 @@ namespace WebAPI.Controllers
     {
         private readonly ApiDbContext _context;
         private readonly IDataProcessService _loadedDataService;
+        private readonly IUserService _userService;
 
         public ProjectController(ApiDbContext context,
-            IDataProcessService service)
+            IDataProcessService service,
+            IUserService userService)
         {
             _context = context;
             _loadedDataService = service;
+            _userService = userService;
         }
 
 
@@ -81,7 +84,7 @@ namespace WebAPI.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 string token = "";
                 if (userToken == "")
-                    token = _loadedDataService.GenerateJwtToken();
+                    token = _userService.GenerateJwtToken();
                 else token = userToken;
 
                 List<FolderDTO> folders = new List<FolderDTO>();
@@ -112,7 +115,7 @@ namespace WebAPI.Controllers
                 {
                     var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                     string token;
-                    if (userToken == "") token = _loadedDataService.GenerateJwtToken();
+                    if (userToken == "") token = _userService.GenerateJwtToken();
                     else token = userToken;
 
                     Project project = new Project

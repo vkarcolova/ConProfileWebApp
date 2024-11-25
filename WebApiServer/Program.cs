@@ -9,6 +9,8 @@ var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDataProcessService, DataProcessService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
 builder.Services.AddCors(options =>
@@ -16,7 +18,7 @@ builder.Services.AddCors(options =>
 options.AddPolicy(name: AllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:5000/")
+                          policy.WithOrigins("http://localhost:5000")
                             .AllowAnyHeader()
                             .AllowAnyMethod(); ;
                       });
@@ -32,8 +34,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "http://localhost:3000/",
-                    ValidAudience = "http://localhost:5000/",
+                    ValidIssuer = "http://localhost:3000",
+                    ValidAudience = "http://localhost:5000",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v"))
                 };
             })

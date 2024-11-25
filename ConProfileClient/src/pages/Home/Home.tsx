@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import "./index.css";
 import {
   Box,
+  Button,
   IconButton,
   Paper,
   Table,
@@ -13,12 +14,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from "@mui/material";
 import moment from "moment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
+import { AppBarLogin } from "../../shared/components/AppBarLogin";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -87,7 +90,7 @@ const Home: React.FC = () => {
             localStorage.setItem("token", token);
             const objString = JSON.stringify(response.data.project);
             sessionStorage.setItem("loadeddata", objString);
-            navigate("/create-profile/");
+            navigate("/uprava-profilu/");
           });
         } catch (error) {
           console.error("Chyba pri načítavaní dát:", error);
@@ -122,7 +125,7 @@ const Home: React.FC = () => {
           const json = JSON.parse(event.target?.result as string);
           sessionStorage.setItem("loadeddata", JSON.stringify(json));
 
-          navigate("/create-profile/");
+          navigate("/uprava-profilu/");
         } catch (error) {
           console.error("Chyba pri čítaní alebo spracovaní súboru:", error);
         }
@@ -158,20 +161,92 @@ const Home: React.FC = () => {
   };
 
   const handleEditProject = async (id: number) => {
-    navigate("/create-profile/" + id);
+    navigate("/uprava-profilu/" + id);
   };
 
   return (
     <Box style={{ width: "100%", height: "100%" }}>
       <Box className="home-page">
+        <AppBarLogin
+          content={
+            <>
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                component="a"
+                href="/auth/prihlasenie/"
+                target="_blank"
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  width: "80px",
+                  borderRadius: 100,
+                  color: "rgba(59, 49, 119, 0.87)",
+                  padding: "10px",
+                  marginRight: "10px",
+
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#E2E3E8",
+                  },
+                }}
+              >
+                <Typography fontWeight={600}>Prihlásenie</Typography>
+              </Button>
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                component="a"
+                href="/auth/registracia/"
+                target="_blank"
+                sx={{
+                  backgroundColor: "#BFC2D2",
+                  width: "80px",
+                  borderRadius: 100,
+                  color: "rgba(59, 49, 119, 0.87)",
+                  padding: "10px",
+
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#E2E3E8",
+                  },
+                }}
+              >
+                <Typography fontWeight={600}>Registrácia</Typography>
+              </Button>
+            </>
+          }
+        />
         <Box
           className="emptydiv"
           sx={{ minWidth: "100%", minHeight: "30%" }}
         ></Box>
         <Box className="button-container">
-          <button onClick={handleSelectFolder} className="large-button">
-            Načítať dáta
-          </button>
+          <Button
+            onClick={handleSelectFolder}
+            sx={{
+              backgroundColor: "rgba(59, 49, 119, 0.87)",
+              width: "25%",
+              borderRadius: "30px",
+              color: "white",
+              padding: "10px",
+              marginBlock: "5px",
+              height: "70px",
+
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#625b92",
+                color: "white",
+              },
+              boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+            }}
+          >
+            <Typography fontWeight={500} fontSize={"20px"}>
+              Načítať dáta
+            </Typography>
+          </Button>
+
           <input
             ref={inputRefFolders}
             type="file"
@@ -181,9 +256,30 @@ const Home: React.FC = () => {
             multiple
             style={{ display: "none" }}
           />
-          <button className="large-button" onClick={handleSelectProject}>
-            Načítať projekt
-          </button>
+
+          <Button
+            onClick={handleSelectProject}
+            sx={{
+              backgroundColor: "rgba(59, 49, 119, 0.87)",
+              width: "25%",
+              borderRadius: "30px",
+              color: "white",
+              padding: "10px",
+              marginBlock: "5px",
+              textTransform: "none",
+              height: "70px",
+
+              "&:hover": {
+                backgroundColor: "#625b92",
+                color: "white",
+              },
+              boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+            }}
+          >
+            <Typography fontWeight={500} fontSize={"20px"}>
+              Načítať projekt
+            </Typography>
+          </Button>
           <input
             type="file"
             id="fileInput"
@@ -194,14 +290,23 @@ const Home: React.FC = () => {
           />
         </Box>
 
-        <Box className="welcomebar">
+        <Box
+          className="welcomebar"
+          sx={{ position: "absolute", bottom: "100px" }}
+        >
           <Box className="small-text">
             Informacie o webe, projekty ktoré tu už boli vytvorené...
           </Box>
           {projectsData && projectsData?.length > 0 && (
             <Box className="tab-container">
-              {" "}
-              <TableContainer sx={{ maxHeight: "200px" }} component={Paper}>
+              <TableContainer
+                sx={{
+                  maxHeight: "200px",
+                  bottom: 10,
+                  boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+                }}
+                component={Paper}
+              >
                 <Table
                   sx={{ width: "100%" }}
                   stickyHeader
@@ -210,20 +315,38 @@ const Home: React.FC = () => {
                 >
                   <TableHead>
                     <TableRow>
-                      <TableCell
-                        style={{ fontFamily: "Poppins", fontWeight: "bolder" }}
-                      >
-                        Názov projektu
+                      <TableCell>
+                        <Typography
+                          style={{
+                            fontFamily: "Poppins",
+                            fontWeight: "550",
+                            marginLeft: "10px",
+                          }}
+                        >
+                          Názov projektu
+                        </Typography>
                       </TableCell>
-                      <TableCell
-                        style={{ fontFamily: "Poppins", fontWeight: "bolder" }}
-                      >
-                        Dátum vytvorenia
+                      <TableCell>
+                        <Typography
+                          style={{
+                            fontFamily: "Poppins",
+                            fontWeight: "550",
+                            marginLeft: "10px",
+                          }}
+                        >
+                          Dátum vytvorenia
+                        </Typography>
                       </TableCell>
-                      <TableCell
-                        style={{ fontFamily: "Poppins", fontWeight: "bolder" }}
-                      >
-                        Načítané priečinky
+                      <TableCell>
+                        <Typography
+                          style={{
+                            fontFamily: "Poppins",
+                            fontWeight: "550",
+                            marginLeft: "10px",
+                          }}
+                        >
+                          Načítané priečinky
+                        </Typography>
                       </TableCell>
                       <TableCell> </TableCell>
                     </TableRow>
@@ -233,24 +356,33 @@ const Home: React.FC = () => {
                       return (
                         <TableRow>
                           <React.Fragment key={project.idproject}>
-                            <TableCell> {project.projectname} </TableCell>
-                            <TableCell>
-                              {moment(project.created).format(
-                                "DD.MM.YYYY HH:mm:ss"
-                              )}
+                            <TableCell sx={{ borderBlock: "none" }}>
+                              <Typography>{project.projectname}</Typography>
                             </TableCell>
-                            <TableCell>
-                              {project.folders
-                                .slice(0, 3)
-                                .map((folder: FolderDTO, index: number) => (
-                                  <React.Fragment key={index}>
-                                    {folder.foldername}
-                                    {index < 2 && " "}
-                                  </React.Fragment>
-                                ))}
-                              {project.folders.length > 3 && "..."}
+                            <TableCell sx={{ borderBlock: "none" }}>
+                              <Typography>
+                                {moment(project.created).format(
+                                  "DD.MM.YYYY HH:mm:ss"
+                                )}
+                              </Typography>
                             </TableCell>
-                            <TableCell align="center">
+                            <TableCell sx={{ borderBlock: "none" }}>
+                              <Typography>
+                                {project.folders
+                                  .slice(0, 3)
+                                  .map((folder: FolderDTO, index: number) => (
+                                    <React.Fragment key={index}>
+                                      {folder.foldername}
+                                      {index < 2 && " "}
+                                    </React.Fragment>
+                                  ))}
+                                {project.folders.length > 3 && "..."}
+                              </Typography>
+                            </TableCell>
+                            <TableCell
+                              align="center"
+                              sx={{ borderBlock: "none" }}
+                            >
                               <IconButton
                                 aria-label="delete"
                                 onClick={() =>

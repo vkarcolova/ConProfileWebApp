@@ -618,7 +618,10 @@ const CreateProfile: React.FC = () => {
         </Box>
       ) : (
         <>
-          <Grid container spacing={0}
+          <Grid
+            container
+            spacing={1}
+            sx={{ justifyContent: "center" }}
             className="center-items main"
           >
             <Comparison
@@ -630,12 +633,12 @@ const CreateProfile: React.FC = () => {
             />
 
             <Grid
+              item
               xs={2}
               className="center-items"
               style={{
                 flexDirection: "column",
                 minHeight: "100vh",
-
               }}
             >
               <Box
@@ -774,6 +777,7 @@ const CreateProfile: React.FC = () => {
               </Box>
             </Grid>
             <Grid
+              item
               style={{
                 display: "flex",
                 flexDirection: "column",
