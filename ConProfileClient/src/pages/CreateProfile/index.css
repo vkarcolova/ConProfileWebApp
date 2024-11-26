@@ -30,7 +30,7 @@ circle {
 
 .treeView {
   min-width: 100%;
-  min-height: 80vh;
+  min-height: 100vh;
   background-color: #f7f6f6;
   margin-left: 50px;
   margin-right: 50px;
@@ -84,7 +84,6 @@ circle {
   min-height: 45vh;
   background-color: #f7f6f6;
 }
-
 
 .stats {
   max-width: 90%;

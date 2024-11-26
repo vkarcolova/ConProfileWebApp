@@ -21,6 +21,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Divider,
   Grid,
   IconButton,
   Skeleton,
@@ -641,23 +642,27 @@ const CreateProfile: React.FC = () => {
                 minHeight: "100vh",
               }}
             >
-              <Box
-                style={{
-                  marginBottom: "10px",
-                  display: "flex",
-                  flexDirection: "row",
-                  fontWeight: "bold",
-                }}
-              >
-                <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
-                  Názov projektu
-                </h4>
-                <ProjectNameInput
-                  savedProjectName={projectData?.projectname}
-                  saveToProjectData={handleProjectNameSave}
-                />
-              </Box>
               <Box className="treeView">
+                <Box
+                  style={{
+                    marginTop: "30px",
+                    marginBottom: "10px",
+                    display: "flex",
+                    justifyContent: "center", // Horizontálne centrovanie
+                    alignItems: "center",
+                    flexDirection: "row",
+                    fontWeight: "bold",
+                    maxWidth: "90%",
+                  }}
+                >
+                  <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
+                    Názov projektu
+                  </h4>
+                  <ProjectNameInput
+                    savedProjectName={projectData?.projectname}
+                    saveToProjectData={handleProjectNameSave}
+                  />
+                </Box>
                 <FolderTreeView
                   projectData={projectData}
                   selectedFolder={selectedFolder}
@@ -765,7 +770,6 @@ const CreateProfile: React.FC = () => {
                     Porovnať
                   </Button>
                 </Box>
-
                 <Box className="buttonContainerRows">
                   <ExportMenu projectData={projectData} />
                   <SaveToDbButton
@@ -773,6 +777,12 @@ const CreateProfile: React.FC = () => {
                     projectData={projectData}
                     setLoading={setIsLoading}
                   />
+                </Box>
+                <Box
+                  sx={{ position: "absolute", bottom: "10px", width: "200px" }}
+                >
+                  <Divider />
+                  Profil
                 </Box>
               </Box>
             </Grid>

@@ -227,7 +227,7 @@ const Home: React.FC = () => {
             onClick={handleSelectFolder}
             sx={{
               backgroundColor: "rgba(59, 49, 119, 0.87)",
-              width: "25%",
+              width: "300px",
               borderRadius: "30px",
               color: "white",
               padding: "10px",
@@ -261,7 +261,7 @@ const Home: React.FC = () => {
             onClick={handleSelectProject}
             sx={{
               backgroundColor: "rgba(59, 49, 119, 0.87)",
-              width: "25%",
+              width: "300px",
               borderRadius: "30px",
               color: "white",
               padding: "10px",
@@ -298,7 +298,12 @@ const Home: React.FC = () => {
             Informacie o webe, projekty ktoré tu už boli vytvorené...
           </Box>
           {projectsData && projectsData?.length > 0 && (
-            <Box className="tab-container">
+            <Box
+              sx={{
+                width: "60%",
+                paddingTop: "20px",
+              }}
+            >
               <TableContainer
                 sx={{
                   maxHeight: "200px",
@@ -308,12 +313,12 @@ const Home: React.FC = () => {
                 component={Paper}
               >
                 <Table
-                  sx={{ width: "100%" }}
+                  sx={{ width: "100%", border: "none" }}
                   stickyHeader
                   size="small"
                   aria-label="a dense table"
                 >
-                  <TableHead>
+                  <TableHead sx={{ height: "40px" }}>
                     <TableRow>
                       <TableCell>
                         <Typography
@@ -351,7 +356,7 @@ const Home: React.FC = () => {
                       <TableCell> </TableCell>
                     </TableRow>
                   </TableHead>
-                  <TableBody>
+                  <TableBody sx={{ maxHeight: "200px", overflowY: "auto" }}>
                     {projectsData.map((project: ProjectDTO) => {
                       return (
                         <TableRow>
