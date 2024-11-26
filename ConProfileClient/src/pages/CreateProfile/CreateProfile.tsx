@@ -36,7 +36,6 @@ import {
   basicButtonStyle,
   darkButtonStyle,
   emptyTable,
-  greenButtonStyle,
 } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
@@ -47,6 +46,7 @@ import { clientApi } from "../../shared/apis";
 import { FolderTreeView } from "./Components/FolderTreeView";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
+import { NunuButton } from "../../shared/components/NunuButton";
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
@@ -642,9 +642,18 @@ const CreateProfile: React.FC = () => {
                 minHeight: "100vh",
               }}
             >
-              <Box className="treeView">
+              <Box
+                className="treeView"
+                sx={{
+                  backgroundColor: "#464462",
+                  color: "white",
+                  "& *": {
+                    color: "inherit",
+                  },
+                }}
+              >
                 <Box
-                  style={{
+                  sx={{
                     marginTop: "30px",
                     marginBottom: "10px",
                     display: "flex",
@@ -742,8 +751,8 @@ const CreateProfile: React.FC = () => {
                     multiple
                     style={{ display: "none" }}
                   />
-                  <Button
-                    variant="contained"
+
+                  <NunuButton
                     onClick={() => {
                       if (
                         foldersToCompare != null &&
@@ -754,21 +763,19 @@ const CreateProfile: React.FC = () => {
                         );
                       else setDialogOpen(true);
                     }}
-                    role="button"
+                    bgColour="f8f6ff"
+                    textColour="rgba(59, 49, 119, 0.87)"
+                    hoverTextColour="rgba(59, 49, 119, 0.87)"
+                    hoverBgColour="#E2E3E8"
+                    label="Porovnať"
                     sx={{
-                      ...basicButtonStyle,
-                      ...greenButtonStyle,
-                      marginBottom: "10px",
-                      fontWeight: "bold",
-                      marginTop: { md: "10px", lg: "5px" },
+                      backgroundColor: "#f8f6ff",
+                      marginTop: { md: "15px", lg: "15px" },
                       width: "60%",
-                      fontSize: { md: "1.2rem", lg: "1.2rem" },
-                      padding: { md: "1px" },
-                      height: { md: "50px" },
+                      height: { md: "45px", borderRadius: "20px" },
                     }}
-                  >
-                    Porovnať
-                  </Button>
+                    fontSize="14px"
+                  />
                 </Box>
                 <Box className="buttonContainerRows">
                   <ExportMenu projectData={projectData} />
@@ -813,6 +820,24 @@ const CreateProfile: React.FC = () => {
                 </Box>
                 <Box className="otherContainer" style={{ width: "45%" }}>
                   <Box className="buttonCreateProfil">
+                    <NunuButton
+                      onClick={multiplyButtonClick}
+                      bgColour="black"
+                      textColour="white"
+                      hoverTextColour="white"
+                      hoverBgColour="#1f1e2c"
+                      label="              Uložiť projekt do databázy
+"
+                      sx={{
+                        backgroundColor: "black",
+                        maxWidth: "150px",
+                        height: "50px",
+                        borderRadius: "10px",
+                        marginLeft: "30px",
+                      }}
+                      fontSize="12px"
+                    />
+
                     <Button
                       variant="contained"
                       onClick={multiplyButtonClick}
@@ -821,7 +846,6 @@ const CreateProfile: React.FC = () => {
                         ...basicButtonStyle,
                         ...darkButtonStyle,
                         marginLeft: "30px",
-                        maxWidth: "150px",
                       }}
                     >
                       Vytvoriť profil

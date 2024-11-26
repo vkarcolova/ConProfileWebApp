@@ -5,13 +5,13 @@ import {
   MenuItem,
   MenuProps,
   styled,
+  Typography,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import React from "react";
 import SsidChartIcon from "@mui/icons-material/SsidChart";
 import DatasetIcon from "@mui/icons-material/Dataset";
 import GetAppIcon from "@mui/icons-material/GetApp";
-import { basicButtonStyle, lightButtonStyle } from "../../../shared/styles";
 import { ProjectDTO } from "../../../shared/types";
 import { saveAs } from "file-saver";
 
@@ -80,21 +80,32 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ projectData }) => {
   return (
     <>
       <Button
+        onClick={handleClick}
         variant="contained"
         role="button"
         sx={{
-          ...basicButtonStyle,
-          ...lightButtonStyle,
+          backgroundColor: "white",
+          color: "rgba(59, 49, 119, 0.87)",
+          textTransform: "none",
+          "&:hover": {
+            backgroundColor: "#E2E3E8",
+            color: "rgba(59, 49, 119, 0.87)",
+          },
+          boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
           marginBottom: "10px",
+          width: "80%",
+          height: "35px",
+          borderRadius: "10px",
         }}
         aria-controls={open ? "demo-customized-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         disableElevation
-        onClick={handleClick}
         endIcon={<KeyboardArrowDownIcon />}
       >
-        Exportovať
+        <Typography fontSize={"15px"} fontWeight={550}>
+          Exportovať
+        </Typography>
       </Button>
       <StyledMenu
         id="demo-customized-menu"

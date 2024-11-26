@@ -243,7 +243,8 @@ namespace WebApiServer.Services
                         {
 
                             var local = dataForExcitacion[j][i].HasValue ? dataForExcitacion[j][i] : null;
-
+                            if (i == 363 && j == 5)
+                                ;
                             if (local.HasValue && local > maxIntensity)
                             {
                                 maxIntensity = local.Value;
@@ -253,7 +254,7 @@ namespace WebApiServer.Services
                         ProfileData profile = new ProfileData
                         {
                             IdProfileData = idProfile,
-                            Excitation = allData[0][i].Excitation,
+                            Excitation = multiplyDatas.EXCITATION[i],
                             IdFolder = multiplyDatas.IDFOLDER,
                             MaxIntensity = maxIntensity
                         };

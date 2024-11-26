@@ -318,7 +318,9 @@ const Home: React.FC = () => {
                   size="small"
                   aria-label="a dense table"
                 >
-                  <TableHead sx={{ height: "40px" }}>
+                  <TableHead
+                    sx={{ height: "40px", backgroundColor: "#bfc3d9" }}
+                  >
                     <TableRow>
                       <TableCell>
                         <Typography
