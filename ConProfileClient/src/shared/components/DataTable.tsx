@@ -11,6 +11,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from "@mui/material";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
@@ -157,7 +158,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   borderBlock: "none",
                 }}
               >
-                {data?.toFixed(5)}
+                <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>
               </TableCell>
             ))}
           </React.Fragment>
@@ -172,7 +173,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   borderBlock: "none",
                 }}
               >
-                {data?.toFixed(5)}
+                <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>
               </TableCell>
             ))}
           </React.Fragment>

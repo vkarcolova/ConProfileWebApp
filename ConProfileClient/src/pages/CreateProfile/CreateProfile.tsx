@@ -1,6 +1,7 @@
 import { ToastContainer, Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useState, useEffect, ChangeEvent, useRef } from "react";
+import Home from "@mui/icons-material/HomeRounded";
 import {
   FolderDTO,
   FileContent,
@@ -21,7 +22,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Divider,
   Grid,
   IconButton,
   Skeleton,
@@ -47,6 +47,7 @@ import { FolderTreeView } from "./Components/FolderTreeView";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
+import { ProfileMenu } from "./Components/ProfileMenu";
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
@@ -528,6 +529,7 @@ const CreateProfile: React.FC = () => {
 
   const handleProjectNameSave = async (projectName: string) => {
     console.log("here");
+    if (projectName === projectData?.projectname) return;
 
     const newProject: ProjectDTO = {
       ...projectData!,
@@ -645,7 +647,7 @@ const CreateProfile: React.FC = () => {
               <Box
                 className="treeView"
                 sx={{
-                  backgroundColor: "#464462",
+                  backgroundColor: "#515060",
                   color: "white",
                   "& *": {
                     color: "inherit",
@@ -654,7 +656,7 @@ const CreateProfile: React.FC = () => {
               >
                 <Box
                   sx={{
-                    marginTop: "30px",
+                    marginTop: "40px",
                     marginBottom: "10px",
                     display: "flex",
                     justifyContent: "center", // Horizontálne centrovanie
@@ -664,6 +666,23 @@ const CreateProfile: React.FC = () => {
                     maxWidth: "90%",
                   }}
                 >
+                  <IconButton
+                    sx={{
+                      width: "35px",
+                      height: "35px",
+                      color: "white",
+                      position: "absolute",
+                      top: 5,
+                      left: 5,
+                      opacity: "0.7",
+                    }}
+                    onClick={() => {
+                      navigate("/");
+                    }}
+                  >
+                    <Home sx={{ fontSize: "30px" }} />
+                  </IconButton>
+
                   <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
                     Názov projektu
                   </h4>
@@ -785,12 +804,7 @@ const CreateProfile: React.FC = () => {
                     setLoading={setIsLoading}
                   />
                 </Box>
-                <Box
-                  sx={{ position: "absolute", bottom: "10px", width: "200px" }}
-                >
-                  <Divider />
-                  Profil
-                </Box>
+                <ProfileMenu />
               </Box>
             </Grid>
             <Grid
@@ -803,156 +817,179 @@ const CreateProfile: React.FC = () => {
               }}
               xs={10}
             >
-              <Box
-                className="upperContainer"
-                style={{
-                  flexDirection: "row",
-                  display: "flex",
-                  marginTop: "10px",
+              <Grid
+                container
+                direction="column"
+                sx={{
+                  justifyContent: "center",
+                  alignItems: "stretch",
                 }}
               >
-                <Box className="table-container" style={{ width: "55%" }}>
-                  <DataTable
-                    tableData={projectFolders[selectedFolder].tableData!}
-                    showAutocomplete={true}
-                    factors={factors}
-                  />
-                </Box>
-                <Box className="otherContainer" style={{ width: "45%" }}>
-                  <Box className="buttonCreateProfil">
-                    <NunuButton
-                      onClick={multiplyButtonClick}
-                      bgColour="black"
-                      textColour="white"
-                      hoverTextColour="white"
-                      hoverBgColour="#1f1e2c"
-                      label="              Uložiť projekt do databázy
-"
-                      sx={{
-                        backgroundColor: "black",
-                        maxWidth: "150px",
-                        height: "50px",
-                        borderRadius: "10px",
-                        marginLeft: "30px",
-                      }}
-                      fontSize="12px"
-                    />
-
-                    <Button
-                      variant="contained"
-                      onClick={multiplyButtonClick}
-                      role="button"
-                      sx={{
-                        ...basicButtonStyle,
-                        ...darkButtonStyle,
-                        marginLeft: "30px",
-                      }}
-                    >
-                      Vytvoriť profil
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      onClick={multiplyButtonClick}
-                      role="button"
-                      sx={{
-                        ...basicButtonStyle,
-                        ...darkButtonStyle,
-                        marginLeft: "auto",
-                        marginRight: "30px",
-                        maxWidth: "150px",
-                      }}
-                    >
-                      Exportovať graf
-                    </Button>
-                  </Box>
-                  {projectFolders[selectedFolder].chartData ? (
-                    <Box
-                      style={{
-                        height: "83%",
-                        margin: "10px",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <ScatterChart
-                        series={projectFolders[selectedFolder].chartData.map(
-                          (data) => ({
-                            label: data.label,
-                            data: data.data.map((v, index) => ({
-                              x: projectFolders[selectedFolder].folderData
-                                .excitation[index],
-                              y: v,
-                              id: index,
-                            })),
-                          })
-                        )}
-                        yAxis={[{ min: 0 }]}
-                        xAxis={[{ min: 250 }]}
-                      />
-                    </Box>
-                  ) : (
-                    ""
-                  )}
-                </Box>
-              </Box>
-              <Box
-                className="bottomContainer"
-                style={{
-                  flexDirection: "row",
-                  display: "flex",
-                  marginTop: "10px",
-                }}
-              >
-                <Box className="table-container" style={{ width: "55%" }}>
-                  {isLoading ? (
-                    <Skeleton />
-                  ) : (
-                    <>
-                      {projectFolders[selectedFolder].multiplied &&
-                      projectData ? (
-                        <DataTable
-                          tableData={projectFolders[selectedFolder].tableData!}
-                          showAutocomplete={false}
-                        />
-                      ) : (
-                        <Box sx={emptyTable}></Box>
-                      )}
-                    </>
-                  )}
-                </Box>
-                <Box
-                  style={{
-                    width: "45%",
+                <Grid
+                  container
+                  sx={{
                     flexDirection: "row",
                     display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "50vh",
+                    height: "50vh",
+                  }}
+                >
+                  <Grid
+                    item
+                    sx={{
+                      width: "55%",
+                      height: "100%",
+                      paddingTop: "10px",
+                    }}
+                  >
+                    <DataTable
+                      tableData={projectFolders[selectedFolder].tableData!}
+                      showAutocomplete={true}
+                      factors={factors}
+                    />
+                  </Grid>
+                  <Box
+                    className="otherContainer"
+                    style={{ width: "45%", height: "100%", paddingTop: "10px" }}
+                  >
+                    <Box className="buttonCreateProfil">
+                      <NunuButton
+                        onClick={multiplyButtonClick}
+                        bgColour="black"
+                        textColour="white"
+                        hoverTextColour="white"
+                        hoverBgColour="#1f1e2c"
+                        label="Vytvoriť profil"
+                        sx={{
+                          backgroundColor: "black",
+                          maxWidth: "150px",
+                          height: "40px",
+                          borderRadius: "30px",
+                          marginLeft: "30px",
+                          width: "100%",
+                        }}
+                        fontSize="12px"
+                      />
+
+                      <NunuButton
+                        onClick={() => {}}
+                        bgColour="black"
+                        textColour="white"
+                        hoverTextColour="white"
+                        hoverBgColour="#1f1e2c"
+                        label="Exportovať graf"
+                        sx={{
+                          backgroundColor: "black",
+                          height: "40px",
+                          borderRadius: "30px",
+                          marginLeft: "auto",
+                          marginRight: "30px",
+                          maxWidth: "150px",
+                          width: "100%",
+                        }}
+                        fontSize="12px"
+                      />
+                    </Box>
+                    {projectFolders[selectedFolder].chartData ? (
+                      <Box
+                        style={{
+                          height: "83%",
+                          margin: "10px",
+                          backgroundColor: "white",
+                        }}
+                      >
+                        <ScatterChart
+                          series={projectFolders[selectedFolder].chartData.map(
+                            (data) => ({
+                              label: data.label,
+                              data: data.data.map((v, index) => ({
+                                x: projectFolders[selectedFolder].folderData
+                                  .excitation[index],
+                                y: v,
+                                id: index,
+                              })),
+                            })
+                          )}
+                          yAxis={[{ min: 0 }]}
+                          xAxis={[{ min: 250 }]}
+                        />
+                      </Box>
+                    ) : (
+                      ""
+                    )}
+                  </Box>
+                </Grid>
+                <Grid
+                  xs={12}
+                  style={{
+                    flexDirection: "row",
+                    display: "flex",
+                    justifyContent: "center",
                   }}
                 >
                   <Box
                     sx={{
-                      paddingRight: "10px",
-                      paddingLeft: "10px",
-                      width: "40%",
+                      height: "50vh",
+                      width: "55%",
+                      alignContent: "center",
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                   >
-                    {projectFolders[selectedFolder].multiplied &&
-                    projectData ? (
-                      <ProfileDataTable
-                        profile={projectFolders[selectedFolder].profileData}
-                      />
+                    {isLoading ? (
+                      <Skeleton />
                     ) : (
-                      <Box className="emptyTable"></Box>
+                      <>
+                        {projectFolders[selectedFolder].multiplied &&
+                        projectData ? (
+                          <DataTable
+                            tableData={
+                              projectFolders[selectedFolder].tableData!
+                            }
+                            showAutocomplete={false}
+                          />
+                        ) : (
+                          <Box sx={emptyTable}></Box>
+                        )}
+                      </>
                     )}
                   </Box>
-                  <StatsBox
-                    statsData={projectFolders[selectedFolder].normalStatData}
-                    multipliedStatsData={
-                      projectFolders[selectedFolder].multiplied
-                        ? projectFolders[selectedFolder].multipliedStatData
-                        : undefined
-                    }
-                  />
-                </Box>
-              </Box>
+                  <Box
+                    style={{
+                      width: "45%",
+                      flexDirection: "row",
+                      display: "flex",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        paddingRight: "10px",
+                        paddingLeft: "10px",
+                        width: "40%",
+                      }}
+                    >
+                      {projectFolders[selectedFolder].multiplied &&
+                      projectData ? (
+                        <ProfileDataTable
+                          profile={projectFolders[selectedFolder].profileData}
+                        />
+                      ) : (
+                        <Box className="emptyTable"></Box>
+                      )}
+                    </Box>
+                    <StatsBox
+                      statsData={projectFolders[selectedFolder].normalStatData}
+                      multipliedStatsData={
+                        projectFolders[selectedFolder].multiplied
+                          ? projectFolders[selectedFolder].multipliedStatData
+                          : undefined
+                      }
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </>

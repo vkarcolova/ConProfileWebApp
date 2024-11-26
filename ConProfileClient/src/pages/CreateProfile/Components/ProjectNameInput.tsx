@@ -25,6 +25,12 @@ export const ProjectNameInput: React.FC<ProjectNameInputProps> = ({
       onBlur={() => {
         saveToProjectData(projectName);
       }}
+      inputProps={{
+        sx: {
+          color: "white", // Farba textu
+          maxWidth: "80px",
+        },
+      }}
     />
   );
 };
