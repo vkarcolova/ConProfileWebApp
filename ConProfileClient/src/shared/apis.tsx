@@ -4,6 +4,68 @@ import config from "../../config";
 import { Factors, FileContent, MultiplyFolderDTO, ProjectDTO } from "./types";
 
 export const clientApi = {
+
+  register: async (email: string, password: string, password2: string) => {
+    type RegisterFormDTO = {
+      EMAIL: string;
+      PASSWORD: string;
+      PASSWORD2: string;
+    };
+    const registerForm : RegisterFormDTO = {EMAIL: email, PASSWORD: password, PASSWORD2: password2};
+
+    const token = localStorage.getItem("token");
+
+    let customHeaders:
+      | { "Content-Type": string }
+      | { "Content-Type": string; Authorization: string } = {
+      "Content-Type": "application/json",
+    };
+
+    if (token != undefined || token != null) {
+      customHeaders = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+    }
+    return await axios.post(
+      `${config.apiUrl}/User/Register`,
+      JSON.stringify(registerForm),
+      {
+        headers: customHeaders,
+      }
+    );
+  },
+
+  login: async (email: string, password: string, ) => {
+    type LoginDTO = {
+      EMAIL: string;
+      PASSWORD: string;
+    };
+    const loginUser : LoginDTO = {EMAIL: email, PASSWORD: password};
+
+    const token = localStorage.getItem("token");
+
+    let customHeaders:
+      | { "Content-Type": string }
+      | { "Content-Type": string; Authorization: string } = {
+      "Content-Type": "application/json",
+    };
+
+    if (token != undefined || token != null) {
+      customHeaders = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+    }
+    return await axios.post(
+      `${config.apiUrl}/User/Login`,
+      JSON.stringify(loginUser),
+      {
+        headers: customHeaders,
+      }
+    );
+  },
+
   updateProjectName: async (projectId: string, projectName: string) => {
     const dataToSend = new URLSearchParams({
       idproject: projectId,

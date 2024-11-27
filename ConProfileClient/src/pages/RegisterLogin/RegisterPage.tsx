@@ -8,23 +8,41 @@ import {
   Typography,
   Grid,
   TextField,
-  FormControlLabel,
-  Checkbox,
   Button,
 } from "@mui/material";
 import "../../index.css";
-import React from "react";
+import React  from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-
+import { clientApi } from "../../shared/apis";
+import { Bounce, toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useUserContext } from "../../shared/context/useContext";
 const defaultTheme = createTheme();
 
 const RegisterPage: React.FC = () => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [password2, setPassword2] = React.useState("");
+
+
+  const { loginUser } = useUserContext();
+
+
+  const handleSubmit = async () => {
+    //TODO skontrolvoat ci su rovnake s form ak by usestate bol pomaly
+    await clientApi.register(email, password, password2).then((response) => { 
+
+      if (response.status === 200) {
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        const useremail = response.data.email;
+        localStorage.setItem("useremail", useremail);
+        toast.success("Registrácia prebehla úspešne.");
+        loginUser(token, useremail);
+        window.location.href = "/";
+      }
+    }).catch((error) => {
+        toast.error('Chyba pri registrácii: ' +  error.response.data);
     });
   };
 
@@ -61,6 +79,7 @@ const RegisterPage: React.FC = () => {
                   label="Emailová adresa"
                   name="email"
                   autoComplete="email"
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Grid>
 
@@ -73,6 +92,7 @@ const RegisterPage: React.FC = () => {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -84,6 +104,7 @@ const RegisterPage: React.FC = () => {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  onChange={(e) => setPassword2(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}></Grid>
@@ -94,6 +115,7 @@ const RegisterPage: React.FC = () => {
               size="small"
               component="a"
               target="_blank"
+              disabled={email == "" || password == "" || password2 == "" || password != password2} 
               sx={{
                 backgroundColor: "rgba(59, 49, 119, 0.87)",
                 width: "100%",
@@ -106,15 +128,19 @@ const RegisterPage: React.FC = () => {
                   backgroundColor: "#9997c3",
                   color: "white",
                 },
+
               }}
             >
-              <Typography variant="button" fontWeight={500} fontSize={"14px"}>
+              <Typography onClick={handleSubmit} variant="button" fontWeight={500} fontSize={"14px"}>
                 Registrovať sa
               </Typography>
             </Button>
           </Box>
         </Box>
+        <ToastContainer transition={Bounce} />
+
       </Container>
+      <ToastContainer transition={Bounce} />
     </ThemeProvider>
   );
 };

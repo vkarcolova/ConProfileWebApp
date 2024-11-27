@@ -22,6 +22,8 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
+import { useUserContext } from "../../shared/context/useContext";
+import { NunuButton } from "../../shared/components/NunuButton";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -29,6 +31,7 @@ const Home: React.FC = () => {
 
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
   const navigate = useNavigate();
+  const { user, logoutUser } = useUserContext();
 
   useEffect(() => {
     getProjectsByUser();
@@ -170,51 +173,90 @@ const Home: React.FC = () => {
         <AppBarLogin
           content={
             <>
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                component="a"
-                href="/auth/prihlasenie/"
-                target="_blank"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
-                  width: "80px",
-                  borderRadius: 100,
-                  color: "rgba(59, 49, 119, 0.87)",
-                  padding: "10px",
-                  marginRight: "10px",
+              {user == undefined ? (
+                <>
+                  <Button
+                    color="primary"
+                    variant="text"
+                    size="small"
+                    component="a"
+                    sx={{
+                      backgroundColor: "rgba(255, 255, 255, 0.15)",
+                      width: "80px",
+                      borderRadius: 100,
+                      color: "rgba(59, 49, 119, 0.87)",
+                      padding: "10px",
+                      marginRight: "10px",
 
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#E2E3E8",
-                  },
-                }}
-              >
-                <Typography fontWeight={600}>Prihlásenie</Typography>
-              </Button>
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                component="a"
-                href="/auth/registracia/"
-                target="_blank"
-                sx={{
-                  backgroundColor: "#BFC2D2",
-                  width: "80px",
-                  borderRadius: 100,
-                  color: "rgba(59, 49, 119, 0.87)",
-                  padding: "10px",
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "#E2E3E8",
+                      },
+                    }}
+                    onClick={() => {
+                      navigate("/auth/prihlasenie/");
+                    }}
+                  >
+                    <Typography fontWeight={600}>Prihlásenie</Typography>
+                  </Button>
+                  <Button
+                    color="primary"
+                    variant="text"
+                    size="small"
+                    component="a"
+                    onClick={() => {
+                      navigate("/auth/registracia/");
+                    }}
+                    sx={{
+                      backgroundColor: "#BFC2D2",
+                      width: "80px",
+                      borderRadius: 100,
+                      color: "rgba(59, 49, 119, 0.87)",
+                      padding: "10px",
 
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#E2E3E8",
-                  },
-                }}
-              >
-                <Typography fontWeight={600}>Registrácia</Typography>
-              </Button>
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "#E2E3E8",
+                      },
+                    }}
+                  >
+                    <Typography fontWeight={600}>Registrácia</Typography>
+                  </Button>
+                </>
+              ) : (
+                <Box sx={{ display: "flex" }}>
+                  <Typography
+                    sx={{ color: "#454545", fontWeight: "550", marginRight: "10px", marginTop: "10px" }}
+                  >
+                    Prihlásený používateľ{" "}
+                    <span style={{ color: "rgba(59, 49, 119, 0.87)" }}>{user.email}</span>
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      logoutUser();
+                      toast.success("Boli ste úspešne odhlásený.");
+                    }}
+                    color="primary"
+                    variant="text"
+                    size="small"
+                    sx={{
+                      backgroundColor: "#BFC2D2",
+                      width: "80px",
+                      borderRadius: 100,
+                      color: "rgba(59, 49, 119, 0.87)",
+                      padding: "10px",
+
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "#E2E3E8",
+                      },
+                    }}
+                  >
+                    {" "}
+                    <Typography fontWeight={600}>Odhlásenie</Typography>
+                  </Button>
+                </Box>
+              )}
             </>
           }
         />

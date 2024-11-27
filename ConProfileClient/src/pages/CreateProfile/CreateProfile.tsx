@@ -1,4 +1,4 @@
-import { ToastContainer, Bounce, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useState, useEffect, ChangeEvent, useRef } from "react";
 import Home from "@mui/icons-material/HomeRounded";
@@ -20,7 +20,6 @@ import DataTable from "../../shared/components/DataTable";
 import "./index.css";
 import {
   Box,
-  Button,
   CircularProgress,
   Grid,
   IconButton,
@@ -33,8 +32,6 @@ import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
 import {
-  basicButtonStyle,
-  darkButtonStyle,
   emptyTable,
 } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
@@ -48,7 +45,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { ProfileMenu } from "./Components/ProfileMenu";
+
+
 const CreateProfile: React.FC = () => {
+
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
   const [factors, setFactors] = React.useState<Factors[]>([]);
@@ -360,8 +360,6 @@ const CreateProfile: React.FC = () => {
     });
     if (wrongInput) {
       toast.error("Chýbajúce alebo nesprávne zadané hodnoty faktorov.");
-      toast("Chýbajúce alebo nesprávne zadané hodnoty faktorov.");
-
       return;
     }
 
@@ -994,7 +992,7 @@ const CreateProfile: React.FC = () => {
           </Grid>
         </>
       )}
-      <ToastContainer transition={Bounce} />
+
     </>
   );
 };

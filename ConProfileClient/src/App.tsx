@@ -5,6 +5,8 @@ import CreateProfile from "./pages/CreateProfile/CreateProfile";
 import "react-widgets/styles.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import TabsLoginRegister from "./pages/RegisterLogin/TabsLoginRegister";
+import { ToastContainer, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const theme = createTheme({
   palette: {
@@ -28,6 +30,7 @@ function App() {
             <Route path="/uprava-profilu/:id" element={<CreateProfile />} />
             <Route path="/auth/:type" element={<TabsLoginRegister />} />
           </Routes>
+          <ToastContainer transition={Bounce} />
         </div>
       </ThemeProvider>
     </>

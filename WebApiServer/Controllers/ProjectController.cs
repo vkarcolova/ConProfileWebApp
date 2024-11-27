@@ -117,11 +117,12 @@ namespace WebAPI.Controllers
                     string token;
                     if (userToken == "") token = _userService.GenerateJwtToken();
                     else token = userToken;
+                    int idproject = (_context.Projects.OrderByDescending(obj => obj.IdProject).FirstOrDefault()?.IdProject ?? 0) + 1;
 
                     Project project = new Project
                     {
                         Created = projectData.CREATED.ToUniversalTime(),
-                        IdProject = _context.Projects.Max(project => project.IdProject) + 1,
+                        IdProject = idproject,
                         ProjectName = projectData.PROJECTNAME,
                         Token = token
                     };

@@ -1,4 +1,4 @@
-import { Button, Tooltip, tooltipClasses } from "@mui/material";
+import { Button, Tooltip, tooltipClasses, Typography } from "@mui/material";
 import React from "react";
 import { basicButtonStyle, darkButtonStyle } from "../../../shared/styles";
 import { ProjectDTO } from "../../../shared/types";
@@ -51,7 +51,7 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             console.log(response);
             toast.success("Projekt bol úspešne uložený do databázy.");
             sessionStorage.removeItem("loadeddata");
-            navigate("/create-profile/" + response.data.projectId);
+            navigate("/uprava-profilu/" + response.data.projectId);
             setLoading(false);
           });
       } catch (error) {
@@ -95,8 +95,13 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
                 borderRadius: "10px",
               }}
             >
-              Uložiť projekt do databázy
+            <Typography fontWeight={550} fontSize="14px">
+            Uložiť projekt do databázy
+
+      </Typography>  
             </Button>{" "}
+          
+
           </span>
         </Tooltip>
       ) : (
@@ -104,9 +109,13 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
           variant="contained"
           onClick={saveToDbButtonClick}
           role="button"
-          sx={{ ...basicButtonStyle, ...darkButtonStyle }}
+          sx={{ ...basicButtonStyle, ...darkButtonStyle,         boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;", borderRadius: "10px"
+          }}
         >
-          Uložiť projekt do databázy
+            <Typography fontWeight={550} fontSize="14px">
+      Uložiť projekt do databázy
+
+      </Typography>  
         </Button>
       )}
     </>

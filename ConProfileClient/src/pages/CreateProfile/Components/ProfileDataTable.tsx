@@ -140,9 +140,9 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
 
   return (
     <Box className="table-container">
-      <TableContainer component={Paper} sx={{ height: "97%" }}>
+       <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
         <TableVirtuoso
-          style={{ height: "100%", width: "100%" }}
+          style={{ height: "45vh", width: "100%" }}
           data={tableRows}
           components={VirtuosoTableComponents}
           itemContent={rowContent}

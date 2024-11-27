@@ -13,14 +13,28 @@ import {
 import "../../index.css";
 import React from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { toast } from "react-toastify";
+import { clientApi } from "../../shared/apis";
+import { useUserContext } from "../../shared/context/useContext";
 
 const LoginPage: React.FC = () => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
+  const { loginUser } = useUserContext();
+  const [email, setEmail] = React.useState("admin@gmail.com");
+  const [password, setPassword] = React.useState("admin");
+
+  const handleSubmit = async () => {
+    await clientApi.login(email, password).then((response) => { 
+      if (response.status === 200) {
+        console.log(response.data);
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        const useremail = response.data.email;
+        localStorage.setItem("useremail", useremail);
+        toast.success("Užívateľ prihlásený");
+        loginUser(token, useremail);
+      }
+    }).catch((error) => {
+        toast.error('Chyba pri prihlásení: ' +  error.response.data);
     });
   };
   const defaultTheme = createTheme();
@@ -58,6 +72,8 @@ const LoginPage: React.FC = () => {
               name="email"
               autoComplete="email"
               autoFocus
+              onChange={(e) => setEmail(e.target.value)}
+            value={email}
             />
             <TextField
               margin="normal"
@@ -68,6 +84,8 @@ const LoginPage: React.FC = () => {
               type="password"
               id="password"
               autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
             />
             <Button
               color="primary"
@@ -88,8 +106,9 @@ const LoginPage: React.FC = () => {
                   color: "white",
                 },
               }}
+              onClick={handleSubmit}
             >
-              <Typography variant="button" fontWeight={500} fontSize={"14px"}>
+              <Typography  variant="button" fontWeight={500} fontSize={"14px"}>
                 Prihlásiť sa
               </Typography>
             </Button>

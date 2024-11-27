@@ -7,6 +7,7 @@ type AppBarProps = {
 };
 
 export const AppBarLogin: React.FC<AppBarProps> = ({ content }) => {
+
   return (
     <div>
       <AppBar

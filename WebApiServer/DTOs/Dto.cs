@@ -57,4 +57,17 @@
         public List<int> FOLDERIDS { get; set; } = new List<int>();
     }
 
+
+    public class RegisterFormDTO
+    {
+        public string EMAIL { get; set; }
+        public string PASSWORD { get; set; }
+        public string PASSWORD2 { get; set; }
+    }
+
+    public class LoginDto
+    {
+        public string EMAIL { get; set; }
+        public string PASSWORD { get; set; }
+    }
 }
