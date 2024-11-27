@@ -65,6 +65,7 @@ namespace WebAPI.Controllers
                         PROJECTNAME = project.ProjectName,
                         FOLDERS = foldersDTO,
                         CREATED = project.Created,
+                        USEREMAIL = project.CreatedBy 
                     };
 
                     allProjects.Add(result);
@@ -94,7 +95,8 @@ namespace WebAPI.Controllers
                     CREATED = DateTime.Now,
                     FOLDERS = folders,
                     IDPROJECT = -1,
-                    PROJECTNAME = "NovyProjekt"
+                    PROJECTNAME = "NovyProjekt",
+                    USEREMAIL = loadedFiles[0].USEREMAIL
                 };
                 if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
                 else return BadRequest(result);
@@ -124,7 +126,9 @@ namespace WebAPI.Controllers
                         Created = projectData.CREATED.ToUniversalTime(),
                         IdProject = idproject,
                         ProjectName = projectData.PROJECTNAME,
-                        Token = token
+                        Token = token,
+                        CreatedBy = projectData.USEREMAIL
+
                     };
                     _context.Projects.Add(project);
                     int nextFileId = (_context.LoadedFiles.OrderByDescending(obj => obj.IdFile).FirstOrDefault()?.IdFile ?? 0) + 1;
@@ -295,7 +299,7 @@ namespace WebAPI.Controllers
                     PROJECTNAME = project.ProjectName,
                     FOLDERS = folderList,
                     CREATED = project.Created,
-
+                    USEREMAIL = project.CreatedBy
                 };
                 return result;
             }

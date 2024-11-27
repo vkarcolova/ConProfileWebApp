@@ -4,6 +4,7 @@ export interface FileContent {
   FOLDERNAME: string;
   CONTENT: string;
   IDPROJECT: number;
+  USEREMAIL?: string;
 }
 
 export interface IntensityDTO {
@@ -33,6 +34,7 @@ export interface ProjectDTO {
   projectname: string;
   folders: FolderDTO[];
   created: Date;
+  useremail: string;
 }
 
 export interface Profile {

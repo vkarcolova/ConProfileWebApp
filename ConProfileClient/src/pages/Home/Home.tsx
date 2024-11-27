@@ -23,7 +23,6 @@ import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useUserContext } from "../../shared/context/useContext";
-import { NunuButton } from "../../shared/components/NunuButton";
 
 const Home: React.FC = () => {
   const inputRefFolders = useRef<HTMLInputElement>(null);
@@ -397,6 +396,7 @@ const Home: React.FC = () => {
                           Načítané priečinky
                         </Typography>
                       </TableCell>
+                    
                       <TableCell> </TableCell>
                     </TableRow>
                   </TableHead>

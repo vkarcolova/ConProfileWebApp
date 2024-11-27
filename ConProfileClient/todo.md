@@ -2,9 +2,13 @@
 
 NAJSKOR
 
-- [ ] Dorobit prihlasovanie/registraciu
-- [ ] Ukazanie profilu dole
-- [ ] Po prihlaseni/registracii sa spytat ci treba ostatne prepisat na profil + pridat stlpik ci je to ulozene k profilu alebo prehliadacu
+- [X] Dorobit prihlasovanie/registraciu
+- [X] Ukazanie profilu dole
+-~~ [ ]Po prihlaseni/registracii sa spytat ci treba ostatne prepisat na profil + pridat stlpik ci je to ulozene k profilu alebo prehliadacu~~
+- [ ] Po prihlaseni alebo registracii sa vsetky projekty prepisu na pouzivatela
+
+Ked 
+
 - [ ] Nech sa nedostane na neznamu stranku ale na /
 - [ ] Exporty
 - [ ] Iny graf
