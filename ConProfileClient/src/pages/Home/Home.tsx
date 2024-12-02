@@ -138,7 +138,10 @@ const Home: React.FC = () => {
   };
 
   const getProjectsByUser = async () => {
+    const token = localStorage.getItem("token");
+    console.log("here", user, token);
     if (user != undefined) {
+      console.log("get projects by user");
       await clientApi
         .getProjectByUser(user.email, localStorage.getItem("token"))
         .then((response) => {
@@ -148,8 +151,9 @@ const Home: React.FC = () => {
           console.error("Chyba pri získavaní dát zo servera:", error);
         })
         .finally(() => {});
-    } else {
-      const token = localStorage.getItem("token");
+    } else if (user == undefined && token != undefined) {
+      console.log("get projects by token");
+
       if (token != undefined || token != null) {
         await clientApi
           .getProjectByToken(token)
@@ -161,6 +165,9 @@ const Home: React.FC = () => {
           })
           .finally(() => {});
       }
+    } else {
+      console.log("[]");
+      setProjecsData([]);
     }
   };
 
@@ -354,128 +361,140 @@ const Home: React.FC = () => {
           className="welcomebar"
           sx={{ position: "absolute", bottom: "100px" }}
         >
-          <Box className="small-text">
-            Informacie o webe, projekty ktoré tu už boli vytvorené...
-          </Box>
           {projectsData && projectsData?.length > 0 && (
-            <Box
-              sx={{
-                width: "60%",
-                paddingTop: "20px",
-              }}
-            >
-              <TableContainer
+            <>
+              <Box className="small-text">
+                {user ? (
+                  "Projekty z databázy uložené k používateľskému profilu:"
+                ) : (
+                  <>
+                    Projekty uložené v prehliadači bez prihlásenia sú viazané na
+                    dočasný token a zostávajú dostupné po dobu 30 dní.
+                    <br />
+                    Po prihlásení sa tieto dáta automaticky presunú do vášho
+                    profilu a zostanú bezpečne uložené.
+                  </>
+                )}
+              </Box>
+              <Box
                 sx={{
-                  maxHeight: "200px",
-                  bottom: 10,
-                  boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+                  width: "60%",
+                  paddingTop: "20px",
                 }}
-                component={Paper}
               >
-                <Table
-                  sx={{ width: "100%", border: "none" }}
-                  stickyHeader
-                  size="small"
-                  aria-label="a dense table"
+                <TableContainer
+                  sx={{
+                    maxHeight: "200px",
+                    bottom: 10,
+                    boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+                  }}
+                  component={Paper}
                 >
-                  <TableHead
-                    sx={{ height: "40px", backgroundColor: "#bfc3d9" }}
+                  <Table
+                    sx={{ width: "100%", border: "none" }}
+                    stickyHeader
+                    size="small"
+                    aria-label="a dense table"
                   >
-                    <TableRow>
-                      <TableCell>
-                        <Typography
-                          style={{
-                            fontFamily: "Poppins",
-                            fontWeight: "550",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          Názov projektu
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          style={{
-                            fontFamily: "Poppins",
-                            fontWeight: "550",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          Dátum vytvorenia
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          style={{
-                            fontFamily: "Poppins",
-                            fontWeight: "550",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          Načítané priečinky
-                        </Typography>
-                      </TableCell>
+                    <TableHead
+                      sx={{ height: "40px", backgroundColor: "#bfc3d9" }}
+                    >
+                      <TableRow>
+                        <TableCell>
+                          <Typography
+                            style={{
+                              fontFamily: "Poppins",
+                              fontWeight: "550",
+                              marginLeft: "10px",
+                            }}
+                          >
+                            Názov projektu
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            style={{
+                              fontFamily: "Poppins",
+                              fontWeight: "550",
+                              marginLeft: "10px",
+                            }}
+                          >
+                            Dátum vytvorenia
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            style={{
+                              fontFamily: "Poppins",
+                              fontWeight: "550",
+                              marginLeft: "10px",
+                            }}
+                          >
+                            Načítané priečinky
+                          </Typography>
+                        </TableCell>
 
-                      <TableCell> </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody sx={{ maxHeight: "200px", overflowY: "auto" }}>
-                    {projectsData.map((project: ProjectDTO) => {
-                      return (
-                        <TableRow>
-                          <React.Fragment key={project.idproject}>
-                            <TableCell sx={{ borderBlock: "none" }}>
-                              <Typography>{project.projectname}</Typography>
-                            </TableCell>
-                            <TableCell sx={{ borderBlock: "none" }}>
-                              <Typography>
-                                {moment(project.created).format(
-                                  "DD.MM.YYYY HH:mm:ss"
-                                )}
-                              </Typography>
-                            </TableCell>
-                            <TableCell sx={{ borderBlock: "none" }}>
-                              <Typography>
-                                {project.folders
-                                  .slice(0, 3)
-                                  .map((folder: FolderDTO, index: number) => (
-                                    <React.Fragment key={index}>
-                                      {folder.foldername}
-                                      {index < 2 && " "}
-                                    </React.Fragment>
-                                  ))}
-                                {project.folders.length > 3 && "..."}
-                              </Typography>
-                            </TableCell>
-                            <TableCell
-                              align="center"
-                              sx={{ borderBlock: "none" }}
-                            >
-                              <IconButton
-                                aria-label="delete"
-                                onClick={() =>
-                                  handleDeleteProject(project.idproject)
-                                }
+                        <TableCell> </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody sx={{ maxHeight: "200px", overflowY: "auto" }}>
+                      {projectsData.map((project: ProjectDTO) => {
+                        return (
+                          <TableRow>
+                            <React.Fragment key={project.idproject}>
+                              <TableCell sx={{ borderBlock: "none" }}>
+                                <Typography>{project.projectname}</Typography>
+                              </TableCell>
+                              <TableCell sx={{ borderBlock: "none" }}>
+                                <Typography>
+                                  {moment(project.created).format(
+                                    "DD.MM.YYYY HH:mm:ss"
+                                  )}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ borderBlock: "none" }}>
+                                <Typography>
+                                  {project.folders
+                                    .slice(0, 3)
+                                    .map((folder: FolderDTO, index: number) => (
+                                      <React.Fragment key={index}>
+                                        {folder.foldername}
+                                        {index < 2 && " "}
+                                      </React.Fragment>
+                                    ))}
+                                  {project.folders.length > 3 && "..."}
+                                </Typography>
+                              </TableCell>
+                              <TableCell
+                                align="center"
+                                sx={{ borderBlock: "none" }}
                               >
-                                <DeleteIcon />
-                              </IconButton>
-                              <IconButton
-                                aria-label="edit"
-                                onClick={() =>
-                                  handleEditProject(project.idproject)
-                                }
-                              >
-                                <ModeEditIcon />
-                              </IconButton>
-                            </TableCell>
-                          </React.Fragment>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
+                                <IconButton
+                                  aria-label="delete"
+                                  onClick={() =>
+                                    handleDeleteProject(project.idproject)
+                                  }
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                                <IconButton
+                                  aria-label="edit"
+                                  onClick={() =>
+                                    handleEditProject(project.idproject)
+                                  }
+                                >
+                                  <ModeEditIcon />
+                                </IconButton>
+                              </TableCell>
+                            </React.Fragment>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </>
           )}
         </Box>
       </Box>

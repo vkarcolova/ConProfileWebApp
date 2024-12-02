@@ -27,6 +27,8 @@ namespace WebApiServer.Services
     {
         public string GenerateJwtToken(string userEmail = null);
         public bool IsAuthorized(string userEmail, string userToken);
+
+        public  Task<IActionResult> MoveHostProjectsToUser(string oldToken, string newToken, string userEmail);
     }
 
     public class UserService : IUserService
@@ -64,18 +66,31 @@ namespace WebApiServer.Services
         public bool IsAuthorized(string userEmail, string userToken)
         {
 
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(userToken) as JwtSecurityToken;
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(userToken) as JwtSecurityToken;
 
-                var emailFromToken = jsonToken?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            var emailFromToken = jsonToken?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
 
-                if (emailFromToken == null || emailFromToken != userEmail)
-                {
-                    return false;
-                }
-                return true;
-            
+            if (emailFromToken == null || emailFromToken != userEmail)
+            {
+                return false;
+            }
+            return true;
+
         }
+
+        public async Task<IActionResult> MoveHostProjectsToUser(string oldToken, string newToken, string userEmail)
+        {
+            List<Project> projects = _context.Projects.Where(project => project.Token == oldToken || project.CreatedBy == userEmail).ToList();
+            foreach(var project in projects)
+            {
+                project.Token = newToken;
+                project.CreatedBy = userEmail;
+            }
+            await _context.SaveChangesAsync();
+            return new OkResult();
+        }
+
     }
 }

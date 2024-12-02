@@ -38,8 +38,14 @@ namespace WebApiServer.Controllers
             {
                 return BadRequest("Emailová adresa je už registrovaná.");
             }
+            var oldToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             var userToken = _userService.GenerateJwtToken(registerForm.EMAIL);
+
+            if (!string.IsNullOrEmpty(oldToken))
+            {
+                await _userService.MoveHostProjectsToUser(oldToken, userToken, registerForm.EMAIL);
+            }
 
             var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(registerForm.PASSWORD);
 
@@ -68,8 +74,14 @@ namespace WebApiServer.Controllers
                 return Unauthorized("Nesprávne údaje.");
             }
 
+            var oldToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
             var userToken = _userService.GenerateJwtToken(loginUser.EMAIL);
 
+            if (!string.IsNullOrEmpty(oldToken))
+            {
+                await _userService.MoveHostProjectsToUser(oldToken, userToken, loginUser.EMAIL);
+            }
 
             return Ok(new { TOKEN = userToken, EMAIL = loginUser.EMAIL });
         }

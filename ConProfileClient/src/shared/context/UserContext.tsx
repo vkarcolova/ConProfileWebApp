@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 
 interface User {
@@ -12,7 +11,9 @@ interface UserContextProps {
   logoutUser: () => void;
 }
 
-export const UserContext = createContext<UserContextProps | undefined>(undefined);
+export const UserContext = createContext<UserContextProps | undefined>(
+  undefined
+);
 
 interface UserProviderProps {
   children: ReactNode;
@@ -38,6 +39,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const logoutUser = () => {
     setUser(null);
     localStorage.removeItem("useremail");
+    localStorage.removeItem("token");
   };
 
   return (

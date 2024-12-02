@@ -221,7 +221,7 @@ export const clientApi = {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          value: localStorage.getItem("useremail"),
+          UserEmail: localStorage.getItem("useremail"),
           "Content-Type": "application/json",
         },
         data: request,
