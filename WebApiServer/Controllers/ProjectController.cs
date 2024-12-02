@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -36,12 +39,12 @@ namespace WebAPI.Controllers
         }
 
 
-        [HttpGet("GetProjectsByToken/{token}")]
-        public ActionResult<List<ProjectDTO>> GetItemsByToken(string token)
+        [HttpGet("GetProjectsByToken/{token}")] // ked je v rezime host bez prihlasenia iba 
+        public ActionResult<List<ProjectDTO>> GetProjectsByToken(string token)
         {
             var userToken = token.ToString().Replace("Bearer ", "");
 
-            List<Project> projects = _context.Projects.Where(project => project.Token == userToken).ToList();
+            List<Project> projects = _context.Projects.Where(project => project.Token == userToken && project.CreatedBy == "").ToList();
 
             if (projects == null)
             {
@@ -49,44 +52,79 @@ namespace WebAPI.Controllers
             }
             else
             {
-                List<ProjectDTO> allProjects = new List<ProjectDTO>();
-                foreach (Project project in projects)
-                {
-                    List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
-                    List<FolderDTO> foldersDTO = new List<FolderDTO>();
-                    foreach (LoadedFolder folder in folders)
-                    {
-                        FolderDTO folderDTO = new FolderDTO { FOLDERNAME = folder.FolderName };
-                        foldersDTO.Add(folderDTO);
-                    }
-                    ProjectDTO result = new ProjectDTO
-                    {
-                        IDPROJECT = project.IdProject,
-                        PROJECTNAME = project.ProjectName,
-                        FOLDERS = foldersDTO,
-                        CREATED = project.Created,
-                        USEREMAIL = project.CreatedBy 
-                    };
-
-                    allProjects.Add(result);
-                }
-
-                return allProjects;
+                return getSpecificProjectDTOs(projects);
             }
+        }
+
+
+        [HttpGet("GetProjectsByUser/{useremail}")] // ked je v rezime  prihlasenia  
+        public ActionResult<List<ProjectDTO>> GetProjectsByUser(string useremail)
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+            List<Project> projects = _context.Projects.Where(project => project.CreatedBy == useremail).ToList();
+
+            if (projects == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return getSpecificProjectDTOs(projects);
+            }
+        }
+
+        private List<ProjectDTO> getSpecificProjectDTOs(List<Project> projects)
+        {
+            List<ProjectDTO> allProjects = new List<ProjectDTO>();
+            foreach (Project project in projects)
+            {
+                List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
+                List<FolderDTO> foldersDTO = new List<FolderDTO>();
+                foreach (LoadedFolder folder in folders)
+                {
+                    FolderDTO folderDTO = new FolderDTO { FOLDERNAME = folder.FolderName };
+                    foldersDTO.Add(folderDTO);
+                }
+                ProjectDTO result = new ProjectDTO
+                {
+                    IDPROJECT = project.IdProject,
+                    PROJECTNAME = project.ProjectName,
+                    FOLDERS = foldersDTO,
+                    CREATED = project.Created,
+                    USEREMAIL = project.CreatedBy
+                };
+
+                allProjects.Add(result);
+            }
+
+            return allProjects;
         }
 
         //Spracovanie suborov a poslanie ich vo forme dto este nesavnutie
         [HttpPost("CreateNewProject")]
-        public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles)
+        public async Task<IActionResult> CreateNewProject([FromBody] FileContent[] loadedFiles) 
         {
             // Spracovanie prijatých súborov
             if (loadedFiles != null && loadedFiles.Any())
             {
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var userEmail = Request.Headers["UserEmail"].ToString();
                 string token = "";
                 if (userToken == "")
-                    token = _userService.GenerateJwtToken();
+                {
+                    if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
+                    else token = _userService.GenerateJwtToken(userEmail!);
+
+                }
                 else token = userToken;
+
+                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized("Neplatné prihlásenie");
 
                 List<FolderDTO> folders = new List<FolderDTO>();
                 folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
@@ -96,7 +134,7 @@ namespace WebAPI.Controllers
                     FOLDERS = folders,
                     IDPROJECT = -1,
                     PROJECTNAME = "NovyProjekt",
-                    USEREMAIL = loadedFiles[0].USEREMAIL
+                    USEREMAIL = userEmail
                 };
                 if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
                 else return BadRequest(result);
@@ -119,6 +157,12 @@ namespace WebAPI.Controllers
                     string token;
                     if (userToken == "") token = _userService.GenerateJwtToken();
                     else token = userToken;
+                    var userEmail = Request.Headers["UserEmail"].ToString();
+
+                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                        return Unauthorized("Neplatné prihlásenie");
+
+
                     int idproject = (_context.Projects.OrderByDescending(obj => obj.IdProject).FirstOrDefault()?.IdProject ?? 0) + 1;
 
                     Project project = new Project
@@ -127,7 +171,7 @@ namespace WebAPI.Controllers
                         IdProject = idproject,
                         ProjectName = projectData.PROJECTNAME,
                         Token = token,
-                        CreatedBy = projectData.USEREMAIL
+                        CreatedBy = userEmail,
 
                     };
                     _context.Projects.Add(project);
@@ -222,8 +266,14 @@ namespace WebAPI.Controllers
         public ActionResult<ProjectDTO> GetItemById(int id)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
 
-            Project project = _context.Projects.Where(project => project.IdProject == id && project.Token == userToken).FirstOrDefault();
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+
+
+            Project project = _context.Projects.Where(project => project.IdProject == id && (project.Token == userToken || userEmail == project.CreatedBy)).FirstOrDefault();
 
             if (project == null)
             {
@@ -310,8 +360,14 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<ProjectDTO>> UpdateProjectNameAsync([FromQuery] int idproject, [FromQuery] string projectname)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
 
-            Project project = _context.Projects.Where(project => project.IdProject == idproject && project.Token == userToken).FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+            Project project = _context.Projects.Where(project => 
+                                project.IdProject == idproject && (project.Token == userToken  || project.CreatedBy == userEmail)).FirstOrDefault();
 
             if (project == null)
             {
@@ -328,7 +384,14 @@ namespace WebAPI.Controllers
         public ActionResult<ProjectDTO> DeleteItemById(int id)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == id && project.Token == userToken);
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+            Project projectToRemove = _context.Projects.Where(project =>
+                                project.IdProject == id && (project.Token == userToken || project.CreatedBy == userEmail)).FirstOrDefault();
+
             if (projectToRemove == null) return NotFound();
             List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == id).ToList();
             foreach (LoadedFolder folder in folders)
@@ -357,9 +420,17 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> DeleteFoldersFromProject([FromBody] FolderDeleteRequestDTO request)
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+              var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+
             var projectId = request.PROJECTID;
             var folderIds = request.FOLDERIDS;
-            Project projectToRemove = _context.Projects.FirstOrDefault(project => project.IdProject == projectId && project.Token == userToken);
+            Project projectToRemove = _context.Projects.Where(project =>
+                                project.IdProject == projectId && (project.Token == userToken || project.CreatedBy == userEmail)).FirstOrDefault();
+            
             if (projectToRemove == null) return NotFound();
             List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == projectId).ToList();
             List<string> failedToDelete = new List<string>();

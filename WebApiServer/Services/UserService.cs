@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Numerics;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace WebApiServer.Services
 {
     public interface IUserService
     {
-        public string GenerateJwtToken();
+        public string GenerateJwtToken(string userEmail = null);
+        public bool IsAuthorized(string userEmail, string userToken);
     }
 
     public class UserService : IUserService
@@ -36,7 +38,7 @@ namespace WebApiServer.Services
             _context = context;
         }
 
-        public string GenerateJwtToken()
+        public string GenerateJwtToken(string userEmail = null)
         {
             // Generovanie JWT tokenu bez identifikátora užívate¾a
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -46,9 +48,34 @@ namespace WebApiServer.Services
                 Expires = DateTime.UtcNow.AddDays(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
+
+
+            if (userEmail != null)
+            {
+                tokenDescriptor.Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Email, userEmail)
+                });
+            }
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
+        public bool IsAuthorized(string userEmail, string userToken)
+        {
+
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(userToken) as JwtSecurityToken;
+
+                var emailFromToken = jsonToken?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+
+                if (emailFromToken == null || emailFromToken != userEmail)
+                {
+                    return false;
+                }
+                return true;
+            
+        }
     }
 }

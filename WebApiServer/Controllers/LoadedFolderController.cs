@@ -15,13 +15,16 @@ namespace WebApiServer.Controllers
     {
         private readonly ApiDbContext _context;
         private readonly IDataProcessService _dataProcessService;
+        private readonly IUserService _userService;
 
 
         public LoadedFolderController(ApiDbContext context,
-            IDataProcessService service)
+            IDataProcessService service,
+            IUserService userService)
         {
             _context = context;
             _dataProcessService = service;
+            _userService = userService;
         }
 
 
@@ -32,7 +35,13 @@ namespace WebApiServer.Controllers
             if (loadedFiles != null && loadedFiles.Any())
             {
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var existingProject = _context.Projects.FirstOrDefault(p => p.Token == userToken && p.IdProject == loadedFiles[0].IDPROJECT);
+                var userEmail = Request.Headers["UserEmail"].ToString();
+
+                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized("Neplatné prihlásenie");
+
+                var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken  || p.CreatedBy == userEmail ) 
+                              && p.IdProject == loadedFiles[0].IDPROJECT);
                 if (existingProject != null)
                 {
                     IActionResult result = await _dataProcessService.AddProjectData(loadedFiles);

@@ -4,14 +4,17 @@ import config from "../../config";
 import { Factors, FileContent, MultiplyFolderDTO, ProjectDTO } from "./types";
 
 export const clientApi = {
-
   register: async (email: string, password: string, password2: string) => {
     type RegisterFormDTO = {
       EMAIL: string;
       PASSWORD: string;
       PASSWORD2: string;
     };
-    const registerForm : RegisterFormDTO = {EMAIL: email, PASSWORD: password, PASSWORD2: password2};
+    const registerForm: RegisterFormDTO = {
+      EMAIL: email,
+      PASSWORD: password,
+      PASSWORD2: password2,
+    };
 
     const token = localStorage.getItem("token");
 
@@ -36,12 +39,12 @@ export const clientApi = {
     );
   },
 
-  login: async (email: string, password: string, ) => {
+  login: async (email: string, password: string) => {
     type LoginDTO = {
       EMAIL: string;
       PASSWORD: string;
     };
-    const loginUser : LoginDTO = {EMAIL: email, PASSWORD: password};
+    const loginUser: LoginDTO = { EMAIL: email, PASSWORD: password };
 
     const token = localStorage.getItem("token");
 
@@ -76,6 +79,7 @@ export const clientApi = {
       .put(`${config.apiUrl}/Project/UpdateProjectName?${dataToSend}`, null, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
         },
       })
       .then(() => {
@@ -104,12 +108,24 @@ export const clientApi = {
     return factors;
   },
 
-  getProjectByUser: async (token: string | null) => {
+  getProjectByToken: async (token: string | null) => {
     return await axios.get<ProjectDTO[]>(
       `${config.apiUrl}/Project/GetProjectsByToken/` + token,
       {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
+  getProjectByUser: async (useremail: string, token: string | null) => {
+    return await axios.get<ProjectDTO[]>(
+      `${config.apiUrl}/Project/GetProjectsByUser/` + useremail,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          UserEmail: useremail,
         },
       }
     );
@@ -123,6 +139,7 @@ export const clientApi = {
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
         },
       }
     );
@@ -130,25 +147,15 @@ export const clientApi = {
   },
 
   createProject: async (loadedFiles: FileContent[]) => {
-    const token = localStorage.getItem("token");
-
-    let customHeaders:
-      | { "Content-Type": string }
-      | { "Content-Type": string; Authorization: string } = {
-      "Content-Type": "application/json",
-    };
-
-    if (token != undefined || token != null) {
-      customHeaders = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      };
-    }
     return await axios.post(
       `${config.apiUrl}/Project/CreateNewProject`,
       JSON.stringify(loadedFiles),
       {
-        headers: customHeaders,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
       }
     );
   },
@@ -161,6 +168,7 @@ export const clientApi = {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
         },
       }
     );
@@ -191,7 +199,10 @@ export const clientApi = {
     return await axios.delete(
       `${config.apiUrl}/Project/DeleteProject/` + projectId,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
       }
     );
   },
@@ -210,6 +221,7 @@ export const clientApi = {
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          value: localStorage.getItem("useremail"),
           "Content-Type": "application/json",
         },
         data: request,

@@ -44,7 +44,11 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             `${config.apiUrl}/Project/SaveNewProject`,
             JSON.stringify(projectData),
             {
-              headers: customHeaders,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                UserEmail: localStorage.getItem("useremail"),
+              },
             }
           )
           .then((response) => {
@@ -95,13 +99,10 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
                 borderRadius: "10px",
               }}
             >
-            <Typography fontWeight={550} fontSize="14px">
-            Uložiť projekt do databázy
-
-      </Typography>  
+              <Typography fontWeight={550} fontSize="14px">
+                Uložiť projekt do databázy
+              </Typography>
             </Button>{" "}
-          
-
           </span>
         </Tooltip>
       ) : (
@@ -109,13 +110,16 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
           variant="contained"
           onClick={saveToDbButtonClick}
           role="button"
-          sx={{ ...basicButtonStyle, ...darkButtonStyle,         boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;", borderRadius: "10px"
+          sx={{
+            ...basicButtonStyle,
+            ...darkButtonStyle,
+            boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+            borderRadius: "10px",
           }}
         >
-            <Typography fontWeight={550} fontSize="14px">
-      Uložiť projekt do databázy
-
-      </Typography>  
+          <Typography fontWeight={550} fontSize="14px">
+            Uložiť projekt do databázy
+          </Typography>
         </Button>
       )}
     </>

@@ -34,7 +34,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     getProjectsByUser();
-  }, []);
+  }, [user]);
 
   const handleSelectFolder = () => {
     try {
@@ -138,10 +138,9 @@ const Home: React.FC = () => {
   };
 
   const getProjectsByUser = async () => {
-    const token = localStorage.getItem("token");
-    if (token != undefined || token != null) {
+    if (user != undefined) {
       await clientApi
-        .getProjectByUser(token)
+        .getProjectByUser(user.email, localStorage.getItem("token"))
         .then((response) => {
           setProjecsData(response.data);
         })
@@ -149,6 +148,19 @@ const Home: React.FC = () => {
           console.error("Chyba pri získavaní dát zo servera:", error);
         })
         .finally(() => {});
+    } else {
+      const token = localStorage.getItem("token");
+      if (token != undefined || token != null) {
+        await clientApi
+          .getProjectByToken(token)
+          .then((response) => {
+            setProjecsData(response.data);
+          })
+          .catch((error) => {
+            console.error("Chyba pri získavaní dát zo servera:", error);
+          })
+          .finally(() => {});
+      }
     }
   };
 
@@ -225,10 +237,17 @@ const Home: React.FC = () => {
               ) : (
                 <Box sx={{ display: "flex" }}>
                   <Typography
-                    sx={{ color: "#454545", fontWeight: "550", marginRight: "10px", marginTop: "10px" }}
+                    sx={{
+                      color: "#454545",
+                      fontWeight: "550",
+                      marginRight: "10px",
+                      marginTop: "10px",
+                    }}
                   >
                     Prihlásený používateľ{" "}
-                    <span style={{ color: "rgba(59, 49, 119, 0.87)" }}>{user.email}</span>
+                    <span style={{ color: "rgba(59, 49, 119, 0.87)" }}>
+                      {user.email}
+                    </span>
                   </Typography>
                   <Button
                     onClick={() => {
@@ -396,7 +415,7 @@ const Home: React.FC = () => {
                           Načítané priečinky
                         </Typography>
                       </TableCell>
-                    
+
                       <TableCell> </TableCell>
                     </TableRow>
                   </TableHead>

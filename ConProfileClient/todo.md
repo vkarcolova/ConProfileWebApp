@@ -2,12 +2,16 @@
 
 NAJSKOR
 
-- [X] Dorobit prihlasovanie/registraciu
-- [X] Ukazanie profilu dole
--~~ [ ]Po prihlaseni/registracii sa spytat ci treba ostatne prepisat na profil + pridat stlpik ci je to ulozene k profilu alebo prehliadacu~~
+- [x] Dorobit prihlasovanie/registraciu
+- [x] Ukazanie profilu dole
+      -~~ [ ]Po prihlaseni/registracii sa spytat ci treba ostatne prepisat na profil + pridat stlpik ci je to ulozene k profilu alebo prehliadacu~~
 - [ ] Po prihlaseni alebo registracii sa vsetky projekty prepisu na pouzivatela
 
-Ked 
+pridat funkciu get podla loginu
+pridat ked sa po prihlaseni alebo registracii sa vsetky projekty prepisu na pouzivatela
+pridat email do tokenu
+
+Ked
 
 - [ ] Nech sa nedostane na neznamu stranku ale na /
 - [ ] Exporty

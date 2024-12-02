@@ -36,12 +36,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "http://localhost:3000",
                     ValidAudience = "http://localhost:5000",
+                    NameClaimType = "email",
+
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v"))
                 };
             })
             ;
 
 builder.Services.AddAuthorization();
+builder.Services.AddAuthentication();
 
 
 
