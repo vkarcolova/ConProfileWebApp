@@ -9,6 +9,8 @@ var  AllowSpecificOrigins = "_AllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDataProcessService, DataProcessService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
 builder.Services.AddCors(options =>
@@ -34,12 +36,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "http://localhost:3000",
                     ValidAudience = "http://localhost:5000",
+                    NameClaimType = "email",
+
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("L#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1vL#9pD2m0oP7rW!4xN*1v"))
                 };
             })
             ;
 
 builder.Services.AddAuthorization();
+builder.Services.AddAuthentication();
 
 
 

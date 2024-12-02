@@ -1,4 +1,4 @@
-import { Button, Tooltip, tooltipClasses } from "@mui/material";
+import { Button, Tooltip, tooltipClasses, Typography } from "@mui/material";
 import React from "react";
 import { basicButtonStyle, darkButtonStyle } from "../../../shared/styles";
 import { ProjectDTO } from "../../../shared/types";
@@ -37,21 +37,30 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
     if (!loadedProjectId) {
       setLoading(true);
       try {
+        console.log("ukladam");
+
         await axios
           .post(
             `${config.apiUrl}/Project/SaveNewProject`,
             JSON.stringify(projectData),
             {
-              headers: customHeaders,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                UserEmail: localStorage.getItem("useremail"),
+              },
             }
           )
           .then((response) => {
+            console.log(response);
             toast.success("Projekt bol úspešne uložený do databázy.");
             sessionStorage.removeItem("loadeddata");
-            navigate("/create-profile/" + response.data.projectId);
+            navigate("/uprava-profilu/" + response.data.projectId);
             setLoading(false);
           });
       } catch (error) {
+        console.log("neulozwnw");
+
         toast.error("Nepodarilo sa uložiť projekt.");
         setLoading(false);
       }
@@ -83,10 +92,17 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
               onClick={saveToDbButtonClick}
               role="button"
               disabled={true}
-              sx={{ ...basicButtonStyle, ...darkButtonStyle, border: "none" }}
+              sx={{
+                ...basicButtonStyle,
+                ...darkButtonStyle,
+                border: "none",
+                borderRadius: "10px",
+              }}
             >
-              Uložiť projekt do databázy
-            </Button>
+              <Typography fontWeight={550} fontSize="14px">
+                Uložiť projekt do databázy
+              </Typography>
+            </Button>{" "}
           </span>
         </Tooltip>
       ) : (
@@ -94,9 +110,16 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
           variant="contained"
           onClick={saveToDbButtonClick}
           role="button"
-          sx={{ ...basicButtonStyle, ...darkButtonStyle }}
+          sx={{
+            ...basicButtonStyle,
+            ...darkButtonStyle,
+            boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+            borderRadius: "10px",
+          }}
         >
-          Uložiť projekt do databázy
+          <Typography fontWeight={550} fontSize="14px">
+            Uložiť projekt do databázy
+          </Typography>
         </Button>
       )}
     </>

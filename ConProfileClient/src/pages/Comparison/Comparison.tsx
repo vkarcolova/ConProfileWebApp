@@ -47,11 +47,10 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
   const [statData, setStatData] = useState<StatData[]>([]);
 
-
-  // useEffect(() => { 
+  // useEffect(() => {
   //   console.log('folders, statdata,chartdata,cheked');
   // console.log(folders);
-  // console.log(statData); 
+  // console.log(statData);
   // console.log(chartData);
   // console.log( checked);}
   // ), [statData, chartData, checked];
@@ -118,7 +117,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       fullWidth={true}
       maxWidth="lg"
     >
-      <DialogTitle sx={{ m: 0, p: 2,}} id="customized-dialog-title">
+      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
         Porovnanie profilov
       </DialogTitle>
       <IconButton
@@ -133,7 +132,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       >
         <CloseIcon />
       </IconButton>
-      <DialogContent dividers >
+      <DialogContent dividers>
         <Box className="dialog-content">
           <Box
             style={{ display: "flex", flexDirection: "row", minHeight: "100%" }}
@@ -144,7 +143,9 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                   {folders?.map((value) => (
                     <ListItem style={{ padding: "0px" }}>
                       <Checkbox
-                        onChange={(event) => handleChange(event, value.foldername)}
+                        onChange={(event) =>
+                          handleChange(event, value.foldername)
+                        }
                         inputProps={{ name: `${value.foldername}` }}
                         style={{
                           paddingTop: "0px",

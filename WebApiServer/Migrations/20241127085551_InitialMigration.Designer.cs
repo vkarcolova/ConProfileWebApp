@@ -12,8 +12,8 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20240824071013_Migration1")]
-    partial class Migration1
+    [Migration("20241127085551_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,20 @@ namespace WebApiServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.Property<string>("UserEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("UserEmail");
+
+                    b.ToTable("Users");
+                });
 
             modelBuilder.Entity("WebApiServer.Models.Factors", b =>
                 {
@@ -144,6 +158,9 @@ namespace WebApiServer.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
 
                     b.Property<string>("ProjectName")
                         .IsRequired()

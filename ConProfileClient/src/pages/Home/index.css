@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext");
 
 .welcomebar {
   min-width: 100%;
@@ -23,15 +23,9 @@
   overflow: hidden;
   background-color: #e6e5e5;
 }
-.tab-container {
-  width: 60%;
-  padding-top: 20px;
-  max-height: 200px;
-  overflow-y: auto;
-}
 
 .table-head {
   font-weight: bold;
   font-size: 13px;
-  font-family: 'Poppins';
+  font-family: "Poppins";
 }

@@ -10,9 +10,11 @@ namespace WebApiServer.Models
     {
         [Key]
         public int IdProject { get; set; }
-        public string ProjectName {get; set; }
+        public string ProjectName { get; set; }
 
         public string Token { get; set; }
+
+        public string? CreatedBy {  get; set; } = null;
 
         public DateTime Created { get; set; }
 

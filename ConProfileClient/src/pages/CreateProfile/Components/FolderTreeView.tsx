@@ -73,6 +73,10 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
+          color: "black",
+          "& *": {
+            color: "inherit",
+          },
         }}
       >
         {projectData && (
@@ -109,6 +113,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                         sx={{
                           fontWeight:
                             index == selectedFolder ? "bold" : "normal",
+                          fontSize: { md: "1rem", lg: "1.2rem" },
                         }}
                       >
                         {folder.label}

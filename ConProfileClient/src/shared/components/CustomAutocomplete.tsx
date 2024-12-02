@@ -49,7 +49,7 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
         disablePortal
         freeSolo
         size="small"
-        sx={{ backgroundColor: "white", borderRadius: 1, width: 70 }}
+        sx={{ backgroundColor: "white", borderRadius: 1, width: "70%" }}
         id={`autocomplete-${id}`}
         options={factors.map((option) => option.factor)}
         value={selectedValue !== null ? selectedValue.toString() : ""}

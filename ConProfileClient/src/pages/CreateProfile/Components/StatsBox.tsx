@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Card, Grid, Typography } from "@mui/material";
 import React from "react";
 import { StatData } from "../../../shared/types";
 
@@ -11,8 +11,19 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
   multipliedStatsData,
 }) => {
   return (
-    <Box className="statsContainer">
-      <Box className="stats">
+    <Box
+      sx={{
+        height: "100%",
+        minWidth: "55%",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Card
+        variant="outlined"
+        className="stats"
+        sx={{ maxHeight: "40%", borderRadius: "30px", marginLeft: "10px" }}
+      >
         <Box className="statsHead">
           <h3>Štatistiky</h3>
         </Box>
@@ -23,8 +34,8 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
             marginTop: "10px",
           }}
         >
-          <Box className="statsColumn">
-            <h4>Originálne</h4>
+          <Grid className="statsColumn" item xs={12} sm={6}>
+            <Typography sx={{ fontSize: "15px" }}>Originálne</Typography>
             <Box
               className="center-items"
               style={{
@@ -35,19 +46,19 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
               }}
             >
               <Box>
-                <h4>Max</h4>
-                <h4>Min</h4>
-                <h4>Std</h4>
+                <h5 style={{ fontWeight: "550" }}>Max</h5>
+                <h5 style={{ fontWeight: "550" }}>Min</h5>
+                <h5 style={{ fontWeight: "550" }}>Std</h5>
               </Box>
-              <Box sx={{minWidth: '72px', minHeight: '80px'}}>
+              <Box sx={{ minWidth: "72px", minHeight: "80px" }}>
                 <h5>{statsData.max.toFixed(5)}</h5>
                 <h5>{statsData.min.toFixed(5)}</h5>
                 <h5>{statsData.std.toFixed(5)}</h5>
               </Box>
             </Box>
-          </Box>
-          <Box className="statsColumn">
-            <h4>Prenásobené</h4>
+          </Grid>
+          <Grid className="statsColumn" item xs={12} sm={6}>
+            <Typography sx={{ fontSize: "15px" }}>Prenásobené</Typography>
             <Box
               className="center-items"
               style={{
@@ -57,16 +68,22 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
                 textAlign: "center",
               }}
             >
-              <Box >
-              <h4>Max</h4>
-                <h4>Min</h4>
-                <h4>Std</h4>
+              <Box>
+                <h5 style={{ fontWeight: "550" }}>Max</h5>
+                <h5 style={{ fontWeight: "550" }}>Min</h5>
+                <h5 style={{ fontWeight: "550" }}>Std</h5>
               </Box>
-              <Box sx={{minWidth: '72px', minHeight: '80px', backgroundColor: 'white'}}>
+              <Box
+                sx={{
+                  minWidth: "72px",
+                  minHeight: "80px",
+                  backgroundColor: "white",
+                }}
+              >
                 <h5>
                   {multipliedStatsData
                     ? multipliedStatsData.max.toFixed(5)
-                    : "     "}
+                    : ""}
                 </h5>
                 <h5>
                   {multipliedStatsData
@@ -80,9 +97,9 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
                 </h5>
               </Box>
             </Box>
-          </Box>
+          </Grid>
         </Box>
-      </Box>
+      </Card>
     </Box>
   );
 };

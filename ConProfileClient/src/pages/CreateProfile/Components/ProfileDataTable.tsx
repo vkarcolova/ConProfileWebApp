@@ -7,6 +7,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Typography,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { Profile } from "../../../shared/types";
@@ -115,7 +116,9 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
               borderBlock: "none",
             }}
           >
-            {rows.excitation.toFixed(5)}
+            <Typography fontSize={"12px"}>
+              {rows.excitation.toFixed(5)}
+            </Typography>
           </TableCell>
           <TableCell
             style={{
@@ -124,7 +127,9 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
               borderBlock: "none",
             }}
           >
-            {rows.intensity.toFixed(5)}
+            <Typography fontSize={"12px"}>
+              {rows.intensity.toFixed(5)}
+            </Typography>
           </TableCell>
         </React.Fragment>
       </>
@@ -135,7 +140,7 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
 
   return (
     <Box className="table-container">
-      <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
+       <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
         <TableVirtuoso
           style={{ height: "45vh", width: "100%" }}
           data={tableRows}

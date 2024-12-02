@@ -6,6 +6,8 @@
         public string FILENAME { get; set; }
         public string FOLDERNAME { get; set; }
         public string CONTENT {  get; set; }
+        public string? USEREMAIL { get; set; }
+
     }
 
     public class IntensityDTO
@@ -39,6 +41,7 @@
         public string PROJECTNAME { get; set; }
         public List<FolderDTO> FOLDERS { get; set; }
         public DateTime CREATED { get; set; }
+        public string? USEREMAIL { get; set; }
     }
 
     public class MultiplyDataDTO
@@ -57,4 +60,17 @@
         public List<int> FOLDERIDS { get; set; } = new List<int>();
     }
 
+
+    public class RegisterFormDTO
+    {
+        public string EMAIL { get; set; }
+        public string PASSWORD { get; set; }
+        public string PASSWORD2 { get; set; }
+    }
+
+    public class LoginDto
+    {
+        public string EMAIL { get; set; }
+        public string PASSWORD { get; set; }
+    }
 }
