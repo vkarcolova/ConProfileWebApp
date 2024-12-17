@@ -1,6 +1,6 @@
 import "../../index.css";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
-import { FolderDTO, FileContent, ProjectDTO } from "../../shared/types";
+import { FolderDTO, ProjectDTO } from "../../shared/types";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 import {
@@ -23,9 +23,9 @@ import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useUserContext } from "../../shared/context/useContext";
+import BatchDataLoadButtonModal from "./components/BatchDataLoadButtonModal";
 
 const Home: React.FC = () => {
-  const inputRefFolders = useRef<HTMLInputElement>(null);
   const inputRefProject = useRef<HTMLInputElement>(null);
 
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
@@ -35,73 +35,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     getProjectsByUser();
   }, [user]);
-
-  const handleSelectFolder = () => {
-    try {
-      if (inputRefFolders.current) {
-        inputRefFolders.current.click();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleUploadNewData = async (e: ChangeEvent<HTMLInputElement>) => {
-    try {
-      const selectedFiles = e.target.files;
-      if (selectedFiles) {
-        const filesArray: File[] = Array.from(selectedFiles).filter((file) => {
-          const pathParts = file.webkitRelativePath.split("/");
-          return file.name.endsWith(".sp") && pathParts.length === 2;
-        });
-        const folderName = filesArray[0].webkitRelativePath.split("/")[0];
-        const loadedFiles: FileContent[] = [];
-
-        const readFileAsync = (file: File): Promise<string> => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              if (event.target) {
-                resolve(event.target.result as string);
-              } else {
-                reject(new Error("Failed to read file."));
-              }
-            };
-            reader.readAsText(file);
-          });
-        };
-
-        for (const file of filesArray) {
-          try {
-            const result = await readFileAsync(file);
-            const loadedFile: FileContent = {
-              IDPROJECT: -1,
-              FILENAME: file.name,
-              FOLDERNAME: folderName,
-              CONTENT: result,
-            };
-
-            loadedFiles.push(loadedFile);
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        try {
-          await clientApi.createProject(loadedFiles).then((response) => {
-            const token = response.data.token;
-            localStorage.setItem("token", token);
-            const objString = JSON.stringify(response.data.project);
-            sessionStorage.setItem("loadeddata", objString);
-            navigate("/uprava-profilu/");
-          });
-        } catch (error) {
-          console.error("Chyba pri načítavaní dát:", error);
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const handleSelectProject = () => {
     try {
@@ -287,42 +220,13 @@ const Home: React.FC = () => {
         />
         <Box
           className="emptydiv"
-          sx={{ minWidth: "100%", minHeight: "30%" }}
+          sx={{
+            minWidth: "100%",
+            minHeight: "20%",
+          }}
         ></Box>
         <Box className="button-container">
-          <Button
-            onClick={handleSelectFolder}
-            sx={{
-              backgroundColor: "rgba(59, 49, 119, 0.87)",
-              width: "300px",
-              borderRadius: "30px",
-              color: "white",
-              padding: "10px",
-              marginBlock: "5px",
-              height: "70px",
-
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: "#625b92",
-                color: "white",
-              },
-              boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
-            }}
-          >
-            <Typography fontWeight={500} fontSize={"20px"}>
-              Načítať dáta
-            </Typography>
-          </Button>
-
-          <input
-            ref={inputRefFolders}
-            type="file"
-            directory=""
-            webkitdirectory=""
-            onChange={handleUploadNewData}
-            multiple
-            style={{ display: "none" }}
-          />
+          <BatchDataLoadButtonModal />
 
           <Button
             onClick={handleSelectProject}
@@ -359,7 +263,10 @@ const Home: React.FC = () => {
 
         <Box
           className="welcomebar"
-          sx={{ position: "absolute", bottom: "100px" }}
+          sx={{
+            position: "absolute",
+            bottom: { xl: "100px", md: "50px", xs: "30px" },
+          }}
         >
           {projectsData && projectsData?.length > 0 && (
             <>
