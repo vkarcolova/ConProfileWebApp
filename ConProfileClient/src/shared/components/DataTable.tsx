@@ -48,7 +48,7 @@ const DataTable: React.FC<DataTableProps> = ({
     }
 
     setIntensityRows(rows);
-  }, []);
+  }, [tableData]);
 
   const [intensityRows, setIntensityRows] = React.useState<RowData[]>([]);
   const calculateColumnWidth = () => {

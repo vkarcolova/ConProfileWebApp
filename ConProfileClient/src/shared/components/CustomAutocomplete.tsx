@@ -8,12 +8,14 @@ interface CustomInputAutocompleteProps {
   columnSpectrum: number;
   id: number;
   allFactors: Factors[];
+  changeFactorValue?: (id: number, value: number | null) => void;
 }
 
 const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
   columnSpectrum,
   allFactors,
   id,
+  changeFactorValue,
 }) => {
   const [selectedValue, setSelectedValue] = React.useState<number | null>(null);
   const [factors, setFactors] = React.useState<Factors[]>([]);
@@ -26,6 +28,9 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
 
     const defaultFactor = filtered.length > 0 ? filtered[0].factor : null;
     setSelectedValue(defaultFactor);
+    if (changeFactorValue) {
+      changeFactorValue(id, defaultFactor);
+    }
   }, [columnSpectrum, allFactors]);
 
   const parseNumber = (input: string | number | null): number | null => {
@@ -41,8 +46,21 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
     newValue: string | number | null
   ) => {
     setSelectedValue(parseNumber(newValue));
+    if (changeFactorValue) {
+      changeFactorValue(id, parseNumber(newValue));
+    }
   };
 
+  const handleInputChange = (
+    event: React.SyntheticEvent,
+    newInputValue: string
+  ) => {
+    const parsedValue = parseNumber(newInputValue);
+    setSelectedValue(parsedValue);
+    if (changeFactorValue) {
+      changeFactorValue(id, parsedValue);
+    }
+  };
   return (
     <label>
       <Autocomplete
@@ -56,6 +74,7 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
         getOptionLabel={(option) => option.toString()}
         onChange={handleAutocompleteChange}
         renderInput={(params) => <TextField {...params} label="Faktor" />}
+        onInputChange={handleInputChange}
       />
     </label>
   );

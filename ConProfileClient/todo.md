@@ -2,11 +2,13 @@
 
 NAJSKOR
 
-- [ ] Tlacitko vytvorit csv bude disabled ak kazdy autocomplete nebdue vyplneny
-- [ ] Vytvorenie CSV
-- [ ] Rovno aj do create profile
+- [x] Tlacitko vytvorit csv bude disabled ak kazdy autocomplete nebdue vyplneny
+- [x] Rovno aj do create profile
+- [x] Vytvorenie CSV - ako v create profile len na prvom slajde budu vsetky profily
 - [ ] Vyskusat dopocitanie tych dat
 - [ ] 15-92 ????
+
+- [ ] Mazanie foldername neexistuje pri mazani projektu docasneho
 
 Ked
 

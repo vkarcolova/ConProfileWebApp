@@ -31,9 +31,7 @@ import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRou
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import {
-  emptyTable,
-} from "../../shared/styles";
+import { emptyTable } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
@@ -46,9 +44,7 @@ import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { ProfileMenu } from "./Components/ProfileMenu";
 
-
 const CreateProfile: React.FC = () => {
-
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
   const [factors, setFactors] = React.useState<Factors[]>([]);
@@ -71,9 +67,6 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
-  // useEffect(() => {
-  //   console.log(selectedFolder);
-  // }, [selectedFolder]);
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -213,7 +206,6 @@ const CreateProfile: React.FC = () => {
         const project = await clientApi.loadProjectFromId(loadedProjectId);
         setProjectData(project);
         const comparefolders: FolderDTO[] = [];
-        console.log(project.folders.length);
 
         const folders: AllFolderData[] = [];
         project.folders.forEach(async (folder) => {
@@ -526,7 +518,6 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleProjectNameSave = async (projectName: string) => {
-    console.log("here");
     if (projectName === projectData?.projectname) return;
 
     const newProject: ProjectDTO = {
@@ -543,8 +534,8 @@ const CreateProfile: React.FC = () => {
   };
 
   const deleteProjectFolders = async (selectedFolders: string[]) => {
+    console.log(selectedFolders);
     if (loadedProjectId) {
-      console.log("deleteProjectFolders");
       const folderIdToDelete: number[] = [];
       projectFolders.forEach((value) => {
         if (selectedFolders.includes(value.folderData.foldername))
@@ -563,29 +554,23 @@ const CreateProfile: React.FC = () => {
           }
         });
     } else {
-      const project: ProjectDTO = { ...projectData! };
-      let folders: AllFolderData[] = projectFolders;
-      const foldersToDelete: FolderDTO[] = [];
-      project.folders.forEach((value) => {
-        if (selectedFolders.includes(value.foldername)) {
-          foldersToDelete.push(value);
-        }
-      });
-      project.folders = project.folders.filter((value) =>
-        selectedFolders.includes(value.foldername)
+      const projectCopy: ProjectDTO = {
+        ...projectData!,
+        folders: [...projectData!.folders],
+      };
+
+      projectCopy.folders = projectCopy.folders.filter(
+        (folder) => !selectedFolders.includes(folder.foldername)
       );
 
-      folders = folders.filter((value) =>
-        selectedFolders.includes(value.folderData.foldername)
-      );
-      project.folders = project.folders.filter(
-        (value) =>
-          value.foldername !== project.folders[selectedFolder].foldername
+      const updatedFolders = projectFolders.filter(
+        (folderData) =>
+          !selectedFolders.includes(folderData.folderData.foldername)
       );
 
-      setProjectData(project);
-      setProjectFolders(folders);
-      saveSessionData(project);
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
     }
     setDeletingFolders(false);
     setSelectedFolder(0);
@@ -795,7 +780,12 @@ const CreateProfile: React.FC = () => {
                   />
                 </Box>
                 <Box className="buttonContainerRows">
-                  <ExportMenu projectData={projectData} />
+                  <ExportMenu
+                    projectData={projectData}
+                    multiplied={!projectFolders[selectedFolder].multiplied}
+                    tableData={projectFolders[selectedFolder].tableData!}
+                    profile={projectFolders[selectedFolder].profileData}
+                  />
                   <SaveToDbButton
                     loadedProjectId={loadedProjectId}
                     projectData={projectData}
@@ -992,7 +982,6 @@ const CreateProfile: React.FC = () => {
           </Grid>
         </>
       )}
-
     </>
   );
 };

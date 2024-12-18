@@ -10,11 +10,18 @@ import {
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../../shared/apis";
-import { Factors, FileContent, FolderDTO } from "../../../shared/types";
+import {
+  Factors,
+  FileContent,
+  FolderDTO,
+  IntensityDTO,
+  TableDataColumn,
+} from "../../../shared/types";
 import { useNavigate } from "react-router-dom";
 import MultiFolderUploader from "./MultiFolderUploader";
 import { NunuButton } from "../../../shared/components/NunuButton";
 import CustomInputAutocomplete from "../../../shared/components/CustomAutocomplete";
+import { toast } from "react-toastify";
 
 interface BatchDataLoadButtonModalProps {}
 
@@ -28,34 +35,32 @@ const BatchDataLoadButtonModal: React.FC<
   const [step, setStep] = useState<number>(1);
   const [folders, setFolders] = useState<FolderDTO[]>([]);
   const [spectrums, setSpectrums] = useState<string[]>([]);
-  const [factors, setFactors] = React.useState<Factors[]>([]);
+  const [allFactors, setAllFactors] = React.useState<Factors[]>([]);
+  const [inputFactors, setInputFactors] = React.useState<(number | null)[]>([]);
 
   useEffect(() => {
+    console.log(folders);
     if (folders.length > 0 && step === 3) {
       const uniqueSpectrums = new Set<string>();
 
       folders.forEach((folder) => {
         folder.data.forEach((file) => {
           if (file.spectrum === -1) {
-            // Pridá názov súboru, ak spektrum je -1
             uniqueSpectrums.add(file.filename);
           } else {
-            // Pridá spektrum ako string
             uniqueSpectrums.add(file.spectrum.toString());
           }
         });
       });
 
-      // Pole spektier bez duplikátov
       setSpectrums(Array.from(uniqueSpectrums));
-      console.log("Unique Spectra:", uniqueSpectrums);
       const fetchFactors = async () => {
         const factorsdata = localStorage.getItem("factorsdata");
         const localFactors: Factors[] = factorsdata
           ? JSON.parse(factorsdata)
           : [];
         const updatedFactors = await clientApi.getFactors(localFactors);
-        setFactors(updatedFactors);
+        setAllFactors(updatedFactors);
       };
       fetchFactors();
     }
@@ -127,12 +132,130 @@ const BatchDataLoadButtonModal: React.FC<
       console.log(error);
     }
   };
+  const changeFactorsValue = (id: number, value: number | null) => {
+    const factors: (number | null)[] = [];
+    spectrums.forEach((_, index) => {
+      const autocompleteInput = document.getElementById(
+        `autocomplete-${index}`
+      ) as HTMLInputElement | null;
+
+      const inputFactor =
+        autocompleteInput &&
+        (autocompleteInput.value !== null || autocompleteInput?.value !== "")
+          ? parseFloat(autocompleteInput.value)
+          : null;
+
+      factors.push(inputFactor);
+    });
+
+    const updatedFactors = [...factors];
+    updatedFactors[id] = value;
+    setInputFactors(updatedFactors);
+  };
+
+  const extractAndSortExcitations = (folders: FolderDTO[]): number[] => {
+    const excitationSet: Set<number> = new Set(); // Používame Set na unikátne hodnoty
+    folders.forEach((folder) => {
+      folder.data.forEach((file) => {
+        file.intensity.forEach((intensityObj) => {
+          if (intensityObj.excitation !== null) {
+            excitationSet.add(intensityObj.excitation);
+          }
+        });
+      });
+    });
+
+    const sortedExcitations = Array.from(excitationSet).sort((a, b) => a - b);
+    return sortedExcitations;
+  };
+
+  const createCSV = () => {
+    if (
+      inputFactors.filter((factor) => factor == null).length > 0 ||
+      inputFactors == null
+    ) {
+      toast.error("Neboli vyplnené všetky faktory.");
+      return;
+    }
+
+    const excitationValues = extractAndSortExcitations(folders);
+    console.log(excitationValues);
+
+    const masterMatrix = [];
+    const header = [];
+    header.push("Excitacie");
+    masterMatrix.push(excitationValues);
+    folders.forEach((folderData) => {
+      const folderIntensitiesColums: TableDataColumn[] = [];
+
+      folderData.data.forEach((file) => {
+        let intensities: (IntensityDTO | null)[] = [];
+
+        intensities = excitationValues.map((value) => {
+          const singleIntensity = file.intensity.find(
+            (x) => x.excitation === value
+          );
+          return singleIntensity ? singleIntensity : null;
+        });
+        const index = spectrums.indexOf(file.spectrum.toString());
+        const column: TableDataColumn = {
+          name: file.filename,
+          intensities: intensities.map((x) =>
+            x?.intensity ? x?.intensity * inputFactors[index]! : x?.intensity
+          ),
+          spectrum: file.spectrum,
+        };
+        folderIntensitiesColums.push(column);
+      });
+      const profile = [];
+      for (let i = 0; i < excitationValues.length; i++) {
+        let maxIntensity = folderIntensitiesColums[0].intensities[i];
+        folderIntensitiesColums.forEach((column) => {
+          if (
+            column.intensities[i] != undefined &&
+            (maxIntensity === undefined ||
+              column.intensities[i]! > maxIntensity)
+          ) {
+            maxIntensity = column.intensities[i];
+          }
+        });
+        profile.push(maxIntensity);
+      }
+      console.log(profile);
+      masterMatrix.push(profile);
+      header.push(folderData.foldername);
+    });
+    console.log(masterMatrix);
+    console.log(header);
+
+    const rows = [];
+    rows.push(header.join(";"));
+
+    const rowCount = masterMatrix[0].length;
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = masterMatrix.map((column) =>
+        column[i] !== undefined ? column[i] : ""
+      ); // Pridaj hodnoty z každého stĺpca
+      rows.push(row.join(";"));
+    }
+
+    const csvContent = rows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "profily.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const renderStepContent = () => {
     if (step === 1) {
       return (
         <Box display="flex" alignItems="center" gap={4} sx={{ height: "100%" }}>
-          {/* Textová časť */}
           <Typography
             variant="body1"
             sx={{
@@ -158,7 +281,6 @@ const BatchDataLoadButtonModal: React.FC<
             okamžite stiahnuť.
           </Typography>
 
-          {/* Tlačidlá */}
           <Box
             display="flex"
             flexDirection="column"
@@ -262,7 +384,6 @@ const BatchDataLoadButtonModal: React.FC<
             </Typography>
           </Box>
 
-          {/* Grid pre Autocomplete komponenty */}
           <Box
             mt={2}
             sx={{
@@ -295,16 +416,16 @@ const BatchDataLoadButtonModal: React.FC<
                 <CustomInputAutocomplete
                   columnSpectrum={Number(spectrum)}
                   id={index}
-                  allFactors={factors}
+                  allFactors={allFactors}
+                  changeFactorValue={changeFactorsValue}
                 />
               </Box>
             ))}
           </Box>
 
-          {/* Tlačidlo na vytvorenie CSV */}
           <Box mt={2} display="flex" justifyContent="center">
             <NunuButton
-              onClick={() => console.log("Upload")}
+              onClick={() => createCSV()}
               bgColour="#BFC2D2"
               textColour="rgba(59, 49, 119, 0.87)"
               hoverTextColour="white"
@@ -315,8 +436,12 @@ const BatchDataLoadButtonModal: React.FC<
                 height: "30px",
                 borderRadius: "30px",
                 width: "100%",
+                boxShadow: "none",
               }}
               fontSize="13px"
+              disabled={
+                inputFactors.filter((factor) => factor === null).length > 0
+              }
             />
           </Box>
         </Box>
@@ -368,6 +493,7 @@ const BatchDataLoadButtonModal: React.FC<
             setStep(1);
             setFolders([]);
             setSpectrums([]);
+            setInputFactors([]);
           }}
           sx={{
             position: "absolute",

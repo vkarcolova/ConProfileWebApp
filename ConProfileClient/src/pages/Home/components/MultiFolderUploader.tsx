@@ -119,7 +119,6 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
 
     try {
       await clientApi.batchProcessFolders(loadedFiles).then((response) => {
-        console.log(response);
         setLoading(false);
         setFolders(response.data.folders);
         setStep(3);
@@ -223,6 +222,7 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
             height: "30px",
             borderRadius: "30px",
             width: "100%",
+            boxShadow: "none",
           }}
           fontSize="13px"
           disabled={acceptedFiles.length === 0}
