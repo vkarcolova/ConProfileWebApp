@@ -2,9 +2,6 @@
 
 NAJSKOR
 
-- [x] Tlacitko vytvorit csv bude disabled ak kazdy autocomplete nebdue vyplneny
-- [x] Rovno aj do create profile
-- [x] Vytvorenie CSV - ako v create profile len na prvom slajde budu vsetky profily
 - [ ] Vyskusat dopocitanie tych dat
 - [ ] 15-92 ????
 
@@ -12,6 +9,7 @@ NAJSKOR
 
 Ked
 
+- [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Nech sa nedostane na neznamu stranku ale na /
 - [ ] Exporty
 - [ ] Iny graf

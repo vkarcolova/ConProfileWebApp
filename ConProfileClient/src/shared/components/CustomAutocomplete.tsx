@@ -67,7 +67,25 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
         disablePortal
         freeSolo
         size="small"
-        sx={{ backgroundColor: "white", borderRadius: 1, width: "70%" }}
+        sx={{
+          backgroundColor: "#f3f2fe",
+          paddingTop: "5px",
+          borderRadius: 1,
+          width: "85%",
+
+          "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+            marginTop: "5px",
+            //paddingBottom: "5px",
+          },
+          "& .MuiInputLabel-root:not(.MuiInputLabel-shrink)": {
+            transform: "translate(14px, 45%)",
+          },
+          "& .MuiOutlinedInput-root": {
+            "& legend": {
+              display: "none",
+            },
+          },
+        }}
         id={`autocomplete-${id}`}
         options={factors.map((option) => option.factor)}
         value={selectedValue !== null ? selectedValue.toString() : ""}

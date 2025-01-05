@@ -829,7 +829,8 @@ const CreateProfile: React.FC = () => {
                     sx={{
                       width: "55%",
                       height: "100%",
-                      paddingTop: "10px",
+                      paddingTop: "25px",
+                      paddingRight: "10px",
                     }}
                   >
                     <DataTable
@@ -838,24 +839,29 @@ const CreateProfile: React.FC = () => {
                       factors={factors}
                     />
                   </Grid>
-                  <Box
+                  <Grid
                     className="otherContainer"
-                    style={{ width: "45%", height: "100%", paddingTop: "10px" }}
+                    style={{
+                      width: "45%",
+                      height: "100%",
+                      paddingTop: "10px",
+                      paddingLeft: "4px",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                    }}
                   >
                     <Box className="buttonCreateProfil">
                       <NunuButton
                         onClick={multiplyButtonClick}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Vytvoriť profil"
                         sx={{
-                          backgroundColor: "black",
                           maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "30px",
                           width: "100%",
                         }}
                         fontSize="12px"
@@ -863,19 +869,17 @@ const CreateProfile: React.FC = () => {
 
                       <NunuButton
                         onClick={() => {}}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Exportovať graf"
                         sx={{
-                          backgroundColor: "black",
+                          maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "auto",
-                          marginRight: "30px",
-                          maxWidth: "150px",
                           width: "100%",
+                          marginRight: "10px",
                         }}
                         fontSize="12px"
                       />
@@ -886,6 +890,7 @@ const CreateProfile: React.FC = () => {
                           height: "83%",
                           margin: "10px",
                           backgroundColor: "white",
+                          boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 10px",
                         }}
                       >
                         <ScatterChart
@@ -902,12 +907,15 @@ const CreateProfile: React.FC = () => {
                           )}
                           yAxis={[{ min: 0 }]}
                           xAxis={[{ min: 250 }]}
+                          sx={{
+                            backgroundColor: "white",
+                          }}
                         />
                       </Box>
                     ) : (
                       ""
                     )}
-                  </Box>
+                  </Grid>
                 </Grid>
                 <Grid
                   xs={12}
@@ -924,6 +932,7 @@ const CreateProfile: React.FC = () => {
                       alignContent: "center",
                       display: "flex",
                       justifyContent: "center",
+                      paddingRight: "10px",
                     }}
                   >
                     {isLoading ? (
@@ -949,6 +958,9 @@ const CreateProfile: React.FC = () => {
                       width: "45%",
                       flexDirection: "row",
                       display: "flex",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                      paddingLeft: "8px",
                     }}
                   >
                     <Box
@@ -967,14 +979,25 @@ const CreateProfile: React.FC = () => {
                         <Box className="emptyTable"></Box>
                       )}
                     </Box>
-                    <StatsBox
-                      statsData={projectFolders[selectedFolder].normalStatData}
-                      multipliedStatsData={
-                        projectFolders[selectedFolder].multiplied
-                          ? projectFolders[selectedFolder].multipliedStatData
-                          : undefined
-                      }
-                    />
+                    <Box
+                      sx={{
+                        height: "100%",
+                        width: "60%",
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <StatsBox
+                        statsData={
+                          projectFolders[selectedFolder].normalStatData
+                        }
+                        multipliedStatsData={
+                          projectFolders[selectedFolder].multiplied
+                            ? projectFolders[selectedFolder].multipliedStatData
+                            : undefined
+                        }
+                      />
+                    </Box>
                   </Box>
                 </Grid>
               </Grid>
