@@ -48,7 +48,7 @@ const DataTable: React.FC<DataTableProps> = ({
     }
 
     setIntensityRows(rows);
-  }, []);
+  }, [tableData]);
 
   const [intensityRows, setIntensityRows] = React.useState<RowData[]>([]);
   const calculateColumnWidth = () => {
@@ -184,7 +184,11 @@ const DataTable: React.FC<DataTableProps> = ({
   return (
     <TableContainer
       component={Paper}
-      sx={{ maxHeight: "45vh", textAlign: "center" }}
+      sx={{
+        maxHeight: "45vh",
+        textAlign: "center",
+        boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+      }}
     >
       <TableVirtuoso
         style={{ height: "45vh", width: "100%" }}
@@ -192,6 +196,8 @@ const DataTable: React.FC<DataTableProps> = ({
         components={VirtuosoTableComponents}
         itemContent={rowContent}
         fixedHeaderContent={fixedHeaderContent}
+        overscan={10}
+        totalCount={intensityRows.length}
       />
     </TableContainer>
   );

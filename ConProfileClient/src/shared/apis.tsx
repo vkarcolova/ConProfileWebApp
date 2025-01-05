@@ -160,6 +160,18 @@ export const clientApi = {
     );
   },
 
+  batchProcessFolders: async (loadedFiles: FileContent[]) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/BatchProcessFolders`,
+      JSON.stringify(loadedFiles),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
   postFolderToProject: async (loadedFiles: FileContent[]) => {
     return axios.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,

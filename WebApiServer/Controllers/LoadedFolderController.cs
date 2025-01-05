@@ -40,7 +40,7 @@ namespace WebApiServer.Controllers
                 if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
                     return Unauthorized("Neplatné prihlásenie");
 
-                var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken  || p.CreatedBy == userEmail ) 
+                var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
                               && p.IdProject == loadedFiles[0].IDPROJECT);
                 if (existingProject != null)
                 {
@@ -66,7 +66,7 @@ namespace WebApiServer.Controllers
             if (loadedFiles != null && loadedFiles.Any())
             {
                 FolderDTO result = _dataProcessService.ProcessUploadedFolder(loadedFiles);
-                if (result != null)  return Ok(new { FOLDER = result });
+                if (result != null) return Ok(new { FOLDER = result });
                 else return BadRequest(result);
 
             }
@@ -89,5 +89,29 @@ namespace WebApiServer.Controllers
                 return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
             }
         }
+
+        //Spracovanie suborov a poslanie ich vo forme dto este nesavnutie
+        [HttpPost("BatchProcessFolders")]
+        public async Task<IActionResult> BatchProcessFolders([FromBody] FileContent[] loadedFiles)
+        {
+            if (loadedFiles != null && loadedFiles.Any())
+            {
+                List<FolderDTO> folders = new List<FolderDTO>();
+                var groupedByFolder = loadedFiles.GroupBy(f => f.FOLDERNAME);
+                foreach (var folderGroup in groupedByFolder)
+                {
+                    var folderFiles = folderGroup.ToArray();
+                    var folderDTO = _dataProcessService.ProcessUploadedFolder(folderFiles);
+                    folders.Add(folderDTO);
+                }
+
+                if (folders.Count != 0)
+                    return Ok(new { FOLDERS = folders });
+                else
+                    return BadRequest();
+            }
+
+            return BadRequest("No files uploaded.");
+        }
     }
-}
+    }

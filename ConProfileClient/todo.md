@@ -2,17 +2,14 @@
 
 NAJSKOR
 
-- [x] Dorobit prihlasovanie/registraciu
-- [x] Ukazanie profilu dole
-      -~~ [ ]Po prihlaseni/registracii sa spytat ci treba ostatne prepisat na profil + pridat stlpik ci je to ulozene k profilu alebo prehliadacu~~
-- [ ] Po prihlaseni alebo registracii sa vsetky projekty prepisu na pouzivatela
-      pridat funkciu get podla loginu
-      pridat ked sa po prihlaseni alebo registracii sa vsetky projekty prepisu na pouzivatela
-      pridat email do tokenu
+- [ ] Vyskusat dopocitanie tych dat
 - [ ] 15-92 ????
+
+- [ ] Mazanie foldername neexistuje pri mazani projektu docasneho
 
 Ked
 
+- [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Nech sa nedostane na neznamu stranku ale na /
 - [ ] Exporty
 - [ ] Iny graf

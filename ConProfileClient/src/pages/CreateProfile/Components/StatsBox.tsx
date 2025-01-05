@@ -17,12 +17,18 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
         minWidth: "55%",
         justifyContent: "center",
         alignItems: "center",
+        paddingTop: "30%",
       }}
     >
       <Card
         variant="outlined"
         className="stats"
-        sx={{ maxHeight: "40%", borderRadius: "30px", marginLeft: "10px" }}
+        sx={{
+          maxHeight: "50%",
+          borderRadius: "30px",
+          marginLeft: "10px",
+          boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+        }}
       >
         <Box className="statsHead">
           <h3>Štatistiky</h3>

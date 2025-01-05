@@ -139,8 +139,11 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
   const [tableRows, setTableRows] = React.useState<RowData[]>([]);
 
   return (
-    <Box className="table-container">
-       <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
+    <Box
+      className="table-container"
+      sx={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px" }}
+    >
+      <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
         <TableVirtuoso
           style={{ height: "45vh", width: "100%" }}
           data={tableRows}

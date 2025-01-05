@@ -40,6 +40,6 @@ export const darkButtonStyle = {
 
 export const emptyTable = {
   minWidth: "100%",
-  minHeight: "45vh",
+  height: "45vh",
   backgroundColor: "#f7f6f6",
 };

@@ -31,9 +31,7 @@ import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRou
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import {
-  emptyTable,
-} from "../../shared/styles";
+import { emptyTable } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
@@ -46,9 +44,7 @@ import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { ProfileMenu } from "./Components/ProfileMenu";
 
-
 const CreateProfile: React.FC = () => {
-
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
   const [factors, setFactors] = React.useState<Factors[]>([]);
@@ -71,9 +67,6 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
-  // useEffect(() => {
-  //   console.log(selectedFolder);
-  // }, [selectedFolder]);
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -213,7 +206,6 @@ const CreateProfile: React.FC = () => {
         const project = await clientApi.loadProjectFromId(loadedProjectId);
         setProjectData(project);
         const comparefolders: FolderDTO[] = [];
-        console.log(project.folders.length);
 
         const folders: AllFolderData[] = [];
         project.folders.forEach(async (folder) => {
@@ -526,7 +518,6 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleProjectNameSave = async (projectName: string) => {
-    console.log("here");
     if (projectName === projectData?.projectname) return;
 
     const newProject: ProjectDTO = {
@@ -543,8 +534,8 @@ const CreateProfile: React.FC = () => {
   };
 
   const deleteProjectFolders = async (selectedFolders: string[]) => {
+    console.log(selectedFolders);
     if (loadedProjectId) {
-      console.log("deleteProjectFolders");
       const folderIdToDelete: number[] = [];
       projectFolders.forEach((value) => {
         if (selectedFolders.includes(value.folderData.foldername))
@@ -563,29 +554,23 @@ const CreateProfile: React.FC = () => {
           }
         });
     } else {
-      const project: ProjectDTO = { ...projectData! };
-      let folders: AllFolderData[] = projectFolders;
-      const foldersToDelete: FolderDTO[] = [];
-      project.folders.forEach((value) => {
-        if (selectedFolders.includes(value.foldername)) {
-          foldersToDelete.push(value);
-        }
-      });
-      project.folders = project.folders.filter((value) =>
-        selectedFolders.includes(value.foldername)
+      const projectCopy: ProjectDTO = {
+        ...projectData!,
+        folders: [...projectData!.folders],
+      };
+
+      projectCopy.folders = projectCopy.folders.filter(
+        (folder) => !selectedFolders.includes(folder.foldername)
       );
 
-      folders = folders.filter((value) =>
-        selectedFolders.includes(value.folderData.foldername)
-      );
-      project.folders = project.folders.filter(
-        (value) =>
-          value.foldername !== project.folders[selectedFolder].foldername
+      const updatedFolders = projectFolders.filter(
+        (folderData) =>
+          !selectedFolders.includes(folderData.folderData.foldername)
       );
 
-      setProjectData(project);
-      setProjectFolders(folders);
-      saveSessionData(project);
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
     }
     setDeletingFolders(false);
     setSelectedFolder(0);
@@ -795,7 +780,12 @@ const CreateProfile: React.FC = () => {
                   />
                 </Box>
                 <Box className="buttonContainerRows">
-                  <ExportMenu projectData={projectData} />
+                  <ExportMenu
+                    projectData={projectData}
+                    multiplied={!projectFolders[selectedFolder].multiplied}
+                    tableData={projectFolders[selectedFolder].tableData!}
+                    profile={projectFolders[selectedFolder].profileData}
+                  />
                   <SaveToDbButton
                     loadedProjectId={loadedProjectId}
                     projectData={projectData}
@@ -839,7 +829,8 @@ const CreateProfile: React.FC = () => {
                     sx={{
                       width: "55%",
                       height: "100%",
-                      paddingTop: "10px",
+                      paddingTop: "25px",
+                      paddingRight: "10px",
                     }}
                   >
                     <DataTable
@@ -848,24 +839,29 @@ const CreateProfile: React.FC = () => {
                       factors={factors}
                     />
                   </Grid>
-                  <Box
+                  <Grid
                     className="otherContainer"
-                    style={{ width: "45%", height: "100%", paddingTop: "10px" }}
+                    style={{
+                      width: "45%",
+                      height: "100%",
+                      paddingTop: "10px",
+                      paddingLeft: "4px",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                    }}
                   >
                     <Box className="buttonCreateProfil">
                       <NunuButton
                         onClick={multiplyButtonClick}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Vytvoriť profil"
                         sx={{
-                          backgroundColor: "black",
                           maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "30px",
                           width: "100%",
                         }}
                         fontSize="12px"
@@ -873,19 +869,17 @@ const CreateProfile: React.FC = () => {
 
                       <NunuButton
                         onClick={() => {}}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Exportovať graf"
                         sx={{
-                          backgroundColor: "black",
+                          maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "auto",
-                          marginRight: "30px",
-                          maxWidth: "150px",
                           width: "100%",
+                          marginRight: "10px",
                         }}
                         fontSize="12px"
                       />
@@ -896,6 +890,7 @@ const CreateProfile: React.FC = () => {
                           height: "83%",
                           margin: "10px",
                           backgroundColor: "white",
+                          boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 10px",
                         }}
                       >
                         <ScatterChart
@@ -912,12 +907,15 @@ const CreateProfile: React.FC = () => {
                           )}
                           yAxis={[{ min: 0 }]}
                           xAxis={[{ min: 250 }]}
+                          sx={{
+                            backgroundColor: "white",
+                          }}
                         />
                       </Box>
                     ) : (
                       ""
                     )}
-                  </Box>
+                  </Grid>
                 </Grid>
                 <Grid
                   xs={12}
@@ -934,6 +932,7 @@ const CreateProfile: React.FC = () => {
                       alignContent: "center",
                       display: "flex",
                       justifyContent: "center",
+                      paddingRight: "10px",
                     }}
                   >
                     {isLoading ? (
@@ -959,6 +958,9 @@ const CreateProfile: React.FC = () => {
                       width: "45%",
                       flexDirection: "row",
                       display: "flex",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                      paddingLeft: "8px",
                     }}
                   >
                     <Box
@@ -977,14 +979,25 @@ const CreateProfile: React.FC = () => {
                         <Box className="emptyTable"></Box>
                       )}
                     </Box>
-                    <StatsBox
-                      statsData={projectFolders[selectedFolder].normalStatData}
-                      multipliedStatsData={
-                        projectFolders[selectedFolder].multiplied
-                          ? projectFolders[selectedFolder].multipliedStatData
-                          : undefined
-                      }
-                    />
+                    <Box
+                      sx={{
+                        height: "100%",
+                        width: "60%",
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <StatsBox
+                        statsData={
+                          projectFolders[selectedFolder].normalStatData
+                        }
+                        multipliedStatsData={
+                          projectFolders[selectedFolder].multiplied
+                            ? projectFolders[selectedFolder].multipliedStatData
+                            : undefined
+                        }
+                      />
+                    </Box>
                   </Box>
                 </Grid>
               </Grid>
@@ -992,7 +1005,6 @@ const CreateProfile: React.FC = () => {
           </Grid>
         </>
       )}
-
     </>
   );
 };

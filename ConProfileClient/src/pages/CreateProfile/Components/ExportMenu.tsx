@@ -12,7 +12,7 @@ import React from "react";
 import SsidChartIcon from "@mui/icons-material/SsidChart";
 import DatasetIcon from "@mui/icons-material/Dataset";
 import GetAppIcon from "@mui/icons-material/GetApp";
-import { ProjectDTO } from "../../../shared/types";
+import { Profile, ProjectDTO, TableData } from "../../../shared/types";
 import { saveAs } from "file-saver";
 
 const StyledMenu = styled((props: MenuProps) => (
@@ -60,8 +60,16 @@ const StyledMenu = styled((props: MenuProps) => (
 
 interface ExportMenuProps {
   projectData: ProjectDTO | null;
+  multiplied: boolean;
+  tableData: TableData;
+  profile: Profile | undefined;
 }
-export const ExportMenu: React.FC<ExportMenuProps> = ({ projectData }) => {
+export const ExportMenu: React.FC<ExportMenuProps> = ({
+  projectData,
+  multiplied,
+  tableData,
+  profile,
+}) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -77,6 +85,58 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ projectData }) => {
     saveAs(blob, `project.cprj`);
     handleClose();
   };
+
+  const handleExportDataAsCSV = () => {
+    const masterMatrix = [];
+    const header = [];
+    header.push("Excitacie");
+    masterMatrix.push(tableData.excitation);
+    tableData.intensities.forEach((intensity) => {
+      header.push(intensity.name);
+      masterMatrix.push(intensity.intensities);
+    });
+
+    if (tableData.multipliedintensities && profile) {
+      masterMatrix.push([]);
+      header.push("", "Excitacie");
+      masterMatrix.push(tableData.excitation);
+      tableData.multipliedintensities.forEach((intensity) => {
+        header.push(intensity.name);
+        masterMatrix.push(intensity.intensities);
+      });
+
+      header.push(" ", "Excitácie", "Profil");
+      masterMatrix.push([]);
+      masterMatrix.push(tableData.excitation);
+      masterMatrix.push(profile.profile);
+    }
+    console.log(masterMatrix);
+    console.log(header);
+
+    const rows = [];
+    rows.push(header.join(";"));
+
+    const rowCount = masterMatrix[0].length;
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = masterMatrix.map((column) =>
+        column[i] !== undefined ? column[i] : ""
+      );
+      rows.push(row.join(";"));
+    }
+
+    const csvContent = rows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       <Button
@@ -120,7 +180,11 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ projectData }) => {
           <GetAppIcon />
           Exportovať projekt
         </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem
+          onClick={handleExportDataAsCSV}
+          disableRipple
+          disabled={multiplied}
+        >
           <DatasetIcon />
           Exportovať dáta ako CSV
         </MenuItem>
