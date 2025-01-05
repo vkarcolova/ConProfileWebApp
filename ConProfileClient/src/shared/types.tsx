@@ -91,4 +91,5 @@ export interface AllFolderData {
   profileData: Profile;
   multiplied: boolean;
   tableData?: TableData;
+  emptyDataColums: (number | undefined)[][];
 }

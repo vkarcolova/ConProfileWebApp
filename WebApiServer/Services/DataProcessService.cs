@@ -122,12 +122,15 @@ namespace WebApiServer.Services
                             }
 
                         }
+                        bool emptyValues = false;
+
                         files.Add(new FileDTO
                         {
                             ID = -1,
                             FILENAME = loadedFiles[i].FILENAME,
                             SPECTRUM = spectrum,
-                            INTENSITY = intensityList
+                            INTENSITY = intensityList,
+                           
                         });
 
                     }

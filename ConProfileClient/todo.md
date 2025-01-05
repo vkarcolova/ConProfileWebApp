@@ -3,8 +3,16 @@
 NAJSKOR
 
 - [ ] Vyskusat dopocitanie tych dat
-- [ ] 15-92 ????
 
+FolderDTO bude mat ze ci obsahuje prazdne data
+Prejst kazdy stlpec ak obsahuje undefined tak je usestate true podla toho sa zobrazi button
+
+Vezmu sa iba stlpce ktore maju rpazdne data a tie sa poslu na backend poslu sa iba polia s tymi dopocitanymi
+DTO nazov pole
+a ak je undefined tak sa zobrazi dopocitane +index
+
+- [ ] 15-92 ????
+- [ ] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho
 
 Ked

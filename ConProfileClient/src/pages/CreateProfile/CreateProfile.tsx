@@ -26,6 +26,7 @@ import {
   Skeleton,
   Tooltip,
   tooltipClasses,
+  Typography,
 } from "@mui/material";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
@@ -118,7 +119,6 @@ const CreateProfile: React.FC = () => {
   const fillFolder = async (folderData: FolderDTO): Promise<AllFolderData> => {
     const dynamicChartData: ChartData[] = [];
     let allData: number[] = [];
-
     folderData.data.forEach((file) => {
       const intensities: number[] = file.intensity.map((dto) => dto.intensity);
       dynamicChartData.push({ data: intensities, label: file.filename });
@@ -134,12 +134,20 @@ const CreateProfile: React.FC = () => {
       folderData: folderData,
       profileData: { excitation: [], profile: [] },
       multiplied: false,
+      emptyDataColums: [],
     };
 
     if (folderData.profile) {
       fillMultipliedFolder(allFolderData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
+    const emptyColumns: (number | undefined)[][] = [];
+    allFolderData.tableData.intensities.forEach((column) => {
+      if (column.intensities.some((x) => x === undefined)) {
+        emptyColumns.push(column.intensities);
+      }
+    });
+    allFolderData.emptyDataColums = emptyColumns;
     return allFolderData;
   };
 
@@ -469,12 +477,12 @@ const CreateProfile: React.FC = () => {
 
       if (folder.multiplied) {
         folder.folderData.data.forEach((file) => {
-          let intensities: (IntensityDTO | null)[] = [];
+          let intensities: (IntensityDTO | undefined)[] = [];
           intensities = folder.folderData.excitation.map((value) => {
             const singleIntensity = file.intensity.find(
               (x) => x.excitation === value
             );
-            return singleIntensity ? singleIntensity : null;
+            return singleIntensity ? singleIntensity : undefined;
           });
           const multipliedColumn: TableDataColumn = {
             name: file.filename,
@@ -485,19 +493,21 @@ const CreateProfile: React.FC = () => {
       }
     } else {
       folder.folderData.data.forEach((file) => {
-        let intensities: (IntensityDTO | null)[] = [];
+        let intensities: (IntensityDTO | undefined)[] = [];
 
         intensities = folder.folderData.excitation.map((value) => {
           const singleIntensity = file.intensity.find(
             (x) => x.excitation === value
           );
-          return singleIntensity ? singleIntensity : null;
+          return singleIntensity;
         });
+
         const column: TableDataColumn = {
           name: file.filename,
-          intensities: intensities.map((x) => x?.intensity),
+          intensities: intensities.map((x) => (x ? x?.intensity : undefined)),
           spectrum: file.spectrum,
         };
+
         intensitiesColumns.push(column);
         if (folder.multiplied) {
           const multipliedColumn: TableDataColumn = {
@@ -985,6 +995,8 @@ const CreateProfile: React.FC = () => {
                         width: "60%",
                         display: "flex",
                         flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center", // Zmeňte z "flex-end" na "flex-start"
                       }}
                     >
                       <StatsBox
@@ -997,6 +1009,40 @@ const CreateProfile: React.FC = () => {
                             : undefined
                         }
                       />
+                      {projectFolders[selectedFolder].emptyDataColums.length >
+                        0 && (
+                        <>
+                          <Box
+                            sx={{
+                              borderRadius: "40px",
+                              bgcolor: "rgba(255, 255, 255, 0.4)",
+                              backdropFilter: "blur(24px)",
+                              border: "1px solid",
+                              borderColor: "divider",
+                              boxShadow: `0 0 1px rgba(85, 166, 246, 0.1), 1px 1.5px 2px -1px rgba(85, 166, 246, 0.15), 4px 4px 12px -2.5px rgba(85, 166, 246, 0.15)`,
+                              alignItems: "center",
+                              display: "flex",
+                              width: "60%",
+                              marginTop: "10px",
+                              marginLeft: "10px",
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                color: "black",
+                                fontSize: "12px",
+                                lineHeight: "1",
+                                padding: "10px",
+                              }}
+                            >
+                              Priečinok obsahuje súbory s prázdnymi hodnotami.
+                              <br />
+                              Kliknite sem, pre ich dopočítanie
+                            </Typography>
+                          </Box>
+                        </>
+                      )}
                     </Box>
                   </Box>
                 </Grid>
