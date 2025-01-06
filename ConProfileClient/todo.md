@@ -12,17 +12,18 @@ DTO nazov pole
 a ak je undefined tak sa zobrazi dopocitane +index
 
 - [ ] 15-92 ????
-- [ ] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
-- [ ] Mazanie foldername neexistuje pri mazani projektu docasneho
-
-Ked
-
+- [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
+- [x] Mazanie foldername neexistuje pri mazani projektu docasneho
+-
+- [ ] Aj tak by som asi pozrela iny chart asi je tento neefektivny
+- [ ] Ak rovnaky chart zmenit velkosti tych bodov tam
 - [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
+- [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
+- [ ] Loadingy - najprv na undefined a potom nedefined
 - [ ] Nech sa nedostane na neznamu stranku ale na /
-- [ ] Exporty
-- [ ] Iny graf
-- [ ] Prerobit autocomplete
+- [ ] Export obrazka
 - [ ] Import projektu z desktop appky
+- [ ] Treview sama
 
 <!-- Vytvorenie pomocnych filov na funkcie
 
@@ -34,6 +35,7 @@ Ked
 
 HADAM RAZ
 
+- [ ] Premazavanie k tokenom ktore su viac ako 30 dni stare
 - [ ] Zmenit nazvy tabuliek (?)
 - [ ] Premazanie starych dat v tabulkach napr pri vytvoreni noveho profilu
 - [ ] Nejaké tutoriály, vysvetlenia, upozornenia

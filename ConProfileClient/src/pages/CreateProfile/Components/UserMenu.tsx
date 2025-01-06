@@ -5,7 +5,7 @@ import { useUserContext } from "../../../shared/context/useContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-export const ProfileMenu: React.FC = () => {
+export const UserMenu: React.FC = () => {
   const navigate = useNavigate();
 
   const { user, logoutUser } = useUserContext();
@@ -57,9 +57,7 @@ export const ProfileMenu: React.FC = () => {
               }}
             >
               Prihlásený používateľ{" "}
-              <span style={{ color: "white" }}>
-                {user.email}
-              </span>
+              <span style={{ color: "white" }}>{user.email}</span>
               <Link
                 onClick={() => {
                   logoutUser();

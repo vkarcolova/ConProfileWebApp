@@ -43,7 +43,7 @@ import { FolderTreeView } from "./Components/FolderTreeView";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
-import { ProfileMenu } from "./Components/ProfileMenu";
+import { UserMenu } from "./Components/UserMenu";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -121,7 +121,6 @@ const CreateProfile: React.FC = () => {
     let allData: number[] = [];
     folderData.data.forEach((file) => {
       const intensities: number[] = file.intensity.map((dto) => dto.intensity);
-      dynamicChartData.push({ data: intensities, label: file.filename });
       allData = allData.concat(intensities);
     });
 
@@ -143,11 +142,14 @@ const CreateProfile: React.FC = () => {
     allFolderData.tableData = processDataForTable(allFolderData);
     const emptyColumns: (number | undefined)[][] = [];
     allFolderData.tableData.intensities.forEach((column) => {
+      dynamicChartData.push({ data: column.intensities, label: column.name });
+
       if (column.intensities.some((x) => x === undefined)) {
         emptyColumns.push(column.intensities);
       }
     });
     allFolderData.emptyDataColums = emptyColumns;
+    allFolderData.chartData = dynamicChartData;
     return allFolderData;
   };
 
@@ -719,6 +721,7 @@ const CreateProfile: React.FC = () => {
                           sx={{
                             width: "35px",
                             height: "35px",
+                            color: "white",
                           }}
                           onClick={() => {
                             setDeletingFolders(!deletingFolders);
@@ -747,6 +750,7 @@ const CreateProfile: React.FC = () => {
                         sx={{
                           width: "35px",
                           height: "35px",
+                          color: "white",
                         }}
                         onClick={handleSelectFolder}
                       >
@@ -802,7 +806,7 @@ const CreateProfile: React.FC = () => {
                     setLoading={setIsLoading}
                   />
                 </Box>
-                <ProfileMenu />
+                <UserMenu />
               </Box>
             </Grid>
             <Grid
@@ -907,12 +911,19 @@ const CreateProfile: React.FC = () => {
                           series={projectFolders[selectedFolder].chartData.map(
                             (data) => ({
                               label: data.label,
-                              data: data.data.map((v, index) => ({
-                                x: projectFolders[selectedFolder].folderData
-                                  .excitation[index],
-                                y: v,
-                                id: index,
-                              })),
+                              data: data.data
+                                .map(
+                                  (v, index) =>
+                                    v !== undefined
+                                      ? {
+                                          x: projectFolders[selectedFolder]
+                                            .folderData.excitation[index],
+                                          y: v,
+                                          id: index,
+                                        }
+                                      : null // Ak je hodnota `undefined`, vrátim `null`
+                                )
+                                .filter((point) => point !== null), // Odstránim `null` hodnoty
                             })
                           )}
                           yAxis={[{ min: 0 }]}

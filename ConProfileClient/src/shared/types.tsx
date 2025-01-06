@@ -73,7 +73,7 @@ export interface TableDataColumn {
 // }
 
 export interface ChartData {
-  data: number[];
+  data: (number | undefined)[];
   label: string;
 }
 
