@@ -83,6 +83,12 @@ export interface StatData {
   std: number;
 }
 
+export interface ColumnDTO {
+  name: string;
+  intensities: (number | undefined)[];
+  excitations: number[];
+}
+
 export interface AllFolderData {
   chartData: ChartData[];
   normalStatData: StatData;
@@ -91,5 +97,5 @@ export interface AllFolderData {
   profileData: Profile;
   multiplied: boolean;
   tableData?: TableData;
-  emptyDataColums: (number | undefined)[][];
+  emptyDataColums: ColumnDTO[];
 }

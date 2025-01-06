@@ -15,6 +15,7 @@ import {
   AllFolderData,
   ChartData,
   StatData,
+  ColumnDTO,
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
@@ -26,7 +27,6 @@ import {
   Skeleton,
   Tooltip,
   tooltipClasses,
-  Typography,
 } from "@mui/material";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
@@ -44,6 +44,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { UserMenu } from "./Components/UserMenu";
+import CalculateData from "../CalculateData/CalculateData";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -140,12 +141,16 @@ const CreateProfile: React.FC = () => {
       fillMultipliedFolder(allFolderData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
-    const emptyColumns: (number | undefined)[][] = [];
+    const emptyColumns: ColumnDTO[] = [];
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
 
       if (column.intensities.some((x) => x === undefined)) {
-        emptyColumns.push(column.intensities);
+        emptyColumns.push({
+          intensities: column.intensities,
+          name: column.name,
+          excitations: allFolderData.tableData!.excitation,
+        });
       }
     });
     allFolderData.emptyDataColums = emptyColumns;
@@ -1022,37 +1027,11 @@ const CreateProfile: React.FC = () => {
                       />
                       {projectFolders[selectedFolder].emptyDataColums.length >
                         0 && (
-                        <>
-                          <Box
-                            sx={{
-                              borderRadius: "40px",
-                              bgcolor: "rgba(255, 255, 255, 0.4)",
-                              backdropFilter: "blur(24px)",
-                              border: "1px solid",
-                              borderColor: "divider",
-                              boxShadow: `0 0 1px rgba(85, 166, 246, 0.1), 1px 1.5px 2px -1px rgba(85, 166, 246, 0.15), 4px 4px 12px -2.5px rgba(85, 166, 246, 0.15)`,
-                              alignItems: "center",
-                              display: "flex",
-                              width: "60%",
-                              marginTop: "10px",
-                              marginLeft: "10px",
-                            }}
-                          >
-                            <Typography
-                              variant="body1"
-                              sx={{
-                                color: "black",
-                                fontSize: "12px",
-                                lineHeight: "1",
-                                padding: "10px",
-                              }}
-                            >
-                              Priečinok obsahuje súbory s prázdnymi hodnotami.
-                              <br />
-                              Kliknite sem, pre ich dopočítanie
-                            </Typography>
-                          </Box>
-                        </>
+                        <CalculateData
+                          columns={
+                            projectFolders[selectedFolder].emptyDataColums
+                          }
+                        />
                       )}
                     </Box>
                   </Box>

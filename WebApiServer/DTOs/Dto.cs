@@ -73,4 +73,12 @@
         public string EMAIL { get; set; }
         public string PASSWORD { get; set; }
     }
+
+    public class ColumnDTO
+    {
+        public string Name { get; set; } = string.Empty; 
+        public List<double?> Intensities { get; set; } = new List<double?>(); 
+
+        public List<double> Excitations { get; set; }
+    }
 }

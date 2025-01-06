@@ -242,3 +242,4 @@ C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0
 C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0\WebApiServer.genruntimeconfig.cache
 C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0\ref\WebApiServer.dll
 C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\MathNet.Numerics.dll

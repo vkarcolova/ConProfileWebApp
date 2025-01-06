@@ -9,14 +9,27 @@ Prejst kazdy stlpec ak obsahuje undefined tak je usestate true podla toho sa zob
 
 Vezmu sa iba stlpce ktore maju rpazdne data a tie sa poslu na backend poslu sa iba polia s tymi dopocitanymi
 DTO nazov pole
-a ak je undefined tak sa zobrazi dopocitane +index
 
+result bude list columns s tymi nazvami a tiez list neuspesnych columns pre error
+po kazdom stlpci sa pojde
+najprv ci chybaju data zo zaciatku
+potom niekde zo stredu to moze asi aj viac krat cize while
+na konci
+
+Modalne okno s tabmi pre kazdy priecinok s prazdnymi datami
+Kde su prepocitane
+ukaze sa tabulka s povodnymi a novymi datami moznost nahradit
+
+- [ ] Porovnanie zas robi blbosti
+- [ ] Mazanie priecinku dat loading
+- [ ] 2222 cosi robi
+- [ ] Kliknem na graf zvacsi sa v modali
 - [ ] 15-92 ????
 - [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
-- [x] Mazanie foldername neexistuje pri mazani projektu docasneho
+- [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 -
 - [ ] Aj tak by som asi pozrela iny chart asi je tento neefektivny
-- [ ] Ak rovnaky chart zmenit velkosti tych bodov tam
+- [ ] Ak rovnaky chart zmenit velkosti tych bodov tam a profil nejaku speci farbu a hrubsi
 - [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 - [ ] Loadingy - najprv na undefined a potom nedefined
@@ -24,12 +37,6 @@ a ak je undefined tak sa zobrazi dopocitane +index
 - [ ] Export obrazka
 - [ ] Import projektu z desktop appky
 - [ ] Treview sama
-
-<!-- Vytvorenie pomocnych filov na funkcie
-
-- [ ] Tokenu
-- [ ] Nahravanie projektov
-- [ ] Rozdelenie do komponentov -->
 
 ##
 

@@ -1,7 +1,13 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 import config from "../../config";
-import { Factors, FileContent, MultiplyFolderDTO, ProjectDTO } from "./types";
+import {
+  ColumnDTO,
+  Factors,
+  FileContent,
+  MultiplyFolderDTO,
+  ProjectDTO,
+} from "./types";
 
 export const clientApi = {
   register: async (email: string, password: string, password2: string) => {
@@ -176,6 +182,20 @@ export const clientApi = {
     return axios.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
       JSON.stringify(loadedFiles),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  calculateEmptyData: async (columns: ColumnDTO[]) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
+      JSON.stringify(columns),
       {
         headers: {
           "Content-Type": "application/json",

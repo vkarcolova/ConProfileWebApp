@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "gp+bWi8rA5QIZ3mLh3+iZSE7YGicnwE+rsGhoZHjj+zg1Poi3N1tosDm4vTxmNH5cHW0vsbduSkQbYq7DpUstQ==",
+  "dgSpecHash": "BbYYQhg+SbzZnuCYIKScZFXphijxdZlNXzyD4IfXKX+bBPe3iiSUnDexKFZ5H0h6+8l4OLatxepYD5bEGwtvKQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\verka\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\verka\\.nuget\\packages\\mathnet.numerics\\5.0.0\\mathnet.numerics.5.0.0.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\microsoft.aspnet.cors\\5.3.0\\microsoft.aspnet.cors.5.3.0.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\microsoft.aspnet.webapi.client\\6.0.0\\microsoft.aspnet.webapi.client.6.0.0.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\microsoft.aspnet.webapi.core\\5.3.0\\microsoft.aspnet.webapi.core.5.3.0.nupkg.sha512",
