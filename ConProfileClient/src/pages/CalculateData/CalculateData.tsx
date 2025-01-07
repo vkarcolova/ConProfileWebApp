@@ -7,12 +7,14 @@ import {
   Tabs,
   IconButton,
   DialogTitle,
+  Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { ChartData, ColumnDTO } from "../../shared/types";
 import { CalculatedTable } from "./CalculatedTable";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import CloseIcon from "@mui/icons-material/Close";
+import { clientApi } from "../../shared/apis";
 
 interface CalculateDataProps {
   columns: ColumnDTO[];
@@ -33,20 +35,42 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
       label: columns[selectedTab].name,
     });
     setChartData(chartData);
-  }, []);
+  }, [open]);
 
   useEffect(() => {
-    console.log(chartData);
-    if (chartData) console.log("existuje");
-  }, [chartData]);
+    console.log("Selected tab changed to: ", selectedTab);
+  }, [selectedTab]);
+
+  const findgapStartValues = (numbers: (number | undefined)[]): number[] => {
+    const gapLastIndices = new Set<number>();
+
+    numbers.forEach((value, index) => {
+      if (value === undefined) {
+        for (let i = index - 1; i >= 0; i--) {
+          if (numbers[i] !== undefined) {
+            gapLastIndices.add(i); // Pridaj posledný index pred medzerou
+            break;
+          }
+        }
+      }
+    });
+    const lastExcitations: number[] = [];
+    gapLastIndices.forEach((index) => {
+      lastExcitations.push(columns[selectedTab].excitations[index]);
+    });
+    return lastExcitations;
+  };
+  const gapStartValues = findgapStartValues(columns[selectedTab].intensities);
 
   const onClick = async () => {
-    // await clientApi.calculateEmptyData(columns);
     setOpen(true); // Otvorenie modálneho okna po kliknutí
   };
 
   const handleClose = () => {
     setOpen(false); // Zatvorenie modálneho okna
+    setCalculatedIntensities([]);
+    setChartData(undefined);
+    setSelectedTab(0);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -57,6 +81,21 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
       label: columns[newValue].name,
     });
     setChartData(chartData);
+  };
+
+  const handleCalculateData = async () => {
+    await clientApi
+      .calculateEmptyData(columns[selectedTab])
+      .then(async (response) => {
+        console.log(response.data);
+        setCalculatedIntensities(response.data.column.intensities);
+        const newChartData = chartData!;
+        newChartData.push({
+          data: response.data.onlyValues,
+          label: "Dopočítané",
+        });
+        setChartData(newChartData);
+      });
   };
 
   return (
@@ -109,8 +148,11 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
         fullWidth={true}
         maxWidth="lg"
       >
-        <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          Porovnanie profilov
+        <DialogTitle
+          sx={{ m: 0, paddingBottom: 0 }}
+          id="customized-dialog-title"
+        >
+          Dopočítanie hodnôt pre súbor:
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -125,7 +167,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
           <CloseIcon />
         </IconButton>
 
-        <DialogContent>
+        <DialogContent sx={{ marginTop: "none", paddingTop: "0px" }}>
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
@@ -139,47 +181,94 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
           {/* Obsah pre každý tab */}
           <Box
             sx={{
-              display: "flex", // Flexbox na umiestnenie komponentov vedľa seba
               height: "500px", // Nastavíme výšku na 50% výšky obrazovky
-              width: "500px", // Celá šírka kontajnera
+              width: "100%", // Celá šírka kontajnera
               backgroundColor: "white", // Biele pozadie
-              flexDirection: "row", // Komponenty budú pod sebou
             }}
           >
-            {" "}
-            <Box>
-              {chartData && (
-                <ScatterChart
-                  key={selectedTab} // Ak vyberieš nový tab, vynúti sa nový render
-                  series={chartData?.map((data) => ({
-                    label: data.label,
-                    data: data.data
-                      .map((v, idx) =>
-                        v !== undefined
-                          ? {
-                              x: columns[selectedTab].excitations[idx],
-                              y: v,
-                              id: idx,
-                            }
-                          : null
-                      )
-                      .filter((point) => point !== null),
-                  }))}
-                  yAxis={[{ min: 0 }]}
-                  xAxis={[{ min: 250 }]}
-                  sx={{
-                    backgroundColor: "white",
-                    height: "200px",
-                    width: "200px",
-                  }}
+            <Box
+              sx={{
+                width: "100%",
+                flexDirection: "row", // Komponenty budú pod sebou
+                display: "flex", // Flexbox na umiestnenie komponentov vedľa seba
+              }}
+            >
+              {" "}
+              <Box sx={{ width: "50%", height: "45vh" }}>
+                {chartData && (
+                  <ScatterChart
+                    key={selectedTab} // Ak vyberieš nový tab, vynúti sa nový render
+                    series={chartData?.map((data) => ({
+                      label: data.label,
+                      data: data.data
+                        .map((v, idx) =>
+                          v !== undefined
+                            ? {
+                                x: columns[selectedTab].excitations[idx],
+                                y: v,
+                                id: idx,
+                              }
+                            : null
+                        )
+                        .filter((point) => point !== null),
+                      color: data.label === "Dopočítané" ? "red" : "#bfc3d9",
+                    }))}
+                    yAxis={[{ min: 0 }]}
+                    xAxis={[{ min: 250 }]}
+                    sx={{
+                      backgroundColor: "white",
+                      width: "200px",
+                      padding: "none",
+                    }}
+                  />
+                )}
+                <Typography variant="body1" sx={{ textAlign: "center" }}>
+                  Medzery hodnôt začínajú po excitáciach:{" "}
+                  {gapStartValues.join(", ")}
+                </Typography>
+              </Box>
+              <Box sx={{ width: "50%", paddingLeft: "20px" }}>
+                <CalculatedTable
+                  excitacion={columns[selectedTab].excitations}
+                  intensities={columns[selectedTab].intensities}
+                  calculatedIntensities={calculatedIntensities}
                 />
-              )}
-              <CalculatedTable
-                excitacion={columns[selectedTab].excitations}
-                intensities={columns[selectedTab].intensities}
-                calculatedIntensities={calculatedIntensities}
-              />
-              fsdfd dsfsdf
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                width: "100%",
+                alignContent: "center",
+                justifyContent: "center",
+                display: "flex",
+                marginTop: "50px",
+              }}
+            >
+              <Button
+                variant="outlined"
+                sx={{
+                  borderRadius: "30px",
+                  border: "2px solid #514986",
+                  "&:hover": {
+                    border: "2px solid #dcdbe7",
+                  },
+                  backgroundColor: "#d5e1fb",
+                }}
+                onClick={() => handleCalculateData()}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: "Poppins",
+                    fontWeight: 500,
+                    fontSize: "15px",
+                    padding: "2px",
+                    color: "#514986",
+                  }}
+                  textTransform={"none"}
+                >
+                  Dopočítať chýbajúce hodnoty
+                </Typography>
+              </Button>
             </Box>
           </Box>
         </DialogContent>

@@ -44,7 +44,7 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
     }
 
     setTableRows(rows);
-  }, []);
+  }, [calculatedIntensities, excitacion, intensities]);
 
   const VirtuosoTableComponents: TableComponents<RowData> = {
     Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
@@ -164,7 +164,13 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
               borderBlock: "none",
             }}
           >
-            <Typography fontSize={"12px"}>
+            <Typography
+              fontSize={"12px"}
+              sx={{
+                color: rows.intensity === undefined ? "red" : "black",
+                fontWeight: rows.intensity === undefined ? "bold" : "normal",
+              }}
+            >
               {rows.calculatedIntensity !== undefined
                 ? rows.calculatedIntensity.toFixed(5)
                 : ""}
@@ -178,16 +184,17 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
   const [tableRows, setTableRows] = React.useState<RowData[]>([]);
 
   return (
-    <Box sx={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px", width: "50%" }}>
-      <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
-        <TableVirtuoso
-          style={{ height: "45vh", width: "100%" }}
-          data={tableRows}
-          components={VirtuosoTableComponents}
-          itemContent={rowContent}
-          fixedHeaderContent={fixedHeaderContent}
-        />
-      </TableContainer>
-    </Box>
+    <TableContainer
+      component={Paper}
+      sx={{ maxHeight: "45vh", boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px" }}
+    >
+      <TableVirtuoso
+        style={{ height: "45vh", width: "100%" }}
+        data={tableRows}
+        components={VirtuosoTableComponents}
+        itemContent={rowContent}
+        fixedHeaderContent={fixedHeaderContent}
+      />
+    </TableContainer>
   );
 };

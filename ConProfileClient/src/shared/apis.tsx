@@ -192,10 +192,10 @@ export const clientApi = {
     );
   },
 
-  calculateEmptyData: async (columns: ColumnDTO[]) => {
+  calculateEmptyData: async (column: ColumnDTO) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
-      JSON.stringify(columns),
+      JSON.stringify(column),
       {
         headers: {
           "Content-Type": "application/json",
