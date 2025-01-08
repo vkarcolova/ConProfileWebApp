@@ -37,10 +37,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
     setChartData(chartData);
   }, [open]);
 
-  useEffect(() => {
-    console.log("Selected tab changed to: ", selectedTab);
-  }, [selectedTab]);
-
   const findgapStartValues = (numbers: (number | undefined)[]): number[] => {
     const gapLastIndices = new Set<number>();
 
@@ -87,7 +83,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({ columns }) => {
     await clientApi
       .calculateEmptyData(columns[selectedTab])
       .then(async (response) => {
-        console.log(response.data);
         setCalculatedIntensities(response.data.column.intensities);
         const newChartData = chartData!;
         newChartData.push({

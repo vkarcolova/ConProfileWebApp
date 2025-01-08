@@ -69,6 +69,8 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
+  //useEffect(() => { console.log(foldersToCompare); }, [foldersToCompare]);
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -138,7 +140,9 @@ const CreateProfile: React.FC = () => {
     };
 
     if (folderData.profile) {
-      fillMultipliedFolder(allFolderData);
+     fillMultipliedFolder(allFolderData);
+     console.log("po");
+     console.log(allFolderData.chartData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
     const emptyColumns: ColumnDTO[] = [];
@@ -153,6 +157,16 @@ const CreateProfile: React.FC = () => {
         });
       }
     });
+    if(allFolderData.multiplied){
+      dynamicChartData.filter(
+        (item) => item.label !== "Profil"
+      );
+
+      dynamicChartData.push({
+        data: allFolderData.profileData.profile,
+        label: "Profil",
+      });
+    }
     allFolderData.emptyDataColums = emptyColumns;
     allFolderData.chartData = dynamicChartData;
     return allFolderData;
@@ -160,14 +174,8 @@ const CreateProfile: React.FC = () => {
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
     if (folder.folderData.profile) {
-      folder.chartData = folder.chartData.filter(
-        (item) => item.label !== "Profil"
-      );
+     
 
-      folder.chartData.push({
-        data: folder.folderData.profile,
-        label: "Profil",
-      });
 
       let allData: number[] = [];
 
@@ -183,7 +191,8 @@ const CreateProfile: React.FC = () => {
       const profile: Profile = {
         excitation: folder.folderData.excitation,
         profile: folder.folderData.profile,
-      };
+      }; 
+  
 
       folder.multipliedStatData = multipliedStat;
       folder.profileData = profile;
@@ -442,6 +451,9 @@ const CreateProfile: React.FC = () => {
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
       setProjectData(project);
+      const comparefolders: FolderDTO[] = foldersToCompare || [];
+      comparefolders.push(project.folders[selectedFolder]);
+      setFoldersToCompare(comparefolders);
       saveSessionData(project);
     }
   };
@@ -551,7 +563,6 @@ const CreateProfile: React.FC = () => {
   };
 
   const deleteProjectFolders = async (selectedFolders: string[]) => {
-    console.log(selectedFolders);
     if (loadedProjectId) {
       const folderIdToDelete: number[] = [];
       projectFolders.forEach((value) => {
@@ -1012,7 +1023,8 @@ const CreateProfile: React.FC = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "center", // Zmeňte z "flex-end" na "flex-start"
+                        justifyContent: "center", 
+                        backgroundColor: "red",
                       }}
                     >
                       <StatsBox

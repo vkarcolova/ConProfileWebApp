@@ -39,7 +39,6 @@ const BatchDataLoadButtonModal: React.FC<
   const [inputFactors, setInputFactors] = React.useState<(number | null)[]>([]);
 
   useEffect(() => {
-    console.log(folders);
     if (folders.length > 0 && step === 3) {
       const uniqueSpectrums = new Set<string>();
 
@@ -179,7 +178,6 @@ const BatchDataLoadButtonModal: React.FC<
     }
 
     const excitationValues = extractAndSortExcitations(folders);
-    console.log(excitationValues);
 
     const masterMatrix = [];
     const header = [];
@@ -221,12 +219,10 @@ const BatchDataLoadButtonModal: React.FC<
         });
         profile.push(maxIntensity);
       }
-      console.log(profile);
       masterMatrix.push(profile);
       header.push(folderData.foldername);
     });
-    console.log(masterMatrix);
-    console.log(header);
+
 
     const rows = [];
     rows.push(header.join(";"));

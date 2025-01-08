@@ -7,9 +7,11 @@ NAJSKOR
 Pridat na zaciatok a koniec extrapolaciu mozno ze by sa tam priblizit graf?
 Pridat nahradenie povodnych dat - aj session aj v db
 
-- [ ] Porovnanie zas robi blbosti
+- [x] ~~Porovnanie zas robi blbosti ~~asi done
 - [ ] Nepaci sa mi ta ciara nad prihlaseny pouzivatel
-- [ ] Stats nech na mensej obrazovk su vyssie
+- [ ] Pozriet ci sa lokalne faktory zadane ukladaju
+- [ ] Zda sa ze autocomplete spomaluje
+- [ ] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
 - [ ] Kliknem na graf zvacsi sa v modali

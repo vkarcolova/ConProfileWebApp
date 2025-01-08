@@ -247,7 +247,6 @@ export const clientApi = {
       folderids: folderIds,
     };
 
-    console.log(JSON.stringify(request));
     return await axios.delete(
       `${config.apiUrl}/Project/DeleteFoldersFromProject`,
       {

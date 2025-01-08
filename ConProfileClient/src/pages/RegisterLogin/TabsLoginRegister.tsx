@@ -42,7 +42,6 @@ const TabsLoginRegister: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log(user);
     if (user) {
      navigate("/");
     }
@@ -55,7 +54,6 @@ const TabsLoginRegister: React.FC = () => {
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-    console.log("newValue", newValue);
   };
 
   return (

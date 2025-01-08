@@ -110,8 +110,6 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
       masterMatrix.push(tableData.excitation);
       masterMatrix.push(profile.profile);
     }
-    console.log(masterMatrix);
-    console.log(header);
 
     const rows = [];
     rows.push(header.join(";"));

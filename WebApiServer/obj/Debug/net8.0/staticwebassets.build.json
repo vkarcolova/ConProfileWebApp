@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "XziFGyoDiSIRXWTqmYe5tDKpxu1/fGslRC2EFD3+qKI=",
+  "Hash": "u3Fc31fzsl3JA6Cp8E4JNlsb7ZF8LDi/0ANrAHQguaw=",
   "Source": "WebApiServer",
   "BasePath": "_content/WebApiServer",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }

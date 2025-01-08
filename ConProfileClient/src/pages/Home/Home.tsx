@@ -50,7 +50,6 @@ const Home: React.FC = () => {
     e: ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
-    console.log("gere");
 
     if (file) {
       const reader = new FileReader();
@@ -72,9 +71,7 @@ const Home: React.FC = () => {
 
   const getProjectsByUser = async () => {
     const token = localStorage.getItem("token");
-    console.log("here", user, token);
     if (user != undefined) {
-      console.log("get projects by user");
       await clientApi
         .getProjectByUser(user.email, localStorage.getItem("token"))
         .then((response) => {
@@ -85,7 +82,6 @@ const Home: React.FC = () => {
         })
         .finally(() => {});
     } else if (user == undefined && token != undefined) {
-      console.log("get projects by token");
 
       if (token != undefined || token != null) {
         await clientApi
@@ -99,7 +95,6 @@ const Home: React.FC = () => {
           .finally(() => {});
       }
     } else {
-      console.log("[]");
       setProjecsData([]);
     }
   };
