@@ -44,7 +44,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { UserMenu } from "./Components/UserMenu";
-import CalculateData from "../CalculateData/CalculateData";
+import CalculateData from "../CalculateData/CalculateDataButtonDialog";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -140,9 +140,9 @@ const CreateProfile: React.FC = () => {
     };
 
     if (folderData.profile) {
-     fillMultipliedFolder(allFolderData);
-     console.log("po");
-     console.log(allFolderData.chartData);
+      fillMultipliedFolder(allFolderData);
+      console.log("po");
+      console.log(allFolderData.chartData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
     const emptyColumns: ColumnDTO[] = [];
@@ -157,10 +157,8 @@ const CreateProfile: React.FC = () => {
         });
       }
     });
-    if(allFolderData.multiplied){
-      dynamicChartData.filter(
-        (item) => item.label !== "Profil"
-      );
+    if (allFolderData.multiplied) {
+      dynamicChartData.filter((item) => item.label !== "Profil");
 
       dynamicChartData.push({
         data: allFolderData.profileData.profile,
@@ -174,9 +172,6 @@ const CreateProfile: React.FC = () => {
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
     if (folder.folderData.profile) {
-     
-
-
       let allData: number[] = [];
 
       folder.folderData.data.forEach((file) => {
@@ -191,8 +186,7 @@ const CreateProfile: React.FC = () => {
       const profile: Profile = {
         excitation: folder.folderData.excitation,
         profile: folder.folderData.profile,
-      }; 
-  
+      };
 
       folder.multipliedStatData = multipliedStat;
       folder.profileData = profile;
@@ -663,164 +657,183 @@ const CreateProfile: React.FC = () => {
                   "& *": {
                     color: "inherit",
                   },
+                  justifyContent: "space-between",
                 }}
               >
                 <Box
                   sx={{
-                    marginTop: "40px",
-                    marginBottom: "10px",
-                    display: "flex",
-                    justifyContent: "center", // Horizontálne centrovanie
+                    width: "100%",
+                    justifyContent: "center",
                     alignItems: "center",
-                    flexDirection: "row",
-                    fontWeight: "bold",
-                    maxWidth: "90%",
                   }}
                 >
-                  <IconButton
-                    sx={{
-                      width: "35px",
-                      height: "35px",
-                      color: "white",
-                      position: "absolute",
-                      top: 5,
-                      left: 5,
-                      opacity: "0.7",
-                    }}
-                    onClick={() => {
-                      navigate("/");
-                    }}
-                  >
-                    <Home sx={{ fontSize: "30px" }} />
-                  </IconButton>
-
-                  <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
-                    Názov projektu
-                  </h4>
-                  <ProjectNameInput
-                    savedProjectName={projectData?.projectname}
-                    saveToProjectData={handleProjectNameSave}
-                  />
-                </Box>
-                <FolderTreeView
-                  projectData={projectData}
-                  selectedFolder={selectedFolder}
-                  handleNodeSelect={handleNodeSelect}
-                  deleting={deletingFolders}
-                  setDeleting={setDeletingFolders}
-                  deleteProjectFolders={deleteProjectFolders}
-                />
-                <Box className="buttonContainer">
                   <Box
                     sx={{
-                      marginTop: "5px",
-                      justifyContent: "space-between",
-                      width: "35%",
+                      marginTop: "40px",
+                      marginBottom: "10px",
+                      display: "flex",
+                      justifyContent: "center", // Horizontálne centrovanie
+                      alignItems: "center",
+                      flexDirection: "row",
+                      fontWeight: "bold",
+                      maxWidth: "90%",
                     }}
                   >
-                    {projectData?.folders.length != 0 && (
-                      <Tooltip
-                        slotProps={{
-                          popper: {
-                            sx: {
-                              [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                                {
-                                  marginTop: "0px",
-                                  fontSize: "12px",
-                                },
-                            },
-                          },
-                        }}
-                        title="Vymazať priečinky z projektu"
-                      >
-                        <IconButton
-                          sx={{
-                            width: "35px",
-                            height: "35px",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            setDeletingFolders(!deletingFolders);
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-
-                    <Tooltip
-                      slotProps={{
-                        popper: {
-                          sx: {
-                            [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                              {
-                                marginTop: "0px",
-                                fontSize: "12px",
-                              },
-                          },
-                        },
+                    <IconButton
+                      sx={{
+                        width: "35px",
+                        height: "35px",
+                        color: "white",
+                        position: "absolute",
+                        top: 5,
+                        left: 5,
+                        opacity: "0.7",
                       }}
-                      title="Pridať ďalší priečinok"
+                      onClick={() => {
+                        navigate("/");
+                      }}
                     >
-                      <IconButton
-                        sx={{
-                          width: "35px",
-                          height: "35px",
-                          color: "white",
-                        }}
-                        onClick={handleSelectFolder}
-                      >
-                        <AddCircleOutlineRoundedIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    directory=""
-                    webkitdirectory=""
-                    onChange={loadNewFolder}
-                    multiple
-                    style={{ display: "none" }}
-                  />
+                      <Home sx={{ fontSize: "30px" }} />
+                    </IconButton>
 
-                  <NunuButton
-                    onClick={() => {
-                      if (
-                        foldersToCompare != null &&
-                        foldersToCompare.length < 2
-                      )
-                        toast.info(
-                          "Pre porovnanie je potrebné mať vytvorené aspoň dva profily."
-                        );
-                      else setDialogOpen(true);
-                    }}
-                    bgColour="f8f6ff"
-                    textColour="rgba(59, 49, 119, 0.87)"
-                    hoverTextColour="rgba(59, 49, 119, 0.87)"
-                    hoverBgColour="#E2E3E8"
-                    label="Porovnať"
+                    <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
+                      Názov projektu
+                    </h4>
+                    <ProjectNameInput
+                      savedProjectName={projectData?.projectname}
+                      saveToProjectData={handleProjectNameSave}
+                    />
+                  </Box>
+                  <Box
                     sx={{
-                      backgroundColor: "#f8f6ff",
-                      marginTop: { md: "15px", lg: "15px" },
-                      width: "60%",
-                      height: { md: "45px", borderRadius: "20px" },
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
-                    fontSize="14px"
-                  />
-                </Box>
-                <Box className="buttonContainerRows">
-                  <ExportMenu
-                    projectData={projectData}
-                    multiplied={!projectFolders[selectedFolder].multiplied}
-                    tableData={projectFolders[selectedFolder].tableData!}
-                    profile={projectFolders[selectedFolder].profileData}
-                  />
-                  <SaveToDbButton
-                    loadedProjectId={loadedProjectId}
-                    projectData={projectData}
-                    setLoading={setIsLoading}
-                  />
+                  >
+                    <FolderTreeView
+                      projectData={projectData}
+                      selectedFolder={selectedFolder}
+                      handleNodeSelect={handleNodeSelect}
+                      deleting={deletingFolders}
+                      setDeleting={setDeletingFolders}
+                      deleteProjectFolders={deleteProjectFolders}
+                    />
+                    <Box className="buttonContainer">
+                      <Box
+                        sx={{
+                          marginTop: "5px",
+                          justifyContent: "space-between",
+                          width: "35%",
+                        }}
+                      >
+                        {projectData?.folders.length != 0 && (
+                          <Tooltip
+                            slotProps={{
+                              popper: {
+                                sx: {
+                                  [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                                    {
+                                      marginTop: "0px",
+                                      fontSize: "12px",
+                                    },
+                                },
+                              },
+                            }}
+                            title="Vymazať priečinky z projektu"
+                          >
+                            <IconButton
+                              sx={{
+                                width: "35px",
+                                height: "35px",
+                                color: "white",
+                              }}
+                              onClick={() => {
+                                setDeletingFolders(!deletingFolders);
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
+                        <Tooltip
+                          slotProps={{
+                            popper: {
+                              sx: {
+                                [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                                  {
+                                    marginTop: "0px",
+                                    fontSize: "12px",
+                                  },
+                              },
+                            },
+                          }}
+                          title="Pridať ďalší priečinok"
+                        >
+                          <IconButton
+                            sx={{
+                              width: "35px",
+                              height: "35px",
+                              color: "white",
+                            }}
+                            onClick={handleSelectFolder}
+                          >
+                            <AddCircleOutlineRoundedIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      <input
+                        ref={inputRef}
+                        type="file"
+                        directory=""
+                        webkitdirectory=""
+                        onChange={loadNewFolder}
+                        multiple
+                        style={{ display: "none" }}
+                      />
+
+                      <NunuButton
+                        onClick={() => {
+                          if (
+                            foldersToCompare != null &&
+                            foldersToCompare.length < 2
+                          )
+                            toast.info(
+                              "Pre porovnanie je potrebné mať vytvorené aspoň dva profily."
+                            );
+                          else setDialogOpen(true);
+                        }}
+                        bgColour="f8f6ff"
+                        textColour="rgba(59, 49, 119, 0.87)"
+                        hoverTextColour="rgba(59, 49, 119, 0.87)"
+                        hoverBgColour="#E2E3E8"
+                        label="Porovnať"
+                        sx={{
+                          backgroundColor: "#f8f6ff",
+                          marginTop: { md: "15px", lg: "15px" },
+                          width: "60%",
+                          height: { md: "45px", borderRadius: "20px" },
+                        }}
+                        fontSize="14px"
+                      />
+                    </Box>
+                  </Box>
+                  <Box className="buttonContainerRows">
+                    <ExportMenu
+                      projectData={projectData}
+                      multiplied={!projectFolders[selectedFolder].multiplied}
+                      tableData={projectFolders[selectedFolder].tableData!}
+                      profile={projectFolders[selectedFolder].profileData}
+                    />
+                    <SaveToDbButton
+                      loadedProjectId={loadedProjectId}
+                      projectData={projectData}
+                      setLoading={setIsLoading}
+                    />
+                  </Box>
                 </Box>
                 <UserMenu />
               </Box>
@@ -1023,8 +1036,7 @@ const CreateProfile: React.FC = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "center", 
-                        backgroundColor: "red",
+                        justifyContent: "center",
                       }}
                     >
                       <StatsBox
@@ -1037,14 +1049,10 @@ const CreateProfile: React.FC = () => {
                             : undefined
                         }
                       />
-                      {projectFolders[selectedFolder].emptyDataColums.length >
-                        0 && (
-                        <CalculateData
-                          columns={
-                            projectFolders[selectedFolder].emptyDataColums
-                          }
-                        />
-                      )}
+
+                      <CalculateData
+                        columns={projectFolders[selectedFolder].emptyDataColums}
+                      />
                     </Box>
                   </Box>
                 </Grid>

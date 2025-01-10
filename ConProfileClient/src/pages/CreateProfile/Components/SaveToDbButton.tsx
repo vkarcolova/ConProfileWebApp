@@ -37,7 +37,6 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
     if (!loadedProjectId) {
       setLoading(true);
       try {
-
         await axios
           .post(
             `${config.apiUrl}/Project/SaveNewProject`,
@@ -93,6 +92,8 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
                 ...darkButtonStyle,
                 border: "none",
                 borderRadius: "10px",
+                width: "90%",
+                height: "50px",
               }}
             >
               <Typography fontWeight={550} fontSize="14px">
@@ -111,6 +112,8 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             ...darkButtonStyle,
             boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
             borderRadius: "10px",
+            width: "70%",
+            height: "50px",
           }}
         >
           <Typography fontWeight={550} fontSize="14px">

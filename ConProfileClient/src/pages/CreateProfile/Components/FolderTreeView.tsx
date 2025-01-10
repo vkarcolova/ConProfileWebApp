@@ -67,7 +67,6 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
     <>
       <p>Načítané priečinky</p>
       <Box
-        className="treeViewWindow"
         sx={{
           position: "relative",
           display: "flex",
@@ -77,6 +76,16 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
           "& *": {
             color: "inherit",
           },
+          fontFamily: '"Poppins", sans-serif',
+          width: "70%",
+          fontSize: "15px",
+          minHeight: "250px",
+          maxHeight: "250px",
+          borderStyle: "solid",
+          borderWidth: "1px",
+          backgroundColor: "white",
+          borderColor: "#97a7b7",
+          alignItems: "center", // Zarovnanie obsahu na stred
         }}
       >
         {projectData && (
@@ -85,6 +94,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
               height: deleting ? "85%" : "100%",
               maxHeight: deleting ? "85%" : "100%",
               overflowY: "auto",
+              width: "100%",
             }}
           >
             <SimpleTreeView onSelectedItemsChange={handleNodeSelect}>

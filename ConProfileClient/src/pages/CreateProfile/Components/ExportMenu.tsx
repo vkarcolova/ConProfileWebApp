@@ -151,8 +151,8 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           },
           boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
           marginBottom: "10px",
-          width: "80%",
-          height: "35px",
+          width: "70%",
+          height: "40px",
           borderRadius: "10px",
         }}
         aria-controls={open ? "demo-customized-menu" : undefined}
