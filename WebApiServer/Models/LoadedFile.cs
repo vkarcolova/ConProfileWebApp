@@ -12,7 +12,7 @@ namespace WebApiServer.Models
         public int IdFile { get; set; }
         public int IdFolder { get; set; }
         public int Spectrum { get; set; } //in file name
-        public int? Factor { get; set; } //user input that multiplies
+        public double? Factor { get; set; } //user input that multiplies
         public string FileName { get; set; }
     }
 }

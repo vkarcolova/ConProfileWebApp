@@ -1,4 +1,6 @@
-﻿namespace WebApiServer.DTOs
+﻿using Accord;
+
+namespace WebApiServer.DTOs
 {
     public class FileContent
     {
@@ -81,4 +83,10 @@
 
         public List<double> Excitations { get; set; }
     }
+
+    public class CalculatedDataDTO
+    {
+        public int IDFILE { get; set; }
+        public double[] CALCULATEDINTENSITIES { get; set; }
+        public double[] EXCITACIONS {  get; set; }
 }

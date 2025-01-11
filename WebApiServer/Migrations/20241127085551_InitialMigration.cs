@@ -49,7 +49,7 @@ namespace WebApiServer.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IdFolder = table.Column<int>(type: "integer", nullable: false),
                     Spectrum = table.Column<int>(type: "integer", nullable: false),
-                    Factor = table.Column<int>(type: "integer", nullable: true),
+                    Factor = table.Column<double>(type: "double precision", nullable: false),
                     FileName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>

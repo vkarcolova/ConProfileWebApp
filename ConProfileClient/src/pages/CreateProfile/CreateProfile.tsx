@@ -69,7 +69,9 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
-  //useEffect(() => { console.log(foldersToCompare); }, [foldersToCompare]);
+  useEffect(() => {
+    console.log(projectData);
+  }, [projectData]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -603,9 +605,13 @@ const CreateProfile: React.FC = () => {
     calculatedIntensities: number[]
   ): Promise<boolean> => {
     // ak je načítaný projekt z databázy tak nahratie dát do databázy ako nove dáta do filu
+    // bude to iba vlozenie calculated ziadne prepisovanie
+    // ak je faktor tak aj to ale
+    // je factor v allfolderdata?
     // pridat aj multiply ak na colume je multiplied a prepocitat profil podla faktoru
     // pridat do session
 
+    //alebo kaslat a dat upozornenie nech si sami prepocitaju factor?
     return false;
   };
 

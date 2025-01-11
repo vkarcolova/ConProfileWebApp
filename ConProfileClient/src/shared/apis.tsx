@@ -2,6 +2,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import config from "../../config";
 import {
+  CalculatedDataDTO,
   ColumnDTO,
   Factors,
   FileContent,
@@ -196,6 +197,20 @@ export const clientApi = {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
       JSON.stringify(column),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  saveCalculatedData: async (calculatedData: CalculatedDataDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/AddCalculatedData`,
+      JSON.stringify(calculatedData),
       {
         headers: {
           "Content-Type": "application/json",

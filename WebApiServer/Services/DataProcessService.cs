@@ -167,6 +167,8 @@ namespace WebApiServer.Services
 
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
                     {
+                        LoadedFile loadedFile = _context.LoadedFiles.Where(item => item.IdFile == multiplyDatas.IDS[i]).FirstOrDefault();
+                        loadedFile.Factor = multiplyDatas.FACTORS[i];
                         List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
                         if (datas.Count > maxCount) maxCount = datas.Count;
 

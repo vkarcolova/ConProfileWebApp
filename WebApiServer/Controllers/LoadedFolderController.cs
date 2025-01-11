@@ -6,6 +6,8 @@ using WebApiServer.Services;
 using Accord.MachineLearning.VectorMachines;
 using Accord.MachineLearning.VectorMachines.Learning;
 using Accord.Statistics.Kernels;
+using WebApiServer.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace WebApiServer.Controllers
 {
     [ApiController]
@@ -193,57 +195,116 @@ namespace WebApiServer.Controllers
             return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated });
           
 
-        }  //if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
-            //{
-            //    return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
-            //}
+        }
 
-            //var validExcitacions = new List<double>();
-            //var validIntensities = new List<double>();
-            //var onlyCalculated = new double?[column.Excitations.Count];
 
-            // Získanie platných dát (bez medzier)
-            //for (int i = 0; i < column.Intensities.Count; i++)
-            //{
-            //    if (column.Intensities[i].HasValue)
-            //    {
-            //        validExcitacions.Add(column.Excitations[i]);
-            //        validIntensities.Add(column.Intensities[i].Value);
-            //    }
-            //}
+        [HttpPost("AddCalculatedData")]
+        public async Task<IActionResult> AddCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+        {
+            try
+            {
+                if (calculatedData != null)
+                {
+                    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    string token;
+                    if (userToken == "") token = _userService.GenerateJwtToken();
+                    else token = userToken;
+                    var userEmail = Request.Headers["UserEmail"].ToString();
 
-            //if (validExcitacions.Count < 2)
-            //{
-            //    return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
-            //}
+                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                        return Unauthorized("Neplatné prihlásenie");
 
-            // Prevod platných dát do matíc (Accord.NET používa matice ako vstupy)
-            //double[][] inputs = validExcitacions.Select(x => new double[] { x }).ToArray();
-            //double[] outputs = validIntensities.ToArray();
 
-            // Inicializácia Gaussovského procesu s exponenciálnym jadrom
-            //var kernel = new Gaussian(1.0);
-            //var machine = new SupportVectorMachine<Gaussian>(1, kernel);
 
-            // Tréning modelu
-            //var teacher = new SequentialMinimalOptimization<Gaussian>()
-            //{
-            //    Complexity = 100 // Parameter C pre SVM
-            //};
-            //teacher.Learn(machine, inputs, outputs);
+                    int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
 
-            // Predikcia
-            //for (int i = 0; i < column.Excitations.Count; i++)
-            //{
-            //    if (!column.Intensities[i].HasValue)
-            //    {
-            //        double x = column.Excitations[i];
-            //        column.Intensities[i] = machine.Score(new double[] { x });
-            //        onlyCalculated[i] = column.Intensities[i].Value;
-            //    }
-            //}
+                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                    {
+                        LoadedData newData = new LoadedData
+                        {
+                            Intensity = calculatedData.CALCULATEDINTENSITIES[i],
+                            Excitation = calculatedData.EXCITACIONS[i],
+                            IdData = nextDataId,
+                            IdFile = calculatedData.IDFILE
+                        };
 
-            //return Ok(new { Message = "Calculation completed with Gaussian Process", Column = column, OnlyValues = onlyCalculated });
+                        _context.LoadedDatas.Add(newData);
+                    };
+
+                    //mozno pridat aj multiplied?
+                
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest("Chybný formát dát.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Error = "Chyba pri uložení projektu: " + e.Message
+                });
+            }
+
+        }
+
+
+        //if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
+        //{
+        //    return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
+        //}
+
+        //var validExcitacions = new List<double>();
+        //var validIntensities = new List<double>();
+        //var onlyCalculated = new double?[column.Excitations.Count];
+
+        // Získanie platných dát (bez medzier)
+        //for (int i = 0; i < column.Intensities.Count; i++)
+        //{
+        //    if (column.Intensities[i].HasValue)
+        //    {
+        //        validExcitacions.Add(column.Excitations[i]);
+        //        validIntensities.Add(column.Intensities[i].Value);
+        //    }
+        //}
+
+        //if (validExcitacions.Count < 2)
+        //{
+        //    return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
+        //}
+
+        // Prevod platných dát do matíc (Accord.NET používa matice ako vstupy)
+        //double[][] inputs = validExcitacions.Select(x => new double[] { x }).ToArray();
+        //double[] outputs = validIntensities.ToArray();
+
+        // Inicializácia Gaussovského procesu s exponenciálnym jadrom
+        //var kernel = new Gaussian(1.0);
+        //var machine = new SupportVectorMachine<Gaussian>(1, kernel);
+
+        // Tréning modelu
+        //var teacher = new SequentialMinimalOptimization<Gaussian>()
+        //{
+        //    Complexity = 100 // Parameter C pre SVM
+        //};
+        //teacher.Learn(machine, inputs, outputs);
+
+        // Predikcia
+        //for (int i = 0; i < column.Excitations.Count; i++)
+        //{
+        //    if (!column.Intensities[i].HasValue)
+        //    {
+        //        double x = column.Excitations[i];
+        //        column.Intensities[i] = machine.Score(new double[] { x });
+        //        onlyCalculated[i] = column.Intensities[i].Value;
+        //    }
+        //}
+
+        //return Ok(new { Message = "Calculation completed with Gaussian Process", Column = column, OnlyValues = onlyCalculated });
 
     }
 }
