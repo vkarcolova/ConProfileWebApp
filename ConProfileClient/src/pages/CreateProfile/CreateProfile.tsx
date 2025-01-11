@@ -598,6 +598,17 @@ const CreateProfile: React.FC = () => {
     setSelectedFolder(0);
   };
 
+  const saveCalculatedColumn = async (
+    column: ColumnDTO,
+    calculatedIntensities: number[]
+  ): Promise<boolean> => {
+    // ak je načítaný projekt z databázy tak nahratie dát do databázy ako nove dáta do filu
+    // pridat aj multiply ak na colume je multiplied a prepocitat profil podla faktoru
+    // pridat do session
+
+    return false;
+  };
+
   if (!projectFolders) {
     return <Box>Error loading data.</Box>;
   }
@@ -955,7 +966,15 @@ const CreateProfile: React.FC = () => {
                                 .filter((point) => point !== null), // Odstránim `null` hodnoty
                             })
                           )}
-                          yAxis={[{ min: 0 }]}
+                          yAxis={[
+                            {
+                              min: projectFolders[selectedFolder].normalStatData
+                                .min
+                                ? projectFolders[selectedFolder].normalStatData
+                                    .min
+                                : 0,
+                            },
+                          ]}
                           xAxis={[{ min: 250 }]}
                           sx={{
                             backgroundColor: "white",
@@ -1052,6 +1071,12 @@ const CreateProfile: React.FC = () => {
 
                       <CalculateData
                         columns={projectFolders[selectedFolder].emptyDataColums}
+                        setColumns={(columns) => {
+                          const folders = [...projectFolders];
+                          folders[selectedFolder].emptyDataColums = columns;
+                          setProjectFolders(folders);
+                        }}
+                        saveColumn={saveCalculatedColumn}
                       />
                     </Box>
                   </Box>

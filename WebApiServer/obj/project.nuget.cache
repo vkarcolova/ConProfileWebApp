@@ -1,9 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "BbYYQhg+SbzZnuCYIKScZFXphijxdZlNXzyD4IfXKX+bBPe3iiSUnDexKFZ5H0h6+8l4OLatxepYD5bEGwtvKQ==",
+  "dgSpecHash": "K0h8MBJdm4aQ5YYtJ1JQ9Bywa1MmbYXwwN7UVm8dPyfbWN7QTlkIhrMSv9l6aEZBGajJZw5KTBdrwJ3VmUmxcQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\verka\\kodiky\\Diplomka\\ConProfileWebApp\\WebApiServer\\WebApiServer.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\verka\\.nuget\\packages\\accord\\3.8.0\\accord.3.8.0.nupkg.sha512",
+    "C:\\Users\\verka\\.nuget\\packages\\accord.machinelearning\\3.8.0\\accord.machinelearning.3.8.0.nupkg.sha512",
+    "C:\\Users\\verka\\.nuget\\packages\\accord.math\\3.8.0\\accord.math.3.8.0.nupkg.sha512",
+    "C:\\Users\\verka\\.nuget\\packages\\accord.statistics\\3.8.0\\accord.statistics.3.8.0.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\verka\\.nuget\\packages\\mathnet.numerics\\5.0.0\\mathnet.numerics.5.0.0.nupkg.sha512",

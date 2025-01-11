@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
 using WebApiServer.Services;
-
+using Accord.MachineLearning.VectorMachines;
+using Accord.MachineLearning.VectorMachines.Learning;
+using Accord.Statistics.Kernels;
 namespace WebApiServer.Controllers
 {
     [ApiController]
@@ -118,56 +120,130 @@ namespace WebApiServer.Controllers
         //potom niekde zo stredu to moze asi aj viac krat cize while 
 
 
-        //na konci
         [HttpPost("CalculateEmptyData")]
         public async Task<IActionResult> CalculateEmptyData([FromBody] ColumnDTO column)
         {
-            if (column != null)
+            if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
             {
+                return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
+            }
 
-                if (column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
+            var validExcitacions = new List<double>();
+            var validIntensities = new List<double>();
+            var onlyCalculated = new double?[column.Excitations.Count];
+
+            // Získanie platných dát (bez medzier)
+            for (int i = 0; i < column.Intensities.Count; i++)
+            {
+                if (column.Intensities[i].HasValue)
                 {
-                    return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
+                    validExcitacions.Add(column.Excitations[i]);
+                    validIntensities.Add(column.Intensities[i].Value);
                 }
+            }
 
-                // Extrahuj excitácie a intenzity, kde intenzity nie sú null
-                var validExcitacions = new List<double>();
-                var validIntensities = new List<double>();
-                var onlyCalculated = new double?[column.Excitations.Count];
+            if (validExcitacions.Count < 2)
+            {
+                return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
+            }
 
-                for (int i = 0; i < column.Intensities.Count; i++)
+            // Vytvorenie spline interpolácie
+            var spline = CubicSpline.InterpolateNaturalSorted(validExcitacions.ToArray(), validIntensities.ToArray());
+
+            // Pomocné metódy na lineárnu extrapoláciu
+            double LinearExtrapolate(double x1, double y1, double x2, double y2, double x)
+            {
+                double slope = (y2 - y1) / (x2 - x1);
+                return y1 + slope * (x - x1);
+            }
+
+            // Spracovanie intenzít
+            for (int i = 0; i < column.Intensities.Count; i++)
+            {
+                if (!column.Intensities[i].HasValue)
                 {
-                    if (column.Intensities[i].HasValue)
+                    double x = column.Excitations[i];
+
+                    if (x < validExcitacions.First())
                     {
-                        validExcitacions.Add(column.Excitations[i]);
-                        validIntensities.Add(column.Intensities[i].Value);
+                        // Extrapolácia na začiatku (lineárna)
+                        column.Intensities[i] = LinearExtrapolate(
+                            validExcitacions[0], validIntensities[0],
+                            validExcitacions[1], validIntensities[1],
+                            x);
                     }
-                }
-
-                // Ak nie sú dostatočné údaje na interpoláciu
-                if (validExcitacions.Count < 2)
-                {
-                    return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
-                }
-
-                // Vytvor spline interpoláciu
-                var spline = CubicSpline.InterpolateNaturalSorted(validExcitacions.ToArray(), validIntensities.ToArray());
-
-                // Dopočítaj chýbajúce hodnoty
-                for (int i = 0; i < column.Intensities.Count; i++)
-                {
-                    if (!column.Intensities[i].HasValue)
+                    else if (x > validExcitacions.Last())
                     {
-                        column.Intensities[i] = spline.Interpolate(column.Excitations[i]);
-                        onlyCalculated[i] = column.Intensities[i].Value;
+                        // Extrapolácia na konci (lineárna)
+                        column.Intensities[i] = LinearExtrapolate(
+                            validExcitacions[^2], validIntensities[^2],
+                            validExcitacions[^1], validIntensities[^1],
+                            x);
                     }
+                    else
+                    {
+                        // Interpolácia v strede (spline)
+                        column.Intensities[i] = spline.Interpolate(x);
+                    }
+
+                    onlyCalculated[i] = column.Intensities[i].Value;
                 }
+            }
 
-                return Ok(new { Message = "Interpolation completed", Column = column, OnlyValues = onlyCalculated }); //aj cely stlpec ajj dopocitane data
+            return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated });
+          
 
-            } else 
-                return BadRequest();
+        }  //if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
+            //{
+            //    return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
+            //}
 
-        }
+            //var validExcitacions = new List<double>();
+            //var validIntensities = new List<double>();
+            //var onlyCalculated = new double?[column.Excitations.Count];
+
+            // Získanie platných dát (bez medzier)
+            //for (int i = 0; i < column.Intensities.Count; i++)
+            //{
+            //    if (column.Intensities[i].HasValue)
+            //    {
+            //        validExcitacions.Add(column.Excitations[i]);
+            //        validIntensities.Add(column.Intensities[i].Value);
+            //    }
+            //}
+
+            //if (validExcitacions.Count < 2)
+            //{
+            //    return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
+            //}
+
+            // Prevod platných dát do matíc (Accord.NET používa matice ako vstupy)
+            //double[][] inputs = validExcitacions.Select(x => new double[] { x }).ToArray();
+            //double[] outputs = validIntensities.ToArray();
+
+            // Inicializácia Gaussovského procesu s exponenciálnym jadrom
+            //var kernel = new Gaussian(1.0);
+            //var machine = new SupportVectorMachine<Gaussian>(1, kernel);
+
+            // Tréning modelu
+            //var teacher = new SequentialMinimalOptimization<Gaussian>()
+            //{
+            //    Complexity = 100 // Parameter C pre SVM
+            //};
+            //teacher.Learn(machine, inputs, outputs);
+
+            // Predikcia
+            //for (int i = 0; i < column.Excitations.Count; i++)
+            //{
+            //    if (!column.Intensities[i].HasValue)
+            //    {
+            //        double x = column.Excitations[i];
+            //        column.Intensities[i] = machine.Score(new double[] { x });
+            //        onlyCalculated[i] = column.Intensities[i].Value;
+            //    }
+            //}
+
+            //return Ok(new { Message = "Calculation completed with Gaussian Process", Column = column, OnlyValues = onlyCalculated });
+
     }
 }

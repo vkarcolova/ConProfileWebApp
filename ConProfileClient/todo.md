@@ -7,16 +7,12 @@ NAJSKOR
 Pridat na zaciatok a koniec extrapolaciu mozno ze by sa tam priblizit graf?
 Pridat nahradenie povodnych dat - aj session aj v db
 
-- [x] ~~Porovnanie zas robi blbosti ~~asi done
-- [ ] Nepaci sa mi ta ciara nad prihlaseny pouzivatel
 - [ ] Pozriet ci sa lokalne faktory zadane ukladaju
 - [ ] Zda sa ze autocomplete spomaluje
-- [ ] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
 - [ ] Kliknem na graf zvacsi sa v modali
 - [ ] 15-92 ????
-- [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Aj tak by som asi pozrela iny chart asi je tento neefektivny
 - [ ] Ak rovnaky chart zmenit velkosti tych bodov tam a profil nejaku speci farbu a hrubsi
@@ -27,6 +23,12 @@ Pridat nahradenie povodnych dat - aj session aj v db
 - [ ] Export obrazka
 - [ ] Import projektu z desktop appky
 - [ ] Treview sama
+
+- [x] ~~Problem ked chybaju data na zaciatku v strede aj na konci?~~ Islo iba o medzeru pri data
+- [x] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
+- [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
+- [x] ~~Porovnanie zas robi blbosti ~~asi done
+- [x] Nepaci sa mi ta ciara nad prihlaseny pouzivatel
 
 ##
 
