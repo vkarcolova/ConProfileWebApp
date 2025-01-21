@@ -133,6 +133,7 @@ namespace WebApiServer.Controllers
             var validExcitacions = new List<double>();
             var validIntensities = new List<double>();
             var onlyCalculated = new double?[column.Excitations.Count];
+            var onlyCalculatedExct = new double?[column.Excitations.Count];
 
             // Získanie platných dát (bez medzier)
             for (int i = 0; i < column.Intensities.Count; i++)
@@ -189,10 +190,11 @@ namespace WebApiServer.Controllers
                     }
 
                     onlyCalculated[i] = column.Intensities[i].Value;
+                    onlyCalculatedExct[i] = column.Excitations[i];
                 }
             }
 
-            return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated });
+            return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated, OnlyExcitations = onlyCalculatedExct });
           
 
         }

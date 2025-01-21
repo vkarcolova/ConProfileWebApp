@@ -17,10 +17,15 @@ import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
+
 interface CalculateDataProps {
   columns: ColumnDTO[];
   setColumns: (columns: ColumnDTO[]) => void;
-  saveColumn: (column: ColumnDTO, calculatedIntensities: number[]) => boolean;
+  saveColumn: (
+    column: ColumnDTO,
+    calculatedIntensities: number[],
+    excitations: number[]
+  ) => Promise<boolean>;
 }
 
 const CalculateData: React.FC<CalculateDataProps> = ({
@@ -97,8 +102,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   };
 
   const changeTab = (newValue: number) => {
-    console.log("Selected tab: ", newValue);
-    console.log(columns);
     setSelectedTab(newValue); // Zmena aktívneho tabu
     setCalculatedIntensities([]);
   };
@@ -346,10 +349,28 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                             ? "visible"
                             : "hidden",
                       }}
-                      onClick={() => {
-                        const result = saveColumn(
+                      onClick={async () => {
+                        const intensities = calculatedIntensities.filter(
+                          (x) => x !== undefined
+                        );
+                        const onlyExcitations = [];
+                        for (
+                          let i = 0;
+                          i < columns[selectedTab].excitations.length;
+                          i++
+                        ) {
+                          if (
+                            columns[selectedTab].intensities[i] === undefined
+                          ) {
+                            onlyExcitations.push(
+                              columns[selectedTab].excitations[i]
+                            );
+                          }
+                        }
+                        const result = await saveColumn(
                           columns[selectedTab],
-                          calculatedIntensities
+                          intensities,
+                          onlyExcitations
                         );
                         if (result === true) {
                           const columnName = columns[selectedTab].name;

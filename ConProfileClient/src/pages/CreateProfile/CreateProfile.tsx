@@ -16,6 +16,7 @@ import {
   ChartData,
   StatData,
   ColumnDTO,
+  CalculatedDataDTO,
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
@@ -86,6 +87,7 @@ const CreateProfile: React.FC = () => {
             return;
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
+
           setProjectData(obj);
           const comparefolders: FolderDTO[] = [];
           const folders: AllFolderData[] = [];
@@ -143,8 +145,6 @@ const CreateProfile: React.FC = () => {
 
     if (folderData.profile) {
       fillMultipliedFolder(allFolderData);
-      console.log("po");
-      console.log(allFolderData.chartData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
     const emptyColumns: ColumnDTO[] = [];
@@ -485,6 +485,8 @@ const CreateProfile: React.FC = () => {
   };
 
   const processDataForTable = (folder: AllFolderData): TableData => {
+    console.log(folder.folderData.foldername);
+    console.log(folder.folderData.data);
     let intensitiesColumns: TableDataColumn[] = [];
     const multipliedIntensitiesColumns: TableDataColumn[] = [];
     if (folder.tableData) {
@@ -602,8 +604,64 @@ const CreateProfile: React.FC = () => {
 
   const saveCalculatedColumn = async (
     column: ColumnDTO,
-    calculatedIntensities: number[]
+    calculatedIntensities: number[],
+    excitation: number[]
   ): Promise<boolean> => {
+    console.log(calculatedIntensities);
+    const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
+      (x) => x.filename === column.name
+    );
+    const columntToRewriteIndex = projectFolders[
+      selectedFolder
+    ].folderData.data.findIndex((x) => x.filename === column.name);
+    if (columnToRewrite === undefined) return false;
+
+    if (loadedProjectId) {
+      const excitations: number[] = [];
+      for (
+        let i = 0;
+        i < projectFolders[selectedFolder].folderData.excitation.length;
+        i++
+      ) {
+        if (columnToRewrite.intensity[i] === undefined) {
+          excitations.push(
+            projectFolders[selectedFolder].folderData!.excitation[i]
+          );
+        }
+      }
+      const calculatedColumn: CalculatedDataDTO = {
+        calculatedintensities: calculatedIntensities,
+        excitacions: excitations,
+        idfile: columnToRewrite.id,
+      };
+
+      clientApi.saveCalculatedData(calculatedColumn);
+      loadProjectFromId();
+    } else {
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        columnToRewrite.intensity.push({
+          excitation: excitation[i],
+          intensity: calculatedIntensities[i],
+        });
+      }
+      columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
+      console.log(columnToRewrite);
+      const projectCopy: ProjectDTO = projectData!;
+      const updatedFolders = projectFolders;
+      projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
+        columnToRewrite;
+
+      updatedFolders[selectedFolder] = await fillFolder(
+        projectCopy.folders[selectedFolder]
+      );
+      updatedFolders[selectedFolder].tableData = await processDataForTable(
+        updatedFolders[selectedFolder]
+      );
+
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
+    }
     // ak je načítaný projekt z databázy tak nahratie dát do databázy ako nove dáta do filu
     // bude to iba vlozenie calculated ziadne prepisovanie
     // ak je faktor tak aj to ale
@@ -612,7 +670,7 @@ const CreateProfile: React.FC = () => {
     // pridat do session
 
     //alebo kaslat a dat upozornenie nech si sami prepocitaju factor?
-    return false;
+    return true;
   };
 
   if (!projectFolders) {

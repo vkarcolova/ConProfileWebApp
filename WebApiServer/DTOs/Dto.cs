@@ -88,5 +88,6 @@ namespace WebApiServer.DTOs
     {
         public int IDFILE { get; set; }
         public double[] CALCULATEDINTENSITIES { get; set; }
-        public double[] EXCITACIONS {  get; set; }
+        public double[] EXCITACIONS { get; set; }
+    }
 }
