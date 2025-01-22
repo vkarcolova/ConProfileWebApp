@@ -1,7 +1,7 @@
 # TODO
 
 NAJSKOR
-
+- [ ] neaktulizuje sa profil tabulka zas a teraz neviem ci sa v db profil dobre prepisujeee
 - [x] Pridat ich do db
 - [ ] ten faktor nech sa uklada aj ako session
 - [x] nech sa daju aj nasobene data

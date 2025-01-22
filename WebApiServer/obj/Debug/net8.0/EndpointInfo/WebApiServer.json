@@ -718,6 +718,11 @@
           "spectrum": {
             "type": "integer",
             "format": "int32"
+          },
+          "factor": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false

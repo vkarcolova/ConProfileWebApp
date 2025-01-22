@@ -19,7 +19,7 @@ export interface FileDTO {
   filename: string;
   intensity: IntensityDTO[];
   spectrum: number;
-  //factor?: number; //pridat do db TODO
+  factor?: number; //pridat do db TODO
 }
 
 export interface FolderDTO {

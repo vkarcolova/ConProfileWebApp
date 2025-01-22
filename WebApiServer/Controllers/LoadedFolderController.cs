@@ -219,8 +219,14 @@ namespace WebApiServer.Controllers
 
 
                     int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
+                    LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
+                    double? factor = null;
+                    if (file.Factor.HasValue)
+                    {
+                        factor = file.Factor.Value;
+                    }
 
-                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                        for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
                     {
                         LoadedData newData = new LoadedData
                         {
@@ -229,14 +235,39 @@ namespace WebApiServer.Controllers
                             IdData = nextDataId,
                             IdFile = calculatedData.IDFILE
                         };
+                        if (factor.HasValue)
+                            newData.MultipliedIntensity =  calculatedData.CALCULATEDINTENSITIES[i] * factor;
+
                         nextDataId++;
                         _context.LoadedDatas.Add(newData);
+
                     };
+                   await _context.SaveChangesAsync();
 
-                    //mozno pridat aj multiplied?
-                
+                    if (file.Factor.HasValue) {
+                        bool success = true;
+                        List<LoadedData> loadedDatas = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE).ToList();
+                        var ordered = loadedDatas.OrderBy(x => x.Excitation).ToList();
+                        List<ProfileData> profileDatas = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder).ToList();
+                        profileDatas.OrderBy(x => x.Excitation).ToList();
+                        for(int i = 0;i < ordered.Count; i++)
+                        {
+                            if (ordered[i].Excitation != profileDatas[i].Excitation)
+                            { 
+                                success = false; break;
+                            }
 
-                    await _context.SaveChangesAsync();
+                            if (ordered[i].MultipliedIntensity.HasValue && profileDatas[i].MaxIntensity < ordered[i].MultipliedIntensity.Value)
+                            {
+                                profileDatas[i].MaxIntensity = ordered[i].MultipliedIntensity.Value;
+                            }    
+
+                        }
+
+                        if(success) await _context.SaveChangesAsync();
+                    }
+
+
 
                     return Ok();
                 }

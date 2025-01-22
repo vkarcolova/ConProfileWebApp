@@ -26,6 +26,7 @@ namespace WebApiServer.DTOs
         public string FILENAME { get; set; }
         public List<IntensityDTO> INTENSITY { get; set; }
         public int SPECTRUM { get; set; }
+        public double? FACTOR { get; set; }
     }
     public class FolderDTO
     {

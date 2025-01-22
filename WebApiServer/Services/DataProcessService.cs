@@ -242,7 +242,7 @@ namespace WebApiServer.Services
                     }
                     for (int i = 0; i < dataForExcitacion[0].Length; i++) //kazdy riadok
                     {
-                        double maxIntensity = -1;
+                        double maxIntensity = int.MinValue;
 
                         for (int j = 0; j < dataForExcitacion.Length; j++) // každý folder
                         {

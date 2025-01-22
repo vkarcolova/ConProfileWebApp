@@ -407,7 +407,7 @@ const CreateProfile: React.FC = () => {
       const profile: number[] = [];
       for (
         let row = 0;
-        row < project.folders[selectedFolder].data[0].intensity.length;
+        row < project.folders[selectedFolder].excitation.length;
         row++
       ) {
         let max: number = Number.MIN_VALUE;
@@ -432,6 +432,14 @@ const CreateProfile: React.FC = () => {
         }
         profile.push(max);
       }
+
+      for (
+        let file = 0;
+        file < project.folders[selectedFolder].data.length;
+        file++
+      ) { 
+        project.folders[selectedFolder].data[file].factor = factors[file];
+      }
       const newProfile: Profile = {
         excitation: projectFolders[selectedFolder].folderData.excitation,
         profile: profile,
@@ -441,6 +449,7 @@ const CreateProfile: React.FC = () => {
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
       folders[selectedFolder].multiplied = true;
+      
       folders[selectedFolder].tableData = processDataForTable(
         folders[selectedFolder]
       );
