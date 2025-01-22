@@ -72,14 +72,13 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
           paddingTop: "5px",
           borderRadius: 1,
           width: "85%",
-
-          "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+  
+          "& .MuiInputLabel-root": {
             marginTop: "5px",
-            //paddingBottom: "5px",
+            transition: "transform 0.2s ease-out, color 0.2s ease-out", // Optimalizovaný prechod
+
           },
-          "& .MuiInputLabel-root:not(.MuiInputLabel-shrink)": {
-            transform: "translate(14px, 45%)",
-          },
+
           "& .MuiOutlinedInput-root": {
             "& legend": {
               display: "none",

@@ -171,9 +171,9 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
                 fontWeight: rows.intensity === undefined ? "bold" : "normal",
               }}
             >
-              {rows.calculatedIntensity !== undefined
+              {rows.calculatedIntensity !== null && rows.calculatedIntensity !== undefined
                 ? rows.calculatedIntensity.toFixed(5)
-                : ""}
+                : rows.intensity?.toFixed(5)}
             </Typography>
           </TableCell>
         </React.Fragment>

@@ -11,6 +11,22 @@
   },
   {
     "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "AddCalculatedData",
+    "RelativePath": "LoadedFolder/AddCalculatedData",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "calculatedData",
+        "Type": "WebApiServer.DTOs.CalculatedDataDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
     "Method": "BatchProcessFolders",
     "RelativePath": "LoadedFolder/BatchProcessFolders",
     "HttpMethod": "POST",

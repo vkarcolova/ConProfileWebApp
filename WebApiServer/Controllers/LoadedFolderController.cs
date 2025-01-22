@@ -229,7 +229,7 @@ namespace WebApiServer.Controllers
                             IdData = nextDataId,
                             IdFile = calculatedData.IDFILE
                         };
-
+                        nextDataId++;
                         _context.LoadedDatas.Add(newData);
                     };
 

@@ -110,7 +110,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     await clientApi
       .calculateEmptyData(columns[selectedTab])
       .then(async (response) => {
-        setCalculatedIntensities(response.data.column.intensities);
+        console.log(response.data.onlyValues);
+        setCalculatedIntensities(response.data.onlyValues);
         const newChartData = chartData!;
         newChartData.push({
           data: response.data.onlyValues,
@@ -118,6 +119,48 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         });
         setChartData(newChartData);
       });
+  };
+
+  const handleApplyData = async () => { 
+    const intensities = calculatedIntensities.filter(
+      (x) => x !== null
+    );
+    const onlyExcitations = [];
+    for (
+      let i = 0;
+      i < columns[selectedTab].excitations.length;
+      i++
+    ) {
+      if (
+        columns[selectedTab].intensities[i] === undefined
+      ) {
+        onlyExcitations.push(
+          columns[selectedTab].excitations[i]
+        );
+      }
+    }
+    const result = await saveColumn(
+      columns[selectedTab],
+      intensities,
+      onlyExcitations
+    );
+    if (result === true) {
+      const columnName = columns[selectedTab].name;
+      const filteredColumns = columns.filter(
+        (column) => column.name !== columnName
+      );
+      setSelectedTab(0);
+      setColumns(filteredColumns);
+      if (filteredColumns.length === 0) {
+        handleClose();
+      }
+      changeTab(0);
+      toast.success(
+        "Stĺpec " + columnName + " bol úspešne uložený"
+      );
+    } else {
+      toast.error("Nepodarilo sa uložiť stĺpec");
+    }
   };
 
   return (
@@ -161,7 +204,9 @@ const CalculateData: React.FC<CalculateDataProps> = ({
             aria-labelledby="customized-dialog-title"
             open={open}
             fullWidth={true}
-            maxWidth="lg"
+            maxWidth="xl"
+            
+            sx={{height: "100%"}}
           >
             <DialogTitle
               sx={{ m: 0, paddingBottom: 0 }}
@@ -182,7 +227,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
               <CloseIcon />
             </IconButton>
 
-            <DialogContent sx={{ marginTop: "none", paddingTop: "0px" }}>
+            <DialogContent sx={{ marginTop: "none", paddingTop: "0px" , maxHeight: "90vh"}}>
               <Tabs
                 value={selectedTab}
                 onChange={handleTabChange}
@@ -196,7 +241,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
               {/* Obsah pre každý tab */}
               <Box
                 sx={{
-                  height: "500px", // Nastavíme výšku na 50% výšky obrazovky
                   width: "100%", // Celá šírka kontajnera
                   backgroundColor: "white", // Biele pozadie
                 }}
@@ -350,45 +394,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                             : "hidden",
                       }}
                       onClick={async () => {
-                        const intensities = calculatedIntensities.filter(
-                          (x) => x !== undefined
-                        );
-                        const onlyExcitations = [];
-                        for (
-                          let i = 0;
-                          i < columns[selectedTab].excitations.length;
-                          i++
-                        ) {
-                          if (
-                            columns[selectedTab].intensities[i] === undefined
-                          ) {
-                            onlyExcitations.push(
-                              columns[selectedTab].excitations[i]
-                            );
-                          }
-                        }
-                        const result = await saveColumn(
-                          columns[selectedTab],
-                          intensities,
-                          onlyExcitations
-                        );
-                        if (result === true) {
-                          const columnName = columns[selectedTab].name;
-                          const filteredColumns = columns.filter(
-                            (column) => column.name !== columnName
-                          );
-                          setSelectedTab(0);
-                          setColumns(filteredColumns);
-                          if (filteredColumns.length === 0) {
-                            handleClose();
-                          }
-                          changeTab(0);
-                          toast.success(
-                            "Stĺpec " + columnName + " bol úspešne uložený"
-                          );
-                        } else {
-                          toast.error("Nepodarilo sa uložiť stĺpec");
-                        }
+                        handleApplyData();
                       }}
                     >
                       <Typography

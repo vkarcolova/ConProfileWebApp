@@ -143,9 +143,9 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                     <>
                       {folder.children?.map((file) => (
                         <TreeItem
-                          itemId={file.label}
+                          itemId={file.label + "" +index}
                           label={file.label}
-                          key={file.label}
+                          key={file.label + "" +index}
                           sx={{ paddingBottom: 0 }}
                         />
                       ))}

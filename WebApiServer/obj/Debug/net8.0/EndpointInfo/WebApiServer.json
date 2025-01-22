@@ -199,6 +199,37 @@
         }
       }
     },
+    "/LoadedFolder/AddCalculatedData": {
+      "post": {
+        "tags": [
+          "LoadedFolder"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculatedDataDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculatedDataDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculatedDataDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Project/GetProjectsByToken/{token}": {
       "get": {
         "tags": [
@@ -588,6 +619,32 @@
   },
   "components": {
     "schemas": {
+      "CalculatedDataDTO": {
+        "type": "object",
+        "properties": {
+          "idfile": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "calculatedintensities": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "excitacions": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ColumnDTO": {
         "type": "object",
         "properties": {

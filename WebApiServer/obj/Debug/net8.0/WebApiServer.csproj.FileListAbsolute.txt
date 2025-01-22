@@ -250,3 +250,9 @@ C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Ac
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Math.Core.dll
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Math.dll
 C:\Users\verka\kodiky\Diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Statistics.dll
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.dll.config
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.dll
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.MachineLearning.dll
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Math.Core.dll
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Math.dll
+C:\Users\z004w65h\source\diplomka\ConProfileWebApp\WebApiServer\bin\Debug\net8.0\Accord.Statistics.dll
