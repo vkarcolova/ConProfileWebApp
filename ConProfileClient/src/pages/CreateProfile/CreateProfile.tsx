@@ -354,9 +354,9 @@ const CreateProfile: React.FC = () => {
 
     const factorsToSave: Factors[] = [];
 
-    projectFolders[selectedFolder].folderData.data.forEach((element) => {
+    projectFolders[selectedFolder].folderData.data.forEach((element,index) => {
       const autocompleteInput = document.getElementById(
-        `autocomplete-${element.spectrum}`
+        `autocomplete-${index}`
       ) as HTMLInputElement | null;
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
@@ -410,7 +410,6 @@ const CreateProfile: React.FC = () => {
         row < project.folders[selectedFolder].excitation.length;
         row++
       ) {
-        let max: number = Number.MIN_VALUE;
         for (
           let file = 0;
           file < project.folders[selectedFolder].data.length;
@@ -427,10 +426,8 @@ const CreateProfile: React.FC = () => {
             project.folders[selectedFolder].data[file].intensity[
               row
             ].multipliedintensity = multiplied;
-            if (multiplied > max) max = multiplied;
           }
         }
-        profile.push(max);
       }
 
       for (
@@ -440,19 +437,36 @@ const CreateProfile: React.FC = () => {
       ) { 
         project.folders[selectedFolder].data[file].factor = factors[file];
       }
+      
+      const folders: AllFolderData[] = projectFolders;
+      folders[selectedFolder].multiplied = true;
+
+      folders[selectedFolder].tableData = processDataForTable(
+        folders[selectedFolder]
+      );
+
+      for (let i = 0; i < folders[selectedFolder].tableData.excitation.length; i++) { //kazdy riadok
+        let max: number = -Infinity;
+
+        for (let j = 0; j < folders[selectedFolder].tableData.multipliedintensities!.length; j++) { 
+          const value = folders[selectedFolder].tableData.multipliedintensities![j].intensities[i];
+          
+          if(value != undefined && Number.isFinite(value)) { 
+            if(value > max) max = value;
+            
+          }
+        }
+        profile.push(max);
+      }
+
       const newProfile: Profile = {
         excitation: projectFolders[selectedFolder].folderData.excitation,
         profile: profile,
       };
       project.folders[selectedFolder].profile = profile;
-      const folders: AllFolderData[] = projectFolders;
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
-      folders[selectedFolder].multiplied = true;
-      
-      folders[selectedFolder].tableData = processDataForTable(
-        folders[selectedFolder]
-      );
+
 
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
@@ -655,14 +669,29 @@ const CreateProfile: React.FC = () => {
           columnToRewrite.intensity.push({
             excitation: excitation[i],
             intensity: calculatedIntensities[i],
+            multipliedintensity: columnToRewrite.factor ? calculatedIntensities[i] * columnToRewrite.factor : undefined,
           });
         
       }
+
       columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
       const projectCopy: ProjectDTO = projectData!;
       const updatedFolders = projectFolders;
       projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
         columnToRewrite;
+
+
+      if(updatedFolders[selectedFolder].multiplied && updatedFolders[selectedFolder].folderData.profile) {
+        const newProfile = updatedFolders[selectedFolder].folderData.profile;
+        for (let i = 0; i < calculatedIntensities.length; i++) {
+          if (columnToRewrite.intensity[i].multipliedintensity !== undefined && columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]) {
+              newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
+            }
+        }
+        console.log(newProfile);
+        updatedFolders[selectedFolder].profileData.profile =  newProfile;
+        updatedFolders[selectedFolder].folderData.profile = newProfile;
+      }
 
       updatedFolders[selectedFolder] = await fillFolder(
         projectCopy.folders[selectedFolder]
@@ -670,19 +699,10 @@ const CreateProfile: React.FC = () => {
       updatedFolders[selectedFolder].tableData = await processDataForTable(
         updatedFolders[selectedFolder]
       );
-
       setProjectData(projectCopy);
       setProjectFolders(updatedFolders);
       saveSessionData(projectCopy);
     }
-    // ak je načítaný projekt z databázy tak nahratie dát do databázy ako nove dáta do filu
-    // bude to iba vlozenie calculated ziadne prepisovanie
-    // ak je faktor tak aj to ale
-    // je factor v allfolderdata?
-    // pridat aj multiply ak na colume je multiplied a prepocitat profil podla faktoru
-    // pridat do session
-
-    //alebo kaslat a dat upozornenie nech si sami prepocitaju factor?
     return true;
   };
 

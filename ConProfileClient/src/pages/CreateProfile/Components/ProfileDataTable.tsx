@@ -37,7 +37,7 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
     }
 
     setTableRows(rows);
-  }, []);
+  }, [profile]);
 
   const VirtuosoTableComponents: TableComponents<RowData> = {
     Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (

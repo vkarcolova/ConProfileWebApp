@@ -1,19 +1,7 @@
 # TODO
 
 NAJSKOR
-- [ ] neaktulizuje sa profil tabulka zas a teraz neviem ci sa v db profil dobre prepisujeee
-- [x] Pridat ich do db
-- [ ] ten faktor nech sa uklada aj ako session
-- [x] nech sa daju aj nasobene data
 
-- [ ] Vyskusat dopocitanie tych dat
-
-
-
-
-
-
-- [ ] Pozriet ci sa lokalne faktory zadane ukladaju
 - [ ] Zda sa ze autocomplete spomaluje
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
@@ -30,13 +18,18 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+
 - [x] ~~Problem ked chybaju data na zaciatku v strede aj na konci?~~ Islo iba o medzeru pri data
 - [x] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
 - [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
 - [x] ~~Porovnanie zas robi blbosti ~~asi done
 - [x] Nepaci sa mi ta ciara nad prihlaseny pouzivatel
 - [x] preco su statistiky nan
-
+- [x] Pozriet ci sa lokalne faktory zadane ukladaju
+- [x] neaktulizuje sa profil tabulka zas a teraz neviem ci sa v db profil dobre prepisujeee
+- [x] Pridat ich do db
+- [x] ten faktor nech sa uklada aj ako session
+- [x] nech sa daju aj nasobene data
 ##
 
 HADAM RAZ

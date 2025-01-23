@@ -107,7 +107,7 @@ const DataTable: React.FC<DataTableProps> = ({
         </TableRow>
         {showAutocomplete && (
           <TableRow>
-            {tableData.intensities.map((tableData) => (
+            {tableData.intensities.map((tableData, index) => (
               <React.Fragment key={tableData.name}>
                 <TableCell
                   style={{
@@ -132,7 +132,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     <CustomInputAutocomplete
                       columnSpectrum={tableData.spectrum!}
                       allFactors={factors!}
-                      id={tableData.spectrum!}
+                      id={index}
                     />
                   </Box>
                 </TableCell>
