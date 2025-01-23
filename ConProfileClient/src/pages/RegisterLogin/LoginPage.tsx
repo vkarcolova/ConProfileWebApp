@@ -25,7 +25,6 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async () => {
     await clientApi.login(email, password).then((response) => { 
       if (response.status === 200) {
-        console.log(response.data);
         const token = response.data.token;
         localStorage.setItem("token", token);
         const useremail = response.data.email;

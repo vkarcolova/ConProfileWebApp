@@ -1,7 +1,14 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 import config from "../../config";
-import { Factors, FileContent, MultiplyFolderDTO, ProjectDTO } from "./types";
+import {
+  CalculatedDataDTO,
+  ColumnDTO,
+  Factors,
+  FileContent,
+  MultiplyFolderDTO,
+  ProjectDTO,
+} from "./types";
 
 export const clientApi = {
   register: async (email: string, password: string, password2: string) => {
@@ -160,10 +167,50 @@ export const clientApi = {
     );
   },
 
+  batchProcessFolders: async (loadedFiles: FileContent[]) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/BatchProcessFolders`,
+      JSON.stringify(loadedFiles),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
   postFolderToProject: async (loadedFiles: FileContent[]) => {
     return axios.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
       JSON.stringify(loadedFiles),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  calculateEmptyData: async (column: ColumnDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
+      JSON.stringify(column),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  saveCalculatedData: async (calculatedData: CalculatedDataDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/AddCalculatedData`,
+      JSON.stringify(calculatedData),
       {
         headers: {
           "Content-Type": "application/json",
@@ -215,7 +262,6 @@ export const clientApi = {
       folderids: folderIds,
     };
 
-    console.log(JSON.stringify(request));
     return await axios.delete(
       `${config.apiUrl}/Project/DeleteFoldersFromProject`,
       {

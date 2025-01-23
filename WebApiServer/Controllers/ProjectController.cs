@@ -261,6 +261,7 @@ namespace WebAPI.Controllers
 
         }
 
+       
         //GET PROJECT FROM ID z db
         [HttpGet("GetProject/{id}")]
         public ActionResult<ProjectDTO> GetItemById(int id)
@@ -317,8 +318,10 @@ namespace WebAPI.Controllers
                             ID = file.IdFile,
                             FILENAME = file.FileName,
                             INTENSITY = intensity,
-                            SPECTRUM = file.Spectrum
+                            SPECTRUM = file.Spectrum,
+                            FACTOR = file.Factor
                         };
+                        
 
                         fileList.Add(data);
                     }

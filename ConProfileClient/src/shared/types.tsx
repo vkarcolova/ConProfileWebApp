@@ -19,6 +19,7 @@ export interface FileDTO {
   filename: string;
   intensity: IntensityDTO[];
   spectrum: number;
+  factor?: number; //pridat do db TODO
 }
 
 export interface FolderDTO {
@@ -73,7 +74,7 @@ export interface TableDataColumn {
 // }
 
 export interface ChartData {
-  data: number[];
+  data: (number | undefined)[];
   label: string;
 }
 
@@ -81,6 +82,12 @@ export interface StatData {
   max: number;
   min: number;
   std: number;
+}
+
+export interface ColumnDTO {
+  name: string;
+  intensities: (number | undefined)[];
+  excitations: number[];
 }
 
 export interface AllFolderData {
@@ -91,4 +98,11 @@ export interface AllFolderData {
   profileData: Profile;
   multiplied: boolean;
   tableData?: TableData;
+  emptyDataColums: ColumnDTO[];
+}
+
+export interface CalculatedDataDTO {
+  idfile: number;
+  calculatedintensities: number[];
+  excitacions: number[];
 }

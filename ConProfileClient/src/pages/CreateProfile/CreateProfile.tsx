@@ -15,6 +15,8 @@ import {
   AllFolderData,
   ChartData,
   StatData,
+  ColumnDTO,
+  CalculatedDataDTO,
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
@@ -31,9 +33,7 @@ import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRou
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
-import {
-  emptyTable,
-} from "../../shared/styles";
+import { emptyTable } from "../../shared/styles";
 import { ExportMenu } from "./Components/ExportMenu";
 import { SaveToDbButton } from "./Components/SaveToDbButton";
 import { ProfileDataTable } from "./Components/ProfileDataTable";
@@ -44,11 +44,10 @@ import { FolderTreeView } from "./Components/FolderTreeView";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
-import { ProfileMenu } from "./Components/ProfileMenu";
-
+import { UserMenu } from "./Components/UserMenu";
+import CalculateData from "../CalculateData/CalculateDataButtonDialog";
 
 const CreateProfile: React.FC = () => {
-
   const navigate = useNavigate();
   const { id: loadedProjectId } = useParams<{ id: string }>();
   const [factors, setFactors] = React.useState<Factors[]>([]);
@@ -71,9 +70,10 @@ const CreateProfile: React.FC = () => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
 
-  // useEffect(() => {
-  //   console.log(selectedFolder);
-  // }, [selectedFolder]);
+  useEffect(() => {
+    //console.log(projectData);
+  }, [projectData]);
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -87,6 +87,7 @@ const CreateProfile: React.FC = () => {
             return;
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
+
           setProjectData(obj);
           const comparefolders: FolderDTO[] = [];
           const folders: AllFolderData[] = [];
@@ -125,10 +126,8 @@ const CreateProfile: React.FC = () => {
   const fillFolder = async (folderData: FolderDTO): Promise<AllFolderData> => {
     const dynamicChartData: ChartData[] = [];
     let allData: number[] = [];
-
     folderData.data.forEach((file) => {
       const intensities: number[] = file.intensity.map((dto) => dto.intensity);
-      dynamicChartData.push({ data: intensities, label: file.filename });
       allData = allData.concat(intensities);
     });
 
@@ -141,32 +140,46 @@ const CreateProfile: React.FC = () => {
       folderData: folderData,
       profileData: { excitation: [], profile: [] },
       multiplied: false,
+      emptyDataColums: [],
     };
 
     if (folderData.profile) {
       fillMultipliedFolder(allFolderData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
+    const emptyColumns: ColumnDTO[] = [];
+    allFolderData.tableData.intensities.forEach((column) => {
+      dynamicChartData.push({ data: column.intensities, label: column.name });
+
+      if (column.intensities.some((x) => x === undefined)) {
+        emptyColumns.push({
+          intensities: column.intensities,
+          name: column.name,
+          excitations: allFolderData.tableData!.excitation,
+        });
+      }
+    });
+    if (allFolderData.multiplied) {
+      dynamicChartData.filter((item) => item.label !== "Profil");
+
+      dynamicChartData.push({
+        data: allFolderData.profileData.profile,
+        label: "Profil",
+      });
+    }
+    allFolderData.emptyDataColums = emptyColumns;
+    allFolderData.chartData = dynamicChartData;
     return allFolderData;
   };
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
     if (folder.folderData.profile) {
-      folder.chartData = folder.chartData.filter(
-        (item) => item.label !== "Profil"
-      );
-
-      folder.chartData.push({
-        data: folder.folderData.profile,
-        label: "Profil",
-      });
-
       let allData: number[] = [];
 
       folder.folderData.data.forEach((file) => {
-        const intensities: number[] = file.intensity.map(
-          (dto) => dto.multipliedintensity!
-        );
+        const intensities: number[] = file.intensity
+          .filter((dto) => dto.multipliedintensity !== undefined)
+          .map((dto) => dto.multipliedintensity!);
         allData = allData.concat(intensities);
       });
 
@@ -204,6 +217,7 @@ const CreateProfile: React.FC = () => {
       min: min,
       std: standardDeviation,
     };
+
     return stats;
   };
 
@@ -213,7 +227,6 @@ const CreateProfile: React.FC = () => {
         const project = await clientApi.loadProjectFromId(loadedProjectId);
         setProjectData(project);
         const comparefolders: FolderDTO[] = [];
-        console.log(project.folders.length);
 
         const folders: AllFolderData[] = [];
         project.folders.forEach(async (folder) => {
@@ -341,9 +354,9 @@ const CreateProfile: React.FC = () => {
 
     const factorsToSave: Factors[] = [];
 
-    projectFolders[selectedFolder].folderData.data.forEach((element) => {
+    projectFolders[selectedFolder].folderData.data.forEach((element,index) => {
       const autocompleteInput = document.getElementById(
-        `autocomplete-${element.spectrum}`
+        `autocomplete-${index}`
       ) as HTMLInputElement | null;
       const inputFactor = autocompleteInput
         ? parseFloat(autocompleteInput.value)
@@ -394,10 +407,9 @@ const CreateProfile: React.FC = () => {
       const profile: number[] = [];
       for (
         let row = 0;
-        row < project.folders[selectedFolder].data[0].intensity.length;
+        row < project.folders[selectedFolder].excitation.length;
         row++
       ) {
-        let max: number = Number.MIN_VALUE;
         for (
           let file = 0;
           file < project.folders[selectedFolder].data.length;
@@ -414,27 +426,54 @@ const CreateProfile: React.FC = () => {
             project.folders[selectedFolder].data[file].intensity[
               row
             ].multipliedintensity = multiplied;
-            if (multiplied > max) max = multiplied;
+          }
+        }
+      }
+
+      for (
+        let file = 0;
+        file < project.folders[selectedFolder].data.length;
+        file++
+      ) { 
+        project.folders[selectedFolder].data[file].factor = factors[file];
+      }
+      
+      const folders: AllFolderData[] = projectFolders;
+      folders[selectedFolder].multiplied = true;
+
+      folders[selectedFolder].tableData = processDataForTable(
+        folders[selectedFolder]
+      );
+
+      for (let i = 0; i < folders[selectedFolder].tableData.excitation.length; i++) { //kazdy riadok
+        let max: number = -Infinity;
+
+        for (let j = 0; j < folders[selectedFolder].tableData.multipliedintensities!.length; j++) { 
+          const value = folders[selectedFolder].tableData.multipliedintensities![j].intensities[i];
+          
+          if(value != undefined && Number.isFinite(value)) { 
+            if(value > max) max = value;
+            
           }
         }
         profile.push(max);
       }
+
       const newProfile: Profile = {
         excitation: projectFolders[selectedFolder].folderData.excitation,
         profile: profile,
       };
       project.folders[selectedFolder].profile = profile;
-      const folders: AllFolderData[] = projectFolders;
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
-      folders[selectedFolder].multiplied = true;
-      folders[selectedFolder].tableData = processDataForTable(
-        folders[selectedFolder]
-      );
+
 
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
       setProjectData(project);
+      const comparefolders: FolderDTO[] = foldersToCompare || [];
+      comparefolders.push(project.folders[selectedFolder]);
+      setFoldersToCompare(comparefolders);
       saveSessionData(project);
     }
   };
@@ -477,12 +516,12 @@ const CreateProfile: React.FC = () => {
 
       if (folder.multiplied) {
         folder.folderData.data.forEach((file) => {
-          let intensities: (IntensityDTO | null)[] = [];
+          let intensities: (IntensityDTO | undefined)[] = [];
           intensities = folder.folderData.excitation.map((value) => {
             const singleIntensity = file.intensity.find(
               (x) => x.excitation === value
             );
-            return singleIntensity ? singleIntensity : null;
+            return singleIntensity ? singleIntensity : undefined;
           });
           const multipliedColumn: TableDataColumn = {
             name: file.filename,
@@ -493,19 +532,21 @@ const CreateProfile: React.FC = () => {
       }
     } else {
       folder.folderData.data.forEach((file) => {
-        let intensities: (IntensityDTO | null)[] = [];
+        let intensities: (IntensityDTO | undefined)[] = [];
 
         intensities = folder.folderData.excitation.map((value) => {
           const singleIntensity = file.intensity.find(
             (x) => x.excitation === value
           );
-          return singleIntensity ? singleIntensity : null;
+          return singleIntensity;
         });
+
         const column: TableDataColumn = {
           name: file.filename,
-          intensities: intensities.map((x) => x?.intensity),
+          intensities: intensities.map((x) => (x ? x?.intensity : undefined)),
           spectrum: file.spectrum,
         };
+
         intensitiesColumns.push(column);
         if (folder.multiplied) {
           const multipliedColumn: TableDataColumn = {
@@ -526,7 +567,6 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleProjectNameSave = async (projectName: string) => {
-    console.log("here");
     if (projectName === projectData?.projectname) return;
 
     const newProject: ProjectDTO = {
@@ -544,7 +584,6 @@ const CreateProfile: React.FC = () => {
 
   const deleteProjectFolders = async (selectedFolders: string[]) => {
     if (loadedProjectId) {
-      console.log("deleteProjectFolders");
       const folderIdToDelete: number[] = [];
       projectFolders.forEach((value) => {
         if (selectedFolders.includes(value.folderData.foldername))
@@ -563,32 +602,108 @@ const CreateProfile: React.FC = () => {
           }
         });
     } else {
-      const project: ProjectDTO = { ...projectData! };
-      let folders: AllFolderData[] = projectFolders;
-      const foldersToDelete: FolderDTO[] = [];
-      project.folders.forEach((value) => {
-        if (selectedFolders.includes(value.foldername)) {
-          foldersToDelete.push(value);
-        }
-      });
-      project.folders = project.folders.filter((value) =>
-        selectedFolders.includes(value.foldername)
+      const projectCopy: ProjectDTO = {
+        ...projectData!,
+        folders: [...projectData!.folders],
+      };
+
+      projectCopy.folders = projectCopy.folders.filter(
+        (folder) => !selectedFolders.includes(folder.foldername)
       );
 
-      folders = folders.filter((value) =>
-        selectedFolders.includes(value.folderData.foldername)
-      );
-      project.folders = project.folders.filter(
-        (value) =>
-          value.foldername !== project.folders[selectedFolder].foldername
+      const updatedFolders = projectFolders.filter(
+        (folderData) =>
+          !selectedFolders.includes(folderData.folderData.foldername)
       );
 
-      setProjectData(project);
-      setProjectFolders(folders);
-      saveSessionData(project);
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
     }
     setDeletingFolders(false);
     setSelectedFolder(0);
+  };
+
+  const saveCalculatedColumn = async (
+    column: ColumnDTO,
+    calculatedIntensities: number[], //toto su cele data z nejakeho dovodu  chceme ibe tie dopocitane a bude to oke todooo
+    excitation: number[]
+  ): Promise<boolean> => {
+    console.log(excitation);
+    console.log(calculatedIntensities);
+
+    const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
+      (x) => x.filename === column.name
+    );
+    const columntToRewriteIndex = projectFolders[
+      selectedFolder
+    ].folderData.data.findIndex((x) => x.filename === column.name);
+
+    if (columnToRewrite === undefined) return false;
+
+    if (loadedProjectId) {
+      const excitations: number[] = [];
+      const intensities: number[] = [];
+
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        if (calculatedIntensities[i] !== undefined) {
+          
+            excitations.push(excitation[i]);
+            intensities.push(calculatedIntensities[i]);
+        }
+      }
+
+      const calculatedColumn: CalculatedDataDTO = {
+        calculatedintensities: intensities,
+        excitacions: excitations,
+        idfile: columnToRewrite.id,
+      };
+
+      await clientApi.saveCalculatedData(calculatedColumn).catch(() => {
+        toast.error("Chyba pri ukladaní dát.");
+        return false;
+      });
+      loadProjectFromId();
+    } else {
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+          columnToRewrite.intensity.push({
+            excitation: excitation[i],
+            intensity: calculatedIntensities[i],
+            multipliedintensity: columnToRewrite.factor ? calculatedIntensities[i] * columnToRewrite.factor : undefined,
+          });
+        
+      }
+
+      columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
+      const projectCopy: ProjectDTO = projectData!;
+      const updatedFolders = projectFolders;
+      projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
+        columnToRewrite;
+
+
+      if(updatedFolders[selectedFolder].multiplied && updatedFolders[selectedFolder].folderData.profile) {
+        const newProfile = updatedFolders[selectedFolder].folderData.profile;
+        for (let i = 0; i < calculatedIntensities.length; i++) {
+          if (columnToRewrite.intensity[i].multipliedintensity !== undefined && columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]) {
+              newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
+            }
+        }
+        console.log(newProfile);
+        updatedFolders[selectedFolder].profileData.profile =  newProfile;
+        updatedFolders[selectedFolder].folderData.profile = newProfile;
+      }
+
+      updatedFolders[selectedFolder] = await fillFolder(
+        projectCopy.folders[selectedFolder]
+      );
+      updatedFolders[selectedFolder].tableData = await processDataForTable(
+        updatedFolders[selectedFolder]
+      );
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
+    }
+    return true;
   };
 
   if (!projectFolders) {
@@ -650,159 +765,185 @@ const CreateProfile: React.FC = () => {
                   "& *": {
                     color: "inherit",
                   },
+                  justifyContent: "space-between",
                 }}
               >
                 <Box
                   sx={{
-                    marginTop: "40px",
-                    marginBottom: "10px",
-                    display: "flex",
-                    justifyContent: "center", // Horizontálne centrovanie
+                    width: "100%",
+                    justifyContent: "center",
                     alignItems: "center",
-                    flexDirection: "row",
-                    fontWeight: "bold",
-                    maxWidth: "90%",
                   }}
                 >
-                  <IconButton
-                    sx={{
-                      width: "35px",
-                      height: "35px",
-                      color: "white",
-                      position: "absolute",
-                      top: 5,
-                      left: 5,
-                      opacity: "0.7",
-                    }}
-                    onClick={() => {
-                      navigate("/");
-                    }}
-                  >
-                    <Home sx={{ fontSize: "30px" }} />
-                  </IconButton>
-
-                  <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
-                    Názov projektu
-                  </h4>
-                  <ProjectNameInput
-                    savedProjectName={projectData?.projectname}
-                    saveToProjectData={handleProjectNameSave}
-                  />
-                </Box>
-                <FolderTreeView
-                  projectData={projectData}
-                  selectedFolder={selectedFolder}
-                  handleNodeSelect={handleNodeSelect}
-                  deleting={deletingFolders}
-                  setDeleting={setDeletingFolders}
-                  deleteProjectFolders={deleteProjectFolders}
-                />
-                <Box className="buttonContainer">
                   <Box
                     sx={{
-                      marginTop: "5px",
-                      justifyContent: "space-between",
-                      width: "35%",
+                      marginTop: "40px",
+                      marginBottom: "10px",
+                      display: "flex",
+                      justifyContent: "center", // Horizontálne centrovanie
+                      alignItems: "center",
+                      flexDirection: "row",
+                      fontWeight: "bold",
+                      maxWidth: "90%",
                     }}
                   >
-                    {projectData?.folders.length != 0 && (
-                      <Tooltip
-                        slotProps={{
-                          popper: {
-                            sx: {
-                              [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                                {
-                                  marginTop: "0px",
-                                  fontSize: "12px",
-                                },
-                            },
-                          },
-                        }}
-                        title="Vymazať priečinky z projektu"
-                      >
-                        <IconButton
-                          sx={{
-                            width: "35px",
-                            height: "35px",
-                          }}
-                          onClick={() => {
-                            setDeletingFolders(!deletingFolders);
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-
-                    <Tooltip
-                      slotProps={{
-                        popper: {
-                          sx: {
-                            [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                              {
-                                marginTop: "0px",
-                                fontSize: "12px",
-                              },
-                          },
-                        },
+                    <IconButton
+                      sx={{
+                        width: "35px",
+                        height: "35px",
+                        color: "white",
+                        position: "absolute",
+                        top: 5,
+                        left: 5,
+                        opacity: "0.7",
                       }}
-                      title="Pridať ďalší priečinok"
+                      onClick={() => {
+                        navigate("/");
+                      }}
                     >
-                      <IconButton
-                        sx={{
-                          width: "35px",
-                          height: "35px",
-                        }}
-                        onClick={handleSelectFolder}
-                      >
-                        <AddCircleOutlineRoundedIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    directory=""
-                    webkitdirectory=""
-                    onChange={loadNewFolder}
-                    multiple
-                    style={{ display: "none" }}
-                  />
+                      <Home sx={{ fontSize: "30px" }} />
+                    </IconButton>
 
-                  <NunuButton
-                    onClick={() => {
-                      if (
-                        foldersToCompare != null &&
-                        foldersToCompare.length < 2
-                      )
-                        toast.info(
-                          "Pre porovnanie je potrebné mať vytvorené aspoň dva profily."
-                        );
-                      else setDialogOpen(true);
-                    }}
-                    bgColour="f8f6ff"
-                    textColour="rgba(59, 49, 119, 0.87)"
-                    hoverTextColour="rgba(59, 49, 119, 0.87)"
-                    hoverBgColour="#E2E3E8"
-                    label="Porovnať"
+                    <h4 style={{ marginLeft: "5px", fontWeight: "500" }}>
+                      Názov projektu
+                    </h4>
+                    <ProjectNameInput
+                      savedProjectName={projectData?.projectname}
+                      saveToProjectData={handleProjectNameSave}
+                    />
+                  </Box>
+                  <Box
                     sx={{
-                      backgroundColor: "#f8f6ff",
-                      marginTop: { md: "15px", lg: "15px" },
-                      width: "60%",
-                      height: { md: "45px", borderRadius: "20px" },
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
-                    fontSize="14px"
-                  />
+                  >
+                    <FolderTreeView
+                      projectData={projectData}
+                      selectedFolder={selectedFolder}
+                      handleNodeSelect={handleNodeSelect}
+                      deleting={deletingFolders}
+                      setDeleting={setDeletingFolders}
+                      deleteProjectFolders={deleteProjectFolders}
+                    />
+                    <Box className="buttonContainer">
+                      <Box
+                        sx={{
+                          marginTop: "5px",
+                          justifyContent: "space-between",
+                          width: "35%",
+                        }}
+                      >
+                        {projectData?.folders.length != 0 && (
+                          <Tooltip
+                            slotProps={{
+                              popper: {
+                                sx: {
+                                  [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                                    {
+                                      marginTop: "0px",
+                                      fontSize: "12px",
+                                    },
+                                },
+                              },
+                            }}
+                            title="Vymazať priečinky z projektu"
+                          >
+                            <IconButton
+                              sx={{
+                                width: "35px",
+                                height: "35px",
+                                color: "white",
+                              }}
+                              onClick={() => {
+                                setDeletingFolders(!deletingFolders);
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
+                        <Tooltip
+                          slotProps={{
+                            popper: {
+                              sx: {
+                                [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                                  {
+                                    marginTop: "0px",
+                                    fontSize: "12px",
+                                  },
+                              },
+                            },
+                          }}
+                          title="Pridať ďalší priečinok"
+                        >
+                          <IconButton
+                            sx={{
+                              width: "35px",
+                              height: "35px",
+                              color: "white",
+                            }}
+                            onClick={handleSelectFolder}
+                          >
+                            <AddCircleOutlineRoundedIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      <input
+                        ref={inputRef}
+                        type="file"
+                        directory=""
+                        webkitdirectory=""
+                        onChange={loadNewFolder}
+                        multiple
+                        style={{ display: "none" }}
+                      />
+
+                      <NunuButton
+                        onClick={() => {
+                          if (
+                            foldersToCompare != null &&
+                            foldersToCompare.length < 2
+                          )
+                            toast.info(
+                              "Pre porovnanie je potrebné mať vytvorené aspoň dva profily."
+                            );
+                          else setDialogOpen(true);
+                        }}
+                        bgColour="f8f6ff"
+                        textColour="rgba(59, 49, 119, 0.87)"
+                        hoverTextColour="rgba(59, 49, 119, 0.87)"
+                        hoverBgColour="#E2E3E8"
+                        label="Porovnať"
+                        sx={{
+                          backgroundColor: "#f8f6ff",
+                          marginTop: { md: "15px", lg: "15px" },
+                          width: "60%",
+                          height: { md: "45px", borderRadius: "20px" },
+                        }}
+                        fontSize="14px"
+                      />
+                    </Box>
+                  </Box>
+                  <Box className="buttonContainerRows">
+                    <ExportMenu
+                      projectData={projectData}
+                      multiplied={!projectFolders[selectedFolder].multiplied}
+                      tableData={projectFolders[selectedFolder].tableData!}
+                      profile={projectFolders[selectedFolder].profileData}
+                    />
+                    <SaveToDbButton
+                      loadedProjectId={loadedProjectId}
+                      projectData={projectData}
+                      setLoading={setIsLoading}
+                    />
+                  </Box>
                 </Box>
-                <Box className="buttonContainerRows">
-                  <ExportMenu projectData={projectData} />
-                  <SaveToDbButton
-                    loadedProjectId={loadedProjectId}
-                    projectData={projectData}
-                    setLoading={setIsLoading}
-                  />
-                </Box>
-                <ProfileMenu />
+                <UserMenu />
               </Box>
             </Grid>
             <Grid
@@ -839,7 +980,8 @@ const CreateProfile: React.FC = () => {
                     sx={{
                       width: "55%",
                       height: "100%",
-                      paddingTop: "10px",
+                      paddingTop: "25px",
+                      paddingRight: "10px",
                     }}
                   >
                     <DataTable
@@ -848,24 +990,29 @@ const CreateProfile: React.FC = () => {
                       factors={factors}
                     />
                   </Grid>
-                  <Box
+                  <Grid
                     className="otherContainer"
-                    style={{ width: "45%", height: "100%", paddingTop: "10px" }}
+                    style={{
+                      width: "45%",
+                      height: "100%",
+                      paddingTop: "10px",
+                      paddingLeft: "4px",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                    }}
                   >
                     <Box className="buttonCreateProfil">
                       <NunuButton
                         onClick={multiplyButtonClick}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Vytvoriť profil"
                         sx={{
-                          backgroundColor: "black",
                           maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "30px",
                           width: "100%",
                         }}
                         fontSize="12px"
@@ -873,19 +1020,17 @@ const CreateProfile: React.FC = () => {
 
                       <NunuButton
                         onClick={() => {}}
-                        bgColour="black"
+                        bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
                         label="Exportovať graf"
                         sx={{
-                          backgroundColor: "black",
+                          maxWidth: "150px",
                           height: "40px",
                           borderRadius: "30px",
-                          marginLeft: "auto",
-                          marginRight: "30px",
-                          maxWidth: "150px",
                           width: "100%",
+                          marginRight: "10px",
                         }}
                         fontSize="12px"
                       />
@@ -896,28 +1041,47 @@ const CreateProfile: React.FC = () => {
                           height: "83%",
                           margin: "10px",
                           backgroundColor: "white",
+                          boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 10px",
                         }}
                       >
                         <ScatterChart
                           series={projectFolders[selectedFolder].chartData.map(
                             (data) => ({
                               label: data.label,
-                              data: data.data.map((v, index) => ({
-                                x: projectFolders[selectedFolder].folderData
-                                  .excitation[index],
-                                y: v,
-                                id: index,
-                              })),
+                              data: data.data
+                                .map(
+                                  (v, index) =>
+                                    v !== undefined
+                                      ? {
+                                          x: projectFolders[selectedFolder]
+                                            .folderData.excitation[index],
+                                          y: v,
+                                          id: index,
+                                        }
+                                      : null // Ak je hodnota `undefined`, vrátim `null`
+                                )
+                                .filter((point) => point !== null), // Odstránim `null` hodnoty
                             })
                           )}
-                          yAxis={[{ min: 0 }]}
+                          yAxis={[
+                            {
+                              min: projectFolders[selectedFolder].normalStatData
+                                .min
+                                ? projectFolders[selectedFolder].normalStatData
+                                    .min
+                                : 0,
+                            },
+                          ]}
                           xAxis={[{ min: 250 }]}
+                          sx={{
+                            backgroundColor: "white",
+                          }}
                         />
                       </Box>
                     ) : (
                       ""
                     )}
-                  </Box>
+                  </Grid>
                 </Grid>
                 <Grid
                   xs={12}
@@ -934,6 +1098,7 @@ const CreateProfile: React.FC = () => {
                       alignContent: "center",
                       display: "flex",
                       justifyContent: "center",
+                      paddingRight: "10px",
                     }}
                   >
                     {isLoading ? (
@@ -959,6 +1124,9 @@ const CreateProfile: React.FC = () => {
                       width: "45%",
                       flexDirection: "row",
                       display: "flex",
+                      backgroundColor: "#bebdbd",
+                      boxShadow: "inset 10px 0 10px -10px rgba(0, 0, 0, 0.1)",
+                      paddingLeft: "8px",
                     }}
                   >
                     <Box
@@ -977,14 +1145,37 @@ const CreateProfile: React.FC = () => {
                         <Box className="emptyTable"></Box>
                       )}
                     </Box>
-                    <StatsBox
-                      statsData={projectFolders[selectedFolder].normalStatData}
-                      multipliedStatsData={
-                        projectFolders[selectedFolder].multiplied
-                          ? projectFolders[selectedFolder].multipliedStatData
-                          : undefined
-                      }
-                    />
+                    <Box
+                      sx={{
+                        height: "100%",
+                        width: "60%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <StatsBox
+                        statsData={
+                          projectFolders[selectedFolder].normalStatData
+                        }
+                        multipliedStatsData={
+                          projectFolders[selectedFolder].multiplied
+                            ? projectFolders[selectedFolder].multipliedStatData
+                            : undefined
+                        }
+                      />
+
+                      <CalculateData
+                        columns={projectFolders[selectedFolder].emptyDataColums}
+                        setColumns={(columns) => {
+                          const folders = [...projectFolders];
+                          folders[selectedFolder].emptyDataColums = columns;
+                          setProjectFolders(folders);
+                        }}
+                        saveColumn={saveCalculatedColumn}
+                      />
+                    </Box>
                   </Box>
                 </Grid>
               </Grid>
@@ -992,7 +1183,6 @@ const CreateProfile: React.FC = () => {
           </Grid>
         </>
       )}
-
     </>
   );
 };

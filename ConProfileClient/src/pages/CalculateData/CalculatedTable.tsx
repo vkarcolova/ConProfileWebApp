@@ -10,34 +10,41 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect } from "react";
-import { Profile } from "../../../shared/types";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
-interface ProfileDataTableProps {
-  profile: Profile;
+interface CalculatedTableProps {
+  excitacion: number[];
+  intensities: (number | undefined)[];
+  calculatedIntensities?: number[];
 }
-export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
-  profile,
+export const CalculatedTable: React.FC<CalculatedTableProps> = ({
+  excitacion,
+  intensities,
+  calculatedIntensities,
 }) => {
   interface RowData {
     excitation: number;
-    intensity: number;
+    intensity: number | undefined;
+    calculatedIntensity: number | undefined;
   }
 
   useEffect(() => {
-    const rowCount = profile.profile.length;
+    const rowCount = excitacion.length;
     const rows: RowData[] = [];
 
     for (let i = 0; i < rowCount; i++) {
       const row: RowData = {
-        excitation: profile.excitation[i],
-        intensity: profile.profile[i],
+        excitation: excitacion[i],
+        intensity: intensities[i],
+        calculatedIntensity: calculatedIntensities
+          ? calculatedIntensities[i]
+          : undefined,
       };
       rows.push(row);
     }
 
     setTableRows(rows);
-  }, [profile]);
+  }, [calculatedIntensities, excitacion, intensities]);
 
   const VirtuosoTableComponents: TableComponents<RowData> = {
     Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
@@ -100,6 +107,25 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
               Intenzity
             </Box>
           </TableCell>
+          <TableCell
+            style={{
+              textAlign: "center",
+              border: "none",
+              padding: "0",
+            }}
+          >
+            <Box
+              sx={{
+                fontWeight: "bold",
+                backgroundColor: "#bfc3d9",
+                margin: 0,
+                paddingBlock: "5px",
+              }}
+              className="TableRowName"
+            >
+              Vypočítané intenzity
+            </Box>
+          </TableCell>
         </TableRow>
       </>
     );
@@ -128,7 +154,26 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
             }}
           >
             <Typography fontSize={"12px"}>
-              {rows.intensity.toFixed(5)}
+              {rows.intensity !== undefined ? rows.intensity.toFixed(5) : ""}
+            </Typography>
+          </TableCell>
+          <TableCell
+            style={{
+              padding: "1px",
+              textAlign: "center",
+              borderBlock: "none",
+            }}
+          >
+            <Typography
+              fontSize={"12px"}
+              sx={{
+                color: rows.intensity === undefined ? "red" : "black",
+                fontWeight: rows.intensity === undefined ? "bold" : "normal",
+              }}
+            >
+              {rows.calculatedIntensity !== null && rows.calculatedIntensity !== undefined
+                ? rows.calculatedIntensity.toFixed(5)
+                : rows.intensity?.toFixed(5)}
             </Typography>
           </TableCell>
         </React.Fragment>
@@ -139,19 +184,17 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
   const [tableRows, setTableRows] = React.useState<RowData[]>([]);
 
   return (
-    <Box
-      className="table-container"
-      sx={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px" }}
+    <TableContainer
+      component={Paper}
+      sx={{ maxHeight: "45vh", boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px" }}
     >
-      <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
-        <TableVirtuoso
-          style={{ height: "45vh", width: "100%" }}
-          data={tableRows}
-          components={VirtuosoTableComponents}
-          itemContent={rowContent}
-          fixedHeaderContent={fixedHeaderContent}
-        />
-      </TableContainer>
-    </Box>
+      <TableVirtuoso
+        style={{ height: "45vh", width: "100%" }}
+        data={tableRows}
+        components={VirtuosoTableComponents}
+        itemContent={rowContent}
+        fixedHeaderContent={fixedHeaderContent}
+      />
+    </TableContainer>
   );
 };

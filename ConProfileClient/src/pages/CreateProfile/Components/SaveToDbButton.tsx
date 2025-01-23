@@ -37,8 +37,6 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
     if (!loadedProjectId) {
       setLoading(true);
       try {
-        console.log("ukladam");
-
         await axios
           .post(
             `${config.apiUrl}/Project/SaveNewProject`,
@@ -52,15 +50,12 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             }
           )
           .then((response) => {
-            console.log(response);
             toast.success("Projekt bol úspešne uložený do databázy.");
             sessionStorage.removeItem("loadeddata");
             navigate("/uprava-profilu/" + response.data.projectId);
             setLoading(false);
           });
       } catch (error) {
-        console.log("neulozwnw");
-
         toast.error("Nepodarilo sa uložiť projekt.");
         setLoading(false);
       }
@@ -97,6 +92,8 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
                 ...darkButtonStyle,
                 border: "none",
                 borderRadius: "10px",
+                width: "90%",
+                height: "50px",
               }}
             >
               <Typography fontWeight={550} fontSize="14px">
@@ -115,6 +112,8 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
             ...darkButtonStyle,
             boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
             borderRadius: "10px",
+            width: "70%",
+            height: "50px",
           }}
         >
           <Typography fontWeight={550} fontSize="14px">

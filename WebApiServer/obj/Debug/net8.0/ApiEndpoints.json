@@ -11,6 +11,54 @@
   },
   {
     "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "AddCalculatedData",
+    "RelativePath": "LoadedFolder/AddCalculatedData",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "calculatedData",
+        "Type": "WebApiServer.DTOs.CalculatedDataDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "BatchProcessFolders",
+    "RelativePath": "LoadedFolder/BatchProcessFolders",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "loadedFiles",
+        "Type": "WebApiServer.DTOs.FileContent[]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "CalculateEmptyData",
+    "RelativePath": "LoadedFolder/CalculateEmptyData",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "column",
+        "Type": "WebApiServer.DTOs.ColumnDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
     "Method": "Post",
     "RelativePath": "LoadedFolder/PostFactorsMultiply",
     "HttpMethod": "POST",
@@ -143,7 +191,7 @@
   },
   {
     "ContainingType": "WebAPI.Controllers.ProjectController",
-    "Method": "GetItemsByToken",
+    "Method": "GetProjectsByToken",
     "RelativePath": "Project/GetProjectsByToken/{token}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -151,6 +199,32 @@
     "Parameters": [
       {
         "Name": "token",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[WebApiServer.DTOs.ProjectDTO, WebApiServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.ProjectController",
+    "Method": "GetProjectsByUser",
+    "RelativePath": "Project/GetProjectsByUser/{useremail}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "useremail",
         "Type": "System.String",
         "IsRequired": true
       }

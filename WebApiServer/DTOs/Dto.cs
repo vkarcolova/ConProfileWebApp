@@ -1,4 +1,6 @@
-﻿namespace WebApiServer.DTOs
+﻿using Accord;
+
+namespace WebApiServer.DTOs
 {
     public class FileContent
     {
@@ -24,6 +26,7 @@
         public string FILENAME { get; set; }
         public List<IntensityDTO> INTENSITY { get; set; }
         public int SPECTRUM { get; set; }
+        public double? FACTOR { get; set; }
     }
     public class FolderDTO
     {
@@ -72,5 +75,20 @@
     {
         public string EMAIL { get; set; }
         public string PASSWORD { get; set; }
+    }
+
+    public class ColumnDTO
+    {
+        public string Name { get; set; } = string.Empty; 
+        public List<double?> Intensities { get; set; } = new List<double?>(); 
+
+        public List<double> Excitations { get; set; }
+    }
+
+    public class CalculatedDataDTO
+    {
+        public int IDFILE { get; set; }
+        public double[] CALCULATEDINTENSITIES { get; set; }
+        public double[] EXCITACIONS { get; set; }
     }
 }

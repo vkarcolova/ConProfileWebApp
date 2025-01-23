@@ -122,12 +122,15 @@ namespace WebApiServer.Services
                             }
 
                         }
+                        bool emptyValues = false;
+
                         files.Add(new FileDTO
                         {
                             ID = -1,
                             FILENAME = loadedFiles[i].FILENAME,
                             SPECTRUM = spectrum,
-                            INTENSITY = intensityList
+                            INTENSITY = intensityList,
+                           
                         });
 
                     }
@@ -164,6 +167,8 @@ namespace WebApiServer.Services
 
                     for (int i = 0; i < multiplyDatas.IDS.Count; i++)
                     {
+                        LoadedFile loadedFile = _context.LoadedFiles.Where(item => item.IdFile == multiplyDatas.IDS[i]).FirstOrDefault();
+                        loadedFile.Factor = multiplyDatas.FACTORS[i];
                         List<LoadedData> datas = _context.LoadedDatas.Where(item => item.IdFile == multiplyDatas.IDS[i]).ToList();
                         if (datas.Count > maxCount) maxCount = datas.Count;
 
@@ -237,7 +242,7 @@ namespace WebApiServer.Services
                     }
                     for (int i = 0; i < dataForExcitacion[0].Length; i++) //kazdy riadok
                     {
-                        double maxIntensity = -1;
+                        double maxIntensity = int.MinValue;
 
                         for (int j = 0; j < dataForExcitacion.Length; j++) // každý folder
                         {
