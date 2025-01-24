@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { ProjectDTO } from "../../../shared/types";
-import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
-import { TreeItem } from "@mui/x-tree-view/TreeItem";
-import { Box, Button, ButtonGroup, Checkbox } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Checkbox,
+  IconButton,
+  Typography,
+} from "@mui/material";
+import { ExpandMore, ChevronRight } from "@mui/icons-material";
 
 interface FolderTreeViewProps {
   projectData: ProjectDTO | null;
@@ -28,6 +34,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
   }
 
   const [items, setItems] = useState<TreeViewItem[]>([]);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   useEffect(() => {
@@ -37,14 +44,11 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
       const folderItem: TreeViewItem = {
         id: folder.foldername,
         label: folder.foldername,
-        children: [],
-      };
-      folder.data.forEach((file) => {
-        folderItem.children?.push({
+        children: folder.data.map((file) => ({
           id: file.filename,
           label: file.filename,
-        });
-      });
+        })),
+      };
       items.push(folderItem);
     });
 
@@ -61,6 +65,123 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
     } else {
       setSelectedItems([...selectedItems, label]);
     }
+  };
+
+  const toggleNode = (id: string) => {
+    const newExpandedNodes = new Set(expandedNodes);
+    if (newExpandedNodes.has(id)) {
+      newExpandedNodes.delete(id);
+    } else {
+      newExpandedNodes.add(id);
+    }
+    setExpandedNodes(newExpandedNodes);
+  };
+
+  const renderTree = (nodes: TreeViewItem[]) => {
+    return nodes.map((node, index) => {
+      const isExpanded = expandedNodes.has(node.id);
+      const hasChildren = node.children && node.children.length > 0;
+
+      return (
+        <Box
+        key={node.id}
+        sx={{
+          marginBottom: "8px",
+          width: "100%",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          {hasChildren && (
+            <IconButton
+              size="small"
+              disabled={deleting}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNode(node.id);
+              }}
+              sx={{ visibility: deleting ? "hidden" : "visible" }}
+            >
+              {isExpanded ? <ExpandMore /> : <ChevronRight />}
+            </IconButton>
+          )}
+          {!hasChildren && <Box sx={{ width: "24px" }} />}{" "}
+          {deleting && (
+            <Checkbox
+              onChange={(e) => {
+                e.stopPropagation();
+                handleCheckboxChange(node.label);
+              }}
+              color="default"
+              sx={{
+                width: "20px",
+                height: "20px",
+                padding: 0,
+                position: "relative",
+              }}
+            />
+          )}
+          <Typography
+            onClick={(e) => handleNodeSelect(e, node.id)}
+            sx={{
+              fontWeight: index === selectedFolder ? "bold" : "normal",
+              fontSize: { md: "1rem", lg: "1.2rem" },
+              marginLeft: "8px",
+              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1, // Zaberie zvyšok dostupného priestoru
+            }}
+          >
+            {node.label}
+          </Typography>
+        </Box>
+      
+          {isExpanded && node.children && !deleting && (
+            <Box sx={{ paddingLeft: "16px" }}>
+              {node.children.map((child) => {
+                return (
+                  <>
+                    <Box
+                      key={node.id}
+                      sx={{ paddingLeft: "30px", marginBottom: "8px" }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontWeight: "normal",
+                            fontSize: { md: "1rem", lg: "1.2rem" },
+                            marginLeft: "8px",
+                          }}
+                        >
+                          {child.label}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
+      );
+    });
   };
 
   return (
@@ -85,7 +206,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
           borderWidth: "1px",
           backgroundColor: "white",
           borderColor: "#97a7b7",
-          alignItems: "center", // Zarovnanie obsahu na stred
+          alignItems: "center",
         }}
       >
         {projectData && (
@@ -97,63 +218,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
               width: "100%",
             }}
           >
-            <SimpleTreeView onSelectedItemsChange={handleNodeSelect}>
-              {items.map((folder, index) => (
-                <TreeItem
-                  itemId={folder.label}
-                  label={
-                    <>
-                      {deleting && (
-                        <Checkbox
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleCheckboxChange(folder.label);
-                          }}
-                          color="default"
-                          sx={{
-                            width: "20px",
-                            height: "20px",
-                            padding: 0,
-                            left: 0,
-                            position: "absolute",
-                          }}
-                        />
-                      )}{" "}
-                      <Box
-                        sx={{
-                          fontWeight:
-                            index == selectedFolder ? "bold" : "normal",
-                          fontSize: { md: "1rem", lg: "1.2rem" },
-                        }}
-                      >
-                        {folder.label}
-                      </Box>
-                    </>
-                  }
-                  key={folder.label}
-                  sx={{
-                    fontFamily: "Poppins",
-                    "& .MuiTreeItem-label": {
-                      fontWeight: index === selectedFolder ? "bold" : "normal",
-                      fontSize: { md: "1rem", lg: "1.2rem" },
-                    },
-                  }}
-                >
-                  {!deleting && (
-                    <>
-                      {folder.children?.map((file) => (
-                        <TreeItem
-                          itemId={file.label + "" +index}
-                          label={file.label}
-                          key={file.label + "" +index}
-                          sx={{ paddingBottom: 0 }}
-                        />
-                      ))}
-                    </>
-                  )}
-                </TreeItem>
-              ))}
-            </SimpleTreeView>
+            {renderTree(items)}
           </Box>
         )}
         {deleting && (

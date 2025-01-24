@@ -21,19 +21,7 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
   const navigate = useNavigate();
 
   const saveToDbButtonClick = async () => {
-    const token = localStorage.getItem("token");
-    let customHeaders:
-      | { "Content-Type": string }
-      | { "Content-Type": string; Authorization: string } = {
-      "Content-Type": "application/json",
-    };
 
-    if (token != undefined || token != null) {
-      customHeaders = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      };
-    }
     if (!loadedProjectId) {
       setLoading(true);
       try {
@@ -81,7 +69,7 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
           }}
           title="Projekt je uložený v databáze a všetky zmeny sa ukladajú automaticky."
         >
-          <span>
+          <span style={{ width: "90%" }}>
             <Button
               variant="contained"
               onClick={saveToDbButtonClick}
@@ -92,7 +80,6 @@ export const SaveToDbButton: React.FC<SaveToDbButtonProps> = ({
                 ...darkButtonStyle,
                 border: "none",
                 borderRadius: "10px",
-                width: "90%",
                 height: "50px",
               }}
             >

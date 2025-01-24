@@ -2,6 +2,10 @@
 
 NAJSKOR
 
+- [ ] Treview sama
+- [ ] Google ucet
+- [ ] mozno zabudnute heslo alebo zmazat ucet
+- [ ] Export obrazka
 - [ ] Zda sa ze autocomplete spomaluje
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
@@ -12,9 +16,7 @@ NAJSKOR
 - [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Loadingy - najprv na undefined a potom nedefined
 - [ ] Nech sa nedostane na neznamu stranku ale na /
-- [ ] Export obrazka
 - [ ] Import projektu z desktop appky
-- [ ] Treview sama
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
