@@ -12,6 +12,14 @@ namespace WebApiServer.DTOs
 
     }
 
+    public class ExcelFileContent
+    {
+        public string[] HEADER { get; set; }
+        public string[][] DATA { get; set; }
+
+    }
+
+
     public class IntensityDTO
     {
         public int? IDDATA { get; set; }

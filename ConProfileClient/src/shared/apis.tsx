@@ -167,6 +167,30 @@ export const clientApi = {
     );
   },
 
+  createProjectWithExcel: async (data: string[][], headers: string[]) => {
+    interface Content {
+      data: string[][];
+      header: string[];
+    }
+
+    const content: Content = {
+      data: data,
+      header: headers,
+    };
+
+    return await axios.post(
+      `${config.apiUrl}/Project/CreateNewProjectWithExcel`,
+      JSON.stringify(content),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   batchProcessFolders: async (loadedFiles: FileContent[]) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/BatchProcessFolders`,

@@ -22,6 +22,7 @@ import MultiFolderUploader from "./MultiFolderUploader";
 import { NunuButton } from "../../../shared/components/NunuButton";
 import CustomInputAutocomplete from "../../../shared/components/CustomAutocomplete";
 import { toast } from "react-toastify";
+import ExcelUploader from "./XlsxUploader";
 
 interface BatchDataLoadButtonModalProps {}
 
@@ -223,7 +224,6 @@ const BatchDataLoadButtonModal: React.FC<
       header.push(folderData.foldername);
     });
 
-
     const rows = [];
     rows.push(header.join(";"));
 
@@ -261,7 +261,10 @@ const BatchDataLoadButtonModal: React.FC<
             }}
           >
             Pri tvorbe koncentračného modelu sú dostupné dve možnosti: <br />
-            <b>1. Načítanie jedného priečinka:</b> <br />
+            <b>
+              1. Načítanie jedného priečinka alebo dát priamo zo súboru .xlsx :
+            </b>{" "}
+            <br />
             • Pri tejto možnosti bude vytvorený jeden projekt, ktorý sa uloží do
             databázy. <br />
             • Do tohto projektu je možné následne pridávať ďalšie priečinky,
@@ -293,6 +296,33 @@ const BatchDataLoadButtonModal: React.FC<
                 "&:hover": {
                   border: "2px solid #dcdbe7",
                 },
+                width: "60%",
+              }}
+              onClick={() => setStep(4)}
+            >
+              <Typography
+                sx={{
+                  fontFamily: "Poppins",
+                  fontWeight: 500,
+                  fontSize: "15px",
+                  padding: "2px",
+                  color: "#514986",
+                }}
+                textTransform={"none"}
+              >
+                Načítať dáta z .xlsx
+              </Typography>
+            </Button>
+
+            <Button
+              variant="outlined"
+              sx={{
+                borderRadius: "30px",
+                border: "2px solid #514986",
+                "&:hover": {
+                  border: "2px solid #dcdbe7",
+                },
+                width: "60%",
               }}
               onClick={() => handleSelectFolder()}
             >
@@ -309,6 +339,7 @@ const BatchDataLoadButtonModal: React.FC<
                 Načítať jeden priečinok
               </Typography>
             </Button>
+
             <input
               ref={inputRefFolder}
               type="file"
@@ -327,6 +358,7 @@ const BatchDataLoadButtonModal: React.FC<
                 "&:hover": {
                   border: "2px solid #dcdbe7",
                 },
+                width: "60%",
               }}
               onClick={() => setStep(2)}
             >
@@ -355,6 +387,14 @@ const BatchDataLoadButtonModal: React.FC<
           <Box mt={2}>
             <MultiFolderUploader setStep={setStep} setFolders={setFolders} />
           </Box>
+        </Box>
+      );
+    }
+
+    if (step === 4) {
+      return (
+        <Box textAlign="center" sx={{ height: "70vh" }}>
+          <ExcelUploader />
         </Box>
       );
     }
