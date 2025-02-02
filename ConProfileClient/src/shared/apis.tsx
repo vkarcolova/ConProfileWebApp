@@ -167,15 +167,21 @@ export const clientApi = {
     );
   },
 
-  createProjectWithExcel: async (data: string[][], headers: string[]) => {
+  createProjectWithExcel: async (
+    data: string[][],
+    headers: string[],
+    name: string
+  ) => {
     interface Content {
       data: string[][];
       header: string[];
+      name: string;
     }
 
     const content: Content = {
       data: data,
       header: headers,
+      name: name,
     };
 
     return await axios.post(

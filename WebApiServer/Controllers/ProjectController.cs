@@ -164,8 +164,18 @@ namespace WebAPI.Controllers
 
                 if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
                     return Unauthorized("Neplatné prihlásenie");
-
-                return Ok();
+                List<FolderDTO> folders = new List<FolderDTO>();
+                folders.Add(_loadedDataService.ProcessUploadedFolderFromExcel(content));
+                ProjectDTO result = new ProjectDTO
+                {
+                    CREATED = DateTime.Now,
+                    FOLDERS = folders,
+                    IDPROJECT = -1,
+                    PROJECTNAME = "NovyProjekt",
+                    USEREMAIL = userEmail
+                };
+                if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
+                else return BadRequest(result);
             }
             else
             {

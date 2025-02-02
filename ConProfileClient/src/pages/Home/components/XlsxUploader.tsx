@@ -18,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { clientApi } from "../../../shared/apis";
+import { useNavigate } from "react-router-dom";
 
 const ExcelUploader: React.FC = () => {
   const [sheets, setSheets] = useState<string[]>([]);
@@ -27,11 +28,13 @@ const ExcelUploader: React.FC = () => {
   const [startRow, setStartRow] = useState<number | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
+  const [filename, setFileName] = useState<string>("");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
@@ -84,6 +87,7 @@ const ExcelUploader: React.FC = () => {
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     if (headerRow === null || startRow === null)
@@ -116,9 +120,14 @@ const ExcelUploader: React.FC = () => {
       data: columns,
     });
     await clientApi
-      .createProjectWithExcel(columns, headers)
+      .createProjectWithExcel(columns, headers, filename)
       .then((response) => {
         console.log(response);
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        const objString = JSON.stringify(response.data.project);
+        sessionStorage.setItem("loadeddata", objString);
+        navigate("/uprava-profilu/");
       });
   };
 

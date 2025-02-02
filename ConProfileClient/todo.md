@@ -2,7 +2,9 @@
 
 NAJSKOR
 
-- [ ] Treview sama
+- [ ] nejako divne tabulky po nacitani z excelu? vela stlpcov?
+- [ ] nacitanie z excelu aj do projektu existujuceho
+
 - [ ] Google ucet
 - [ ] mozno zabudnute heslo alebo zmazat ucet
 - [ ] Export obrazka
@@ -20,7 +22,6 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
-
 - [x] ~~Problem ked chybaju data na zaciatku v strede aj na konci?~~ Islo iba o medzeru pri data
 - [x] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
 - [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee
@@ -32,6 +33,7 @@ NAJSKOR
 - [x] Pridat ich do db
 - [x] ten faktor nech sa uklada aj ako session
 - [x] nech sa daju aj nasobene data
+
 ##
 
 HADAM RAZ
