@@ -4,6 +4,7 @@ import config from "../../config";
 import {
   CalculatedDataDTO,
   ColumnDTO,
+  ExcelContent,
   Factors,
   FileContent,
   MultiplyFolderDTO,
@@ -167,6 +168,31 @@ export const clientApi = {
     );
   },
 
+  createProjectWithExcel: async (
+    data: string[][],
+    headers: string[],
+    name: string
+  ) => {
+
+    const content: ExcelContent = {
+      data: data,
+      header: headers,
+      name: name,
+    };
+
+    return await axios.post(
+      `${config.apiUrl}/Project/CreateNewProjectWithExcel`,
+      JSON.stringify(content),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   batchProcessFolders: async (loadedFiles: FileContent[]) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/BatchProcessFolders`,
@@ -192,6 +218,35 @@ export const clientApi = {
       }
     );
   },
+
+  postExcelToProject: async (excelFile: ExcelContent) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewExcelToProject`,
+      JSON.stringify(excelFile),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  postFolderToSession: async (loadedFiles: FileContent[]) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewFolder`,
+      loadedFiles
+    );
+  },
+
+  postExcelToSession: async (excelFile: ExcelContent) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewExcelToSession`,
+      excelFile
+    );
+  },
+
 
   calculateEmptyData: async (column: ColumnDTO) => {
     return await axios.post(
@@ -221,12 +276,6 @@ export const clientApi = {
     );
   },
 
-  postFolderToSession: async (loadedFiles: FileContent[]) => {
-    return axios.post(
-      `${config.apiUrl}/LoadedFolder/PostNewFolder`,
-      loadedFiles
-    );
-  },
 
   postFolderMultiply: async (dataToSend: MultiplyFolderDTO) => {
     return axios.post(

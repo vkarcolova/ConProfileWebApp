@@ -145,6 +145,45 @@ namespace WebAPI.Controllers
             }
         }
 
+        [HttpPost("CreateNewProjectWithExcel")]
+        public async Task<IActionResult> CreateNewProjectWithExcel([FromBody] ExcelFileContent content)
+        {
+            // Spracovanie prijatých súborov
+            if (content != null)
+            {
+                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var userEmail = Request.Headers["UserEmail"].ToString();
+                string token = "";
+                if (userToken == "")
+                {
+                    if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
+                    else token = _userService.GenerateJwtToken(userEmail!);
+
+                }
+                else token = userToken;
+
+                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized("Neplatné prihlásenie");
+                List<FolderDTO> folders = new List<FolderDTO>();
+                folders.Add(_loadedDataService.ProcessUploadedFolderFromExcel(content));
+                ProjectDTO result = new ProjectDTO
+                {
+                    CREATED = DateTime.Now,
+                    FOLDERS = folders,
+                    IDPROJECT = -1,
+                    PROJECTNAME = "NovyProjekt",
+                    USEREMAIL = userEmail
+                };
+                if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
+                else return BadRequest(result);
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát.");
+            }
+        }
+
+
         //Savnutie noveho projekt
         [HttpPost("SaveNewProject")]
         public async Task<IActionResult> SaveNewProject([FromBody] ProjectDTO projectData)

@@ -97,6 +97,68 @@
         }
       }
     },
+    "/LoadedFolder/PostNewExcelToProject": {
+      "post": {
+        "tags": [
+          "LoadedFolder"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/LoadedFolder/PostNewExcelToSession": {
+      "post": {
+        "tags": [
+          "LoadedFolder"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/LoadedFolder/PostFactorsMultiply": {
       "post": {
         "tags": [
@@ -355,6 +417,37 @@
                 "items": {
                   "$ref": "#/components/schemas/FileContent"
                 }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Project/CreateNewProjectWithExcel": {
+      "post": {
+        "tags": [
+          "Project"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelFileContent"
               }
             }
           }
@@ -666,6 +759,38 @@
               "type": "number",
               "format": "double"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ExcelFileContent": {
+        "type": "object",
+        "properties": {
+          "header": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "idproject": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },

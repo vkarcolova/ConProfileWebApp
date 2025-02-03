@@ -1,3 +1,9 @@
+export interface ExcelContent {
+  data: string[][];
+  header: string[];
+  name: string;
+  idproject?: number;
+}
 export interface FileContent {
   //na nacitanie suboru
   FILENAME: string;
