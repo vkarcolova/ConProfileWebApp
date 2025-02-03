@@ -19,14 +19,22 @@ import {
 } from "@mui/material";
 import { clientApi } from "../../../shared/apis";
 import { useNavigate } from "react-router-dom";
+import { ExcelContent } from "../../../shared/types";
 
-const ExcelUploader: React.FC = () => {
+interface ExcelUploaderProps {
+  newProject: boolean;
+  loadNewExcelFolder?: (excelContent: ExcelContent) => void;
+  closeMenuModal?: () => void;
+}
+
+
+const ExcelUploader: React.FC<ExcelUploaderProps> = ({newProject, loadNewExcelFolder, closeMenuModal}) => { 
   const [sheets, setSheets] = useState<string[]>([]);
   const [selectedSheet, setSelectedSheet] = useState<string>("");
   const [tableData, setTableData] = useState<string[][]>([]);
-  const [headerRow, setHeaderRow] = useState<number | null>(null);
+  const [headerRow, setHeaderRow] = useState<number | null>(0);
   const [startRow, setStartRow] = useState<number | null>(null);
-  const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
+  const [selectedColumns, setSelectedColumns] = useState<number[]>([0,1,2,3,4,5,6]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [filename, setFileName] = useState<string>("");
 
@@ -119,22 +127,31 @@ const ExcelUploader: React.FC = () => {
       selectedColumns,
       data: columns,
     });
-    await clientApi
-      .createProjectWithExcel(columns, headers, filename)
-      .then((response) => {
-        console.log(response);
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        const objString = JSON.stringify(response.data.project);
-        sessionStorage.setItem("loadeddata", objString);
-        navigate("/uprava-profilu/");
-      });
+
+    if(newProject){ 
+      await clientApi
+        .createProjectWithExcel(columns, headers, filename)
+        .then((response) => {
+          console.log(response);
+          const token = response.data.token;
+          localStorage.setItem("token", token);
+          const objString = JSON.stringify(response.data.project);
+          sessionStorage.setItem("loadeddata", objString);
+          navigate("/uprava-profilu/");
+        });
+      } else {
+        if(loadNewExcelFolder){
+           await loadNewExcelFolder({data: columns, header: headers, name: filename});
+          if(closeMenuModal ){
+            closeMenuModal();
+          }
+        }
+      }
   };
 
   const handleReset = () => {
     setHeaderRow(null);
     setStartRow(null);
-    setSelectedColumns([]);
   };
 
   return (

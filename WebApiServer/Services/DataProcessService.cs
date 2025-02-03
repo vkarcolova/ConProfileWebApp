@@ -28,6 +28,7 @@ namespace WebApiServer.Services
         public Task<IActionResult> MultiplyData(MultiplyDataDTO multiplyDatas);
         //public Task<IActionResult> SaveNewFolder(FileContent[] loadedFiles, string token, int idProject);
         public Task<IActionResult> AddProjectData(FileContent[] loadedFiles);
+        public Task<IActionResult> AddProjectDataFromExcel(ExcelFileContent content);
         public FolderDTO ProcessUploadedFolder(FileContent[] loadedFiles);
         public FolderDTO ProcessUploadedFolderFromExcel(ExcelFileContent content);
 
@@ -402,6 +403,104 @@ namespace WebApiServer.Services
 
         }
 
+        public async Task<IActionResult> AddProjectDataFromExcel(ExcelFileContent content)
+        {
+            if (content != null && content.IDPROJECT != null)
+            {
+                try
+                {
+                    int idProject = content.IDPROJECT.Value;
+                    int idFolder = 1;
+                    if (_context.LoadedFolders.Count() >= 1)
+                    {
+                        idFolder = _context.LoadedFolders.OrderByDescending(obj => obj.IdFolder)
+                         .FirstOrDefault().IdFolder + 1;
+                    }
+                    LoadedFolder newFolder = new LoadedFolder
+                    {
+                        FolderName = content.NAME,
+                        IdFolder = idFolder,
+                        IdProject = idProject
+                    };
+                    _context.LoadedFolders.Add(newFolder);
+                    int idData = 1;
+                    if (_context.LoadedDatas.Count() >= 1)
+                    {
+                        idData = _context.LoadedDatas.OrderByDescending(obj => obj.IdData)
+                         .FirstOrDefault().IdData;
+                    }
+                    int rowCount = 1;
+
+                    int idFile = 1;
+                    if (_context.Projects.Count() >= 1)
+                    {
+                        idFile = _context.LoadedFiles.OrderByDescending(obj => obj.IdFile)
+                        .FirstOrDefault().IdFile + 1;
+                    }
+
+                    List<double> excitation = new List<double>();
+
+                    foreach (var data in content.DATA[0])
+                    {
+                        if (double.TryParse(data, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
+                        {
+                            excitation.Add(result);
+                        }
+                    }
+
+                    for (int i = 1; i < content.DATA.Length; i++) //kazdy stlpcek
+                    {
+                        string pattern = @"_(\d+)";
+                        int spectrum = -1;
+                        Match typeOfData = Regex.Match(content.HEADER[i], pattern);
+
+                        if (typeOfData.Success && int.TryParse(typeOfData.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultType))
+                        {
+                            spectrum = resultType;
+                        }
+                        LoadedFile newFile = new LoadedFile
+                        {
+                            FileName = content.HEADER[i],
+                            IdFolder = idFolder,
+                            IdFile = idFile + i,
+                            Spectrum = spectrum
+                        };
+                        _context.LoadedFiles.Add(newFile);
+
+                        for (int j = 0; j < content.DATA[0].Length; j++)
+                        {
+                            string value = content.DATA[i][j];
+                            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
+                            {
+                                LoadedData newRow = new LoadedData
+                                {
+                                    IdFile = idFile + i,
+                                    Excitation = excitation[j],
+                                    Intensity = result,
+                                    IdData = idData + rowCount
+                                };
+                                rowCount++;
+                                _context.LoadedDatas.Add(newRow);
+                            }
+                        }
+
+                    }
+                   
+                    _context.SaveChanges();
+                    return new OkResult(); // Odpoveď 200 OK
+                }
+                catch (Exception ex)
+                {
+                    return new BadRequestResult(); ;
+                }
+
+            }
+            else
+            {
+                return new BadRequestResult(); // Odpoveď 400 Bad Request
+            }
+        }
+
         public FolderDTO ProcessUploadedFolderFromExcel(ExcelFileContent content)
         {
             if (content != null)
@@ -462,5 +561,7 @@ namespace WebApiServer.Services
                 return null; // Odpoveď 400 Bad Request
             }
         }
+
+
     }
 }

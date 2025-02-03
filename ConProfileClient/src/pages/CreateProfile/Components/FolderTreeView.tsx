@@ -87,7 +87,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
         key={node.id}
         sx={{
           marginBottom: "8px",
-          width: "100%",
+          maxWidth: "100%",
         }}
       >
         <Box
@@ -143,7 +143,8 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
               flex: 1, // Zaberie zvyšok dostupného priestoru
             }}
           >
-            {node.label}
+              {node.label.length > 24 ? `${node.label.slice(0, 21)}...` : node.label}
+
           </Typography>
         </Box>
       
@@ -198,6 +199,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
             color: "inherit",
           },
           fontFamily: '"Poppins", sans-serif',
+          maxWidth: "70%",
           width: "70%",
           fontSize: "15px",
           minHeight: "250px",

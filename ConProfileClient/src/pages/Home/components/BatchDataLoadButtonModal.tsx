@@ -40,6 +40,14 @@ const BatchDataLoadButtonModal: React.FC<
   const [inputFactors, setInputFactors] = React.useState<(number | null)[]>([]);
 
   useEffect(() => {
+    if(openModal) return;
+    setFolders([]);
+    setSpectrums([]);
+    setInputFactors([]);
+    setStep(1);
+  }, [openModal]);
+
+  useEffect(() => {
     if (folders.length > 0 && step === 3) {
       const uniqueSpectrums = new Set<string>();
 
@@ -394,7 +402,7 @@ const BatchDataLoadButtonModal: React.FC<
     if (step === 4) {
       return (
         <Box textAlign="center" sx={{ height: "70vh" }}>
-          <ExcelUploader />
+          <ExcelUploader newProject={true}/>
         </Box>
       );
     }
@@ -526,10 +534,7 @@ const BatchDataLoadButtonModal: React.FC<
           aria-label="close"
           onClick={() => {
             setOpenModal(false);
-            setStep(1);
-            setFolders([]);
-            setSpectrums([]);
-            setInputFactors([]);
+
           }}
           sx={{
             position: "absolute",

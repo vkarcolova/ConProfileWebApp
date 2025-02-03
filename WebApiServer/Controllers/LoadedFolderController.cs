@@ -77,6 +77,53 @@ namespace WebApiServer.Controllers
             }
         }
 
+        [HttpPost("PostNewExcelToProject")]
+        public async Task<IActionResult> PostNewExcelToProject([FromBody] ExcelFileContent excelFile)
+        {
+            // Spracovanie prijatých súborov
+            if (excelFile != null)
+            {
+                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var userEmail = Request.Headers["UserEmail"].ToString();
+
+                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized("Neplatné prihlásenie");
+
+                var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
+                              && p.IdProject == excelFile.IDPROJECT);
+                if (existingProject != null)
+                {
+                    IActionResult result = await _dataProcessService.AddProjectDataFromExcel(excelFile);
+                    return result;
+                }
+                else
+                {
+                    return BadRequest("Chybný formát dát.");
+                }
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
+            }
+        }
+
+
+        [HttpPost("PostNewExcelToSession")] //pridavanie priecinku bez noveho projektu
+        public async Task<IActionResult> PostNewExcelToSession([FromBody] ExcelFileContent excelFile) { 
+            // Spracovanie prijatých súborov
+            if (excelFile != null)
+            {
+                FolderDTO result = _dataProcessService.ProcessUploadedFolderFromExcel(excelFile);
+                if (result != null) return Ok(new { FOLDER = result });
+                else return BadRequest(result);
+
+            }
+            else
+            {
+                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+            }
+        }
+
         [HttpPost("PostFactorsMultiply")]
         public async Task<IActionResult> Post([FromBody] MultiplyDataDTO multiplyDatas)
         {

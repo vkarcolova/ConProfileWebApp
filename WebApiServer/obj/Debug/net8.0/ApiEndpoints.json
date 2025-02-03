@@ -75,6 +75,38 @@
   },
   {
     "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "PostNewExcelToProject",
+    "RelativePath": "LoadedFolder/PostNewExcelToProject",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "excelFile",
+        "Type": "WebApiServer.DTOs.ExcelFileContent",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
+    "Method": "PostNewExcelToSession",
+    "RelativePath": "LoadedFolder/PostNewExcelToSession",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "excelFile",
+        "Type": "WebApiServer.DTOs.ExcelFileContent",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.LoadedFolderController",
     "Method": "PostAddData",
     "RelativePath": "LoadedFolder/PostNewFolder",
     "HttpMethod": "POST",
@@ -116,6 +148,22 @@
       {
         "Name": "loadedFiles",
         "Type": "WebApiServer.DTOs.FileContent[]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.ProjectController",
+    "Method": "CreateNewProjectWithExcel",
+    "RelativePath": "Project/CreateNewProjectWithExcel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "content",
+        "Type": "WebApiServer.DTOs.ExcelFileContent",
         "IsRequired": true
       }
     ],

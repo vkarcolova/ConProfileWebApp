@@ -4,6 +4,7 @@ import config from "../../config";
 import {
   CalculatedDataDTO,
   ColumnDTO,
+  ExcelContent,
   Factors,
   FileContent,
   MultiplyFolderDTO,
@@ -172,13 +173,8 @@ export const clientApi = {
     headers: string[],
     name: string
   ) => {
-    interface Content {
-      data: string[][];
-      header: string[];
-      name: string;
-    }
 
-    const content: Content = {
+    const content: ExcelContent = {
       data: data,
       header: headers,
       name: name,
@@ -223,6 +219,35 @@ export const clientApi = {
     );
   },
 
+  postExcelToProject: async (excelFile: ExcelContent) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewExcelToProject`,
+      JSON.stringify(excelFile),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  postFolderToSession: async (loadedFiles: FileContent[]) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewFolder`,
+      loadedFiles
+    );
+  },
+
+  postExcelToSession: async (excelFile: ExcelContent) => {
+    return axios.post(
+      `${config.apiUrl}/LoadedFolder/PostNewExcelToSession`,
+      excelFile
+    );
+  },
+
+
   calculateEmptyData: async (column: ColumnDTO) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
@@ -251,12 +276,6 @@ export const clientApi = {
     );
   },
 
-  postFolderToSession: async (loadedFiles: FileContent[]) => {
-    return axios.post(
-      `${config.apiUrl}/LoadedFolder/PostNewFolder`,
-      loadedFiles
-    );
-  },
 
   postFolderMultiply: async (dataToSend: MultiplyFolderDTO) => {
     return axios.post(

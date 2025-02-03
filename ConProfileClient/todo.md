@@ -1,9 +1,8 @@
 # TODO
 
 NAJSKOR
-
-- [ ] nejako divne tabulky po nacitani z excelu? vela stlpcov?
-- [ ] nacitanie z excelu aj do projektu existujuceho
+- [ ] Graf ako linechart
+- [ ] Navrhnut tu databanku
 
 - [ ] Google ucet
 - [ ] mozno zabudnute heslo alebo zmazat ucet
@@ -22,6 +21,8 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+
+- [x] nacitanie z excelu aj do projektu existujuceho
 - [x] ~~Problem ked chybaju data na zaciatku v strede aj na konci?~~ Islo iba o medzeru pri data
 - [x] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva
 - [x] Je mozne ze pre scatter sa zle davaju hodntoy ze od prvej aj ked prve chybaju pozriet v 37ee

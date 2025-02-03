@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import React, { useState, useEffect, ChangeEvent, useRef } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Home from "@mui/icons-material/HomeRounded";
 import {
   FolderDTO,
@@ -17,6 +17,7 @@ import {
   StatData,
   ColumnDTO,
   CalculatedDataDTO,
+  ExcelContent,
 } from "../../shared/types";
 import DataTable from "../../shared/components/DataTable";
 import "./index.css";
@@ -29,7 +30,6 @@ import {
   Tooltip,
   tooltipClasses,
 } from "@mui/material";
-import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
@@ -46,6 +46,7 @@ import axios from "axios";
 import { NunuButton } from "../../shared/components/NunuButton";
 import { UserMenu } from "./Components/UserMenu";
 import CalculateData from "../CalculateData/CalculateDataButtonDialog";
+import { AddFolderMenu } from "./Components/AddFolderMenu";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -56,7 +57,8 @@ const CreateProfile: React.FC = () => {
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
   const [projectFolders, setProjectFolders] = useState<AllFolderData[]>([]);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
@@ -245,6 +247,7 @@ const CreateProfile: React.FC = () => {
     }
   };
 
+
   const loadNewFolder = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (selectedFiles) {
@@ -323,6 +326,50 @@ const CreateProfile: React.FC = () => {
     }
   };
 
+
+  const loadNewExcelFolder = async (excelContent: ExcelContent) : Promise<boolean> => {
+
+      if (loadedProjectId) {
+        try {
+          excelContent.idproject = projectData?.idproject;
+          
+          await clientApi.postExcelToProject(excelContent).then(() => {
+            toast.success("Priečinok bol úspešne pridaný.");
+            return true;
+            loadProjectFromId();
+          });
+        } catch (error) {
+          toast.error("Chyba pri načítavaní dát.");
+        }
+      } else {
+        const project: ProjectDTO = { ...projectData! };
+
+        try {
+          await clientApi
+            .postExcelToSession(excelContent)
+            .then(async (response) => {
+              const objString = response.data.folder as FolderDTO;
+              const filledFolder = await fillFolder(objString);
+              const folders: AllFolderData[] = projectFolders;
+              folders.push(filledFolder);
+              setProjectFolders(folders);
+              toast.success("Priečinok bol úspešne pridaný.");
+
+              project.folders.push(objString);
+              setProjectData(project);
+              saveSessionData(project);
+              return true;
+            });
+        } catch (error) {
+          toast.error("Chyba pri načítavaní dát.");
+
+          console.error("Chyba pri načítavaní dát:", error);
+        }
+    }
+    return false;
+  };
+
+
   const handleNodeSelect = (
     event: React.SyntheticEvent,
     nodeId: string | null
@@ -341,11 +388,7 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-  const handleSelectFolder = () => {
-    if (inputRef.current) {
-      inputRef.current.click();
-    }
-  };
+
 
   const multiplyButtonClick = async () => {
     const factors: number[] = [];
@@ -867,41 +910,8 @@ const CreateProfile: React.FC = () => {
                           </Tooltip>
                         )}
 
-                        <Tooltip
-                          slotProps={{
-                            popper: {
-                              sx: {
-                                [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                                  {
-                                    marginTop: "0px",
-                                    fontSize: "12px",
-                                  },
-                              },
-                            },
-                          }}
-                          title="Pridať ďalší priečinok"
-                        >
-                          <IconButton
-                            sx={{
-                              width: "35px",
-                              height: "35px",
-                              color: "white",
-                            }}
-                            onClick={handleSelectFolder}
-                          >
-                            <AddCircleOutlineRoundedIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                      <input
-                        ref={inputRef}
-                        type="file"
-                        directory=""
-                        webkitdirectory=""
-                        onChange={loadNewFolder}
-                        multiple
-                        style={{ display: "none" }}
-                      />
+                        <AddFolderMenu loadNewFolder={loadNewFolder} loadNewExcelFolder={loadNewExcelFolder}/>
+                        </Box>
 
                       <NunuButton
                         onClick={() => {
@@ -1072,6 +1082,7 @@ const CreateProfile: React.FC = () => {
                                 : 0,
                             },
                           ]}
+                          
                           xAxis={[{ min: 250 }]}
                           sx={{
                             backgroundColor: "white",

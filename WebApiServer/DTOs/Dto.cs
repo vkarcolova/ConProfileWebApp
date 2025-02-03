@@ -17,6 +17,7 @@ namespace WebApiServer.DTOs
         public string[] HEADER { get; set; }
         public string[][] DATA { get; set; }
         public string NAME { get; set; }
+        public int? IDPROJECT { get; set; }
 
     }
 
