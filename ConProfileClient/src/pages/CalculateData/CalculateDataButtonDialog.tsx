@@ -13,10 +13,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { ChartData, ColumnDTO } from "../../shared/types";
 import { CalculatedTable } from "./CalculatedTable";
-import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../shared/apis";
+import ReactECharts from 'echarts-for-react';
 import { toast } from "react-toastify";
+import { color } from "echarts";
 
 interface CalculateDataProps {
   columns: ColumnDTO[];
@@ -39,6 +40,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     []
   );
   const [chartData, setChartData] = useState<ChartData[] | undefined>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [options, setOptions] = useState<any>(null);
 
   useEffect(() => {
     if (columns.length === 0 || open === false) return;
@@ -47,6 +50,27 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     chartData.push({
       data: columns[selectedTab].intensities,
       label: columns[selectedTab].name,
+    });
+    setOptions({
+      xAxis: { type: "category", data: columns[0].excitations },
+      yAxis: {
+        type: "value",
+        min: Math.min(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
+        max: Math.max(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
+          axisLabel: {
+            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+          },
+      },
+      series: chartData.map(({ data, label }) => ({
+        name: label,
+        type: "line",
+        data: data.map((value) => value ?? null),
+        smooth: true,
+        connectNulls: false,
+      })),
+      tooltip: { trigger: "axis" },
+      legend: { show: true },
+
     });
     setChartData(chartData);
   }, [open, columns]);
@@ -89,6 +113,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     setCalculatedIntensities([]);
     setChartData(undefined);
     setSelectedTab(0);
+    setOptions(null);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -97,6 +122,29 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     chartData.push({
       data: columns[newValue].intensities,
       label: columns[newValue].name,
+    });
+
+    
+    setOptions({
+      xAxis: { type: "category", data: columns[newValue].excitations },
+      yAxis: {
+        type: "value",
+        min: Math.min(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
+        max: Math.max(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
+          axisLabel: {
+            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+          },
+      },
+      series: chartData.map(({ data, label }) => ({
+        name: label,
+        type: "line",
+        data: data.map((value) => value ?? null),
+        smooth: true,
+        connectNulls: false,
+      })),
+      tooltip: { trigger: "axis" },
+      legend: { show: true },
+
     });
     setChartData(chartData);
   };
@@ -118,7 +166,20 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           label: "Dopočítané",
         });
         setChartData(newChartData);
-      });
+        const newSeries = {
+          name: "Dopočítané", 
+          type: "line",      
+          data: response.data.onlyValues,
+          smooth: true,       
+          connectNulls: false,
+          color: "#ff0000",
+        };  
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setOptions((prevOptions: any) => ({
+          ...prevOptions, // zachovávame všetky predchádzajúce vlastnosti options
+          series: [...prevOptions?.series || [], newSeries], // pridáme novú sériu
+        }));
+      })
   };
 
   const handleApplyData = async () => { 
@@ -254,33 +315,19 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                 >
                   {" "}
                   <Box sx={{ width: "50%", height: "45vh" }}>
-                    {chartData && (
-                      <ScatterChart
-                        key={selectedTab} // Ak vyberieš nový tab, vynúti sa nový render
-                        series={chartData?.map((data) => ({
-                          label: data.label,
-                          data: data.data
-                            .map((v, idx) =>
-                              v !== undefined
-                                ? {
-                                    x: columns[selectedTab].excitations[idx],
-                                    y: v,
-                                    id: idx,
-                                  }
-                                : null
-                            )
-                            .filter((point) => point !== null),
-                          color:
-                            data.label === "Dopočítané" ? "red" : "#bfc3d9",
-                        }))}
-                        // yAxis={[{ min: 0 }]}
-                        xAxis={[{ min: 250 }]}
-                        sx={{
-                          backgroundColor: "white",
-                          width: "200px",
-                          padding: "none",
-                        }}
-                      />
+                    {chartData && options && (<>
+                         <ReactECharts
+                                              option={options}
+                                              style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                margin: "none",
+                                                paddingTop: "20px",
+                                              }}
+                                              notMerge={true}
+                                            />
+                                         
+                    </>
                     )}
                     <Typography variant="body1" sx={{ textAlign: "center" }}>
                       Medzery hodnôt začínajú po excitáciach:{" "}

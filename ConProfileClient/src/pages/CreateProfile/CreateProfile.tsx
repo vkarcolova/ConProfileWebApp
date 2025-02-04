@@ -75,14 +75,37 @@ const CreateProfile: React.FC = () => {
   const [options, setOptions] = useState<any>(null);
 
   useEffect(() => {
+    console.log(projectFolders[selectedFolder]?.chartData);
+    setOptions(null);
     const folderData = projectFolders[selectedFolder]?.folderData?.excitation;
     const chartData = projectFolders[selectedFolder]?.chartData;
 
-    if (!folderData || !chartData) return;
+    if (!folderData || !chartData || !projectData) return;
+
+    console.log(chartData);
+
+    if(projectData.folders[selectedFolder].profile) {
+      chartData.push({
+        data: projectData.folders[selectedFolder].profile,
+        label: "Profil",
+      });
+
+    }
 
     setOptions({
       xAxis: { type: "category", data: folderData },
-      yAxis: { type: "value" },
+      yAxis: {
+        type: "value",
+        min: projectFolders[selectedFolder].multiplied
+          ? projectFolders[selectedFolder].multipliedStatData.min
+          : projectFolders[selectedFolder].normalStatData.min,
+        max: projectFolders[selectedFolder].multiplied
+          ? projectFolders[selectedFolder].multipliedStatData.max
+          : projectFolders[selectedFolder].normalStatData.max,
+          axisLabel: {
+            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+          },
+      },
       series: chartData.map(({ data, label }) => ({
         name: label,
         type: "line",
@@ -92,6 +115,7 @@ const CreateProfile: React.FC = () => {
       })),
       tooltip: { trigger: "axis" },
       legend: { show: true },
+
     });
   }, [projectFolders, selectedFolder]);
 
@@ -1090,46 +1114,15 @@ const CreateProfile: React.FC = () => {
                           boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 10px",
                         }}
                       >
-                        {/* <ScatterChart
-                          series={projectFolders[selectedFolder].chartData.map(
-                            (data) => ({
-                              label: data.label,
-                              data: data.data
-                                .map(
-                                  (v, index) =>
-                                    v !== undefined
-                                      ? {
-                                          x: projectFolders[selectedFolder]
-                                            .folderData.excitation[index],
-                                          y: v,
-                                          id: index,
-                                        }
-                                      : null // Ak je hodnota `undefined`, vrátim `null`
-                                )
-                                .filter((point) => point !== null), // Odstránim `null` hodnoty
-                            })
-                          )}
-                          yAxis={[
-                            {
-                              min: projectFolders[selectedFolder].normalStatData
-                                .min
-                                ? projectFolders[selectedFolder].normalStatData
-                                    .min
-                                : 0,
-                            },
-                          ]}
-                          xAxis={[{ min: 250 }]}
-                          sx={{
-                            backgroundColor: "white",
-                          }}
-                        /> */}
-
                         {options && (
                           <>
-                          <ReactECharts
-                            option={options}
-                            style={{ width: 600, height: 400 }}
-                          /></>
+                            <ReactECharts
+                              option={options}
+                              style={{ width: "100%", height: "100%", margin: 'none', paddingTop: '20px' }}
+                              key={selectedFolder}
+                              notMerge={true}
+                            />
+                          </>
                         )}
                       </Box>
                     ) : (
