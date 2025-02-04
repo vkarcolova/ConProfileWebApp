@@ -9,6 +9,7 @@ interface CustomInputAutocompleteProps {
   id: number;
   allFactors: Factors[];
   changeFactorValue?: (id: number, value: number | null) => void;
+  inputedFactor?: number | null;
 }
 
 const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
@@ -16,8 +17,9 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
   allFactors,
   id,
   changeFactorValue,
+  inputedFactor,
 }) => {
-  const [selectedValue, setSelectedValue] = React.useState<number | null>(null);
+  const [selectedValue, setSelectedValue] = React.useState<string>("");
   const [factors, setFactors] = React.useState<Factors[]>([]);
 
   useEffect(() => {
@@ -25,29 +27,31 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
       (factor) => factor.spectrum === columnSpectrum
     );
     setFactors(filtered);
+    let factorValue = filtered.length > 0 ? filtered[0].factor.toString() : "";
+    if (inputedFactor) {
+      factorValue = inputedFactor.toString();
+    }
+    setSelectedValue(factorValue);
 
-    const defaultFactor = filtered.length > 0 ? filtered[0].factor : null;
-    setSelectedValue(defaultFactor);
     if (changeFactorValue) {
-      changeFactorValue(id, defaultFactor);
+      changeFactorValue(id, parseFloat(factorValue) || null);
     }
-  }, [columnSpectrum, allFactors]);
+  }, []);
 
-  const parseNumber = (input: string | number | null): number | null => {
-    if (input === null || typeof input === "number") {
-      return input;
-    }
+  const parseNumber = (input: string): number | null => {
     const parsedNumber = parseFloat(input);
     return isNaN(parsedNumber) ? null : parsedNumber;
   };
 
   const handleAutocompleteChange = (
     event: React.SyntheticEvent,
-    newValue: string | number | null
+    newValue: string | null
   ) => {
-    setSelectedValue(parseNumber(newValue));
-    if (changeFactorValue) {
-      changeFactorValue(id, parseNumber(newValue));
+    if (newValue !== null && /^[0-9]*\.?[0-9]*$/.test(newValue)) {
+      setSelectedValue(newValue);
+      if (changeFactorValue) {
+        changeFactorValue(id, parseNumber(newValue));
+      }
     }
   };
 
@@ -55,12 +59,18 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
     event: React.SyntheticEvent,
     newInputValue: string
   ) => {
-    const parsedValue = parseNumber(newInputValue);
-    setSelectedValue(parsedValue);
-    if (changeFactorValue) {
-      changeFactorValue(id, parsedValue);
+    let formattedValue = newInputValue.replace(/[^0-9.,]/g, "");
+    formattedValue = formattedValue.replace(/,/g, ".");
+
+    // Ak vstup nie je validné číslo, nemeníme stav
+    if (/^[0-9]*\.?[0-9]*$/.test(formattedValue)) {
+      setSelectedValue(formattedValue);
+      if (changeFactorValue) {
+        changeFactorValue(id, parseNumber(formattedValue));
+      }
     }
   };
+
   return (
     <label>
       <Autocomplete
@@ -72,13 +82,10 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
           paddingTop: "5px",
           borderRadius: 1,
           width: "85%",
-  
           "& .MuiInputLabel-root": {
             marginTop: "5px",
-            transition: "transform 0.2s ease-out, color 0.2s ease-out", // Optimalizovaný prechod
-
+            transition: "transform 0.2s ease-out, color 0.2s ease-out",
           },
-
           "& .MuiOutlinedInput-root": {
             "& legend": {
               display: "none",
@@ -86,12 +93,26 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
           },
         }}
         id={`autocomplete-${id}`}
-        options={factors.map((option) => option.factor)}
-        value={selectedValue !== null ? selectedValue.toString() : ""}
-        getOptionLabel={(option) => option.toString()}
+        options={factors.map((option) => option.factor.toString())}
+        value={selectedValue}
+        inputValue={selectedValue} 
+        getOptionLabel={(option) => option}
         onChange={handleAutocompleteChange}
-        renderInput={(params) => <TextField {...params} label="Faktor" />}
-        onInputChange={handleInputChange}
+        onInputChange={(event, newValue, reason) => {
+          if (reason === "input") {
+            handleInputChange(event, newValue);
+          }
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Faktor"
+            inputProps={{
+              ...params.inputProps,
+              inputMode: "decimal", // Zabezpečí numerickú klávesnicu na mobile
+            }}
+          />
+        )}
       />
     </label>
   );

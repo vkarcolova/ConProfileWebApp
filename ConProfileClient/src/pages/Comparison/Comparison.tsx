@@ -83,7 +83,6 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
           })) || [];
       setChartData(filteredFolders);
 
-      console.log(filteredFolders);
 
       const statList: StatData[] = [];
       filteredFolders.forEach((element) => {
@@ -126,16 +125,11 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
 
         const folderExcitation = folders[index].excitation; // Zodpovedajúce excitation
 
-        console.log(allExcitations);
-
         const mappedData = allExcitations.map(ex => {
           const dataIndex = folderExcitation.indexOf(ex);
           return dataIndex !== -1 ? data[dataIndex] : null; // Ak excitation existuje, použijeme hodnotu, inak null
         });
         
-        console.log(mappedData);
-        const count = mappedData.filter((value) => value !== null).length;
-        console.log(count);
         return {
           name: label,
           type: "line",

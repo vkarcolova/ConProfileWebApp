@@ -365,7 +365,10 @@ namespace WebAPI.Controllers
                         fileList.Add(data);
                     }
                     excitation.Sort();
-                    fileList = fileList.OrderBy(x => x.SPECTRUM).ToList();
+                    fileList = fileList.OrderBy(x => x.SPECTRUM == -1 ? 0 : 1)
+                   .ThenBy(x => x.SPECTRUM == -1 ? x.FILENAME : x.SPECTRUM.ToString()) 
+                   .ToList();
+
                     FolderDTO newFolder = new FolderDTO
                     {
                         ID = folder.IdFolder,

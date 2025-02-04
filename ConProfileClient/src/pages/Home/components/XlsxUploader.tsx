@@ -119,20 +119,12 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({newProject, loadNewExcelFo
       }
       columns.push(column);
     }
-    console.log("columns", columns);
-    console.log("📤 Dáta na odoslanie:", {
-      selectedSheet,
-      header,
-      startRow,
-      selectedColumns,
-      data: columns,
-    });
+
 
     if(newProject){ 
       await clientApi
         .createProjectWithExcel(columns, headers, filename)
         .then((response) => {
-          console.log(response);
           const token = response.data.token;
           localStorage.setItem("token", token);
           const objString = JSON.stringify(response.data.project);
