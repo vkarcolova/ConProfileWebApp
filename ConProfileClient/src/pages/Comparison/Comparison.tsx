@@ -6,7 +6,6 @@ import DialogContent from "@mui/material/DialogContent";
 import CloseIcon from "@mui/icons-material/Close";
 import "./index.css";
 import { FolderDTO } from "../../shared/types";
-import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import {
   Box,
   Checkbox,
@@ -23,6 +22,7 @@ import {
 } from "@mui/material";
 
 import List from "@mui/material/List/List";
+import ReactECharts from "echarts-for-react";
 
 interface ComparisonProps {
   open: boolean;
@@ -54,10 +54,18 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   // console.log(chartData);
   // console.log( checked);}
   // ), [statData, chartData, checked];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [options, setOptions] = useState<any>(null);
+  
+
+  
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string
   ) => {
+    setOptions(null);
+
     let list: string[] = [...checked];
     if (!list.includes(name)) {
       list.push(name);
@@ -65,7 +73,6 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       list = list.filter((item) => item !== name);
     }
     setChecked(list);
-
     if (list.length >= 2) {
       const filteredFolders =
         folders
@@ -75,6 +82,8 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
             label: data?.foldername || "Unknown",
           })) || [];
       setChartData(filteredFolders);
+
+      console.log(filteredFolders);
 
       const statList: StatData[] = [];
       filteredFolders.forEach((element) => {
@@ -100,7 +109,57 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         };
         statList.push(statistics);
       });
+
+      
       setStatData(statList);
+  
+      if (!folders) return;
+    
+    
+      // Zjednotenie všetkých excitation hodnôt (unikátne a zoradené)
+      const allExcitations = [
+        ...new Set(folders.flatMap(folder => folder.excitation))
+      ].sort((a, b) => a - b);
+    
+      // Generovanie dátových sérií s mapovaním podľa excitation
+      const series = filteredFolders.map(({ data, label }, index) => {
+
+        const folderExcitation = folders[index].excitation; // Zodpovedajúce excitation
+
+        console.log(allExcitations);
+
+        const mappedData = allExcitations.map(ex => {
+          const dataIndex = folderExcitation.indexOf(ex);
+          return dataIndex !== -1 ? data[dataIndex] : null; // Ak excitation existuje, použijeme hodnotu, inak null
+        });
+        
+        console.log(mappedData);
+        const count = mappedData.filter((value) => value !== null).length;
+        console.log(count);
+        return {
+          name: label,
+          type: "line",
+          data: mappedData,
+          smooth: true, // Ak sa graf nezobrazuje plynulo, skús tento parameter na false
+          connectNulls: true,
+        };
+      });
+    
+      setOptions({
+        xAxis: { type: "category", data: allExcitations },
+        yAxis: {
+          type: "value",
+          min: Math.min(...statList.map(obj => obj.min)),
+          max: Math.max(...statList.map(obj => obj.max)),
+          axisLabel: {
+            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+          },
+        },
+        series,
+        tooltip: { trigger: "axis" },
+        legend: { show: true },
+
+      });
     } else {
       setChartData([]);
       setStatData([]);
@@ -110,6 +169,9 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   return (
     <Dialog
       onClose={() => {
+        setOptions(null);
+        setChartData(null);
+        setChecked([]);
         onClose();
       }}
       aria-labelledby="customized-dialog-title"
@@ -122,8 +184,12 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       </DialogTitle>
       <IconButton
         aria-label="close"
-        onClick={onClose}
-        sx={{
+        onClick={() => {
+          setOptions(null);
+          setChartData(null);
+          setChecked([]);
+          onClose();
+        }}        sx={{
           position: "absolute",
           right: 8,
           top: 8,
@@ -231,18 +297,20 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
                     backgroundColor: "white",
                   }}
                 >
-                  <ScatterChart
-                    series={chartData.map((data) => ({
-                      label: data.label,
-                      data: data.data.map((v, index) => ({
-                        x: folders[0].excitation[index],
-                        y: v,
-                        id: v,
-                      })),
-                    }))}
-                    yAxis={[{ min: 0 }]}
-                    xAxis={[{ min: 250 }]}
-                  />
+                  {options && (
+                    <>
+                      <ReactECharts
+                        option={options}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          margin: "none",
+                          paddingTop: "20px",
+                        }}
+                        notMerge={true}
+                      />
+                    </>
+                  )}
                 </Box>
               ) : (
                 ""

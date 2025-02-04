@@ -2,6 +2,8 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useState, useEffect, ChangeEvent } from "react";
 import Home from "@mui/icons-material/HomeRounded";
+import ReactECharts from "echarts-for-react";
+
 import {
   FolderDTO,
   FileContent,
@@ -30,7 +32,6 @@ import {
   Tooltip,
   tooltipClasses,
 } from "@mui/material";
-import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
 import { emptyTable } from "../../shared/styles";
@@ -57,8 +58,6 @@ const CreateProfile: React.FC = () => {
   const [projectData, setProjectData] = useState<ProjectDTO | null>(null);
   const [projectFolders, setProjectFolders] = useState<AllFolderData[]>([]);
 
-
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
@@ -71,6 +70,54 @@ const CreateProfile: React.FC = () => {
   // const currentFolderData = useMemo(() => {
   //   return projectFolders[selectedFolder];
   // }, [projectFolders, selectedFolder]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [options, setOptions] = useState<any>(null);
+
+  useEffect(() => {
+    console.log(projectFolders[selectedFolder]?.chartData);
+    setOptions(null);
+    const folderData = projectFolders[selectedFolder]?.folderData?.excitation;
+    const chartData = projectFolders[selectedFolder]?.chartData;
+
+    if (!folderData || !chartData || !projectData) return;
+
+    console.log(chartData);
+
+    if(projectData.folders[selectedFolder].profile) {
+      chartData.push({
+        data: projectData.folders[selectedFolder].profile,
+        label: "Profil",
+      });
+
+    }
+
+    setOptions({
+      xAxis: { type: "category", data: folderData },
+      yAxis: {
+        type: "value",
+        min: projectFolders[selectedFolder].multiplied
+          ? projectFolders[selectedFolder].multipliedStatData.min
+          : projectFolders[selectedFolder].normalStatData.min,
+        max: projectFolders[selectedFolder].multiplied
+          ? projectFolders[selectedFolder].multipliedStatData.max
+          : projectFolders[selectedFolder].normalStatData.max,
+          axisLabel: {
+            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+          },
+      },
+      series: chartData.map(({ data, label }) => ({
+        name: label,
+        type: "line",
+        data: data.map((value) => value ?? null),
+        smooth: true,
+        connectNulls: false,
+      })),
+      tooltip: { trigger: "axis" },
+      legend: { show: true },
+
+    });
+  }, [projectFolders, selectedFolder]);
 
   useEffect(() => {
     //console.log(projectData);
@@ -247,7 +294,6 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-
   const loadNewFolder = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (selectedFiles) {
@@ -326,49 +372,48 @@ const CreateProfile: React.FC = () => {
     }
   };
 
+  const loadNewExcelFolder = async (
+    excelContent: ExcelContent
+  ): Promise<boolean> => {
+    if (loadedProjectId) {
+      try {
+        excelContent.idproject = projectData?.idproject;
 
-  const loadNewExcelFolder = async (excelContent: ExcelContent) : Promise<boolean> => {
+        await clientApi.postExcelToProject(excelContent).then(() => {
+          toast.success("Priečinok bol úspešne pridaný.");
+          return true;
+          loadProjectFromId();
+        });
+      } catch (error) {
+        toast.error("Chyba pri načítavaní dát.");
+      }
+    } else {
+      const project: ProjectDTO = { ...projectData! };
 
-      if (loadedProjectId) {
-        try {
-          excelContent.idproject = projectData?.idproject;
-          
-          await clientApi.postExcelToProject(excelContent).then(() => {
+      try {
+        await clientApi
+          .postExcelToSession(excelContent)
+          .then(async (response) => {
+            const objString = response.data.folder as FolderDTO;
+            const filledFolder = await fillFolder(objString);
+            const folders: AllFolderData[] = projectFolders;
+            folders.push(filledFolder);
+            setProjectFolders(folders);
             toast.success("Priečinok bol úspešne pridaný.");
+
+            project.folders.push(objString);
+            setProjectData(project);
+            saveSessionData(project);
             return true;
-            loadProjectFromId();
           });
-        } catch (error) {
-          toast.error("Chyba pri načítavaní dát.");
-        }
-      } else {
-        const project: ProjectDTO = { ...projectData! };
+      } catch (error) {
+        toast.error("Chyba pri načítavaní dát.");
 
-        try {
-          await clientApi
-            .postExcelToSession(excelContent)
-            .then(async (response) => {
-              const objString = response.data.folder as FolderDTO;
-              const filledFolder = await fillFolder(objString);
-              const folders: AllFolderData[] = projectFolders;
-              folders.push(filledFolder);
-              setProjectFolders(folders);
-              toast.success("Priečinok bol úspešne pridaný.");
-
-              project.folders.push(objString);
-              setProjectData(project);
-              saveSessionData(project);
-              return true;
-            });
-        } catch (error) {
-          toast.error("Chyba pri načítavaní dát.");
-
-          console.error("Chyba pri načítavaní dát:", error);
-        }
+        console.error("Chyba pri načítavaní dát:", error);
+      }
     }
     return false;
   };
-
 
   const handleNodeSelect = (
     event: React.SyntheticEvent,
@@ -388,8 +433,6 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-
-
   const multiplyButtonClick = async () => {
     const factors: number[] = [];
     const ids: number[] = [];
@@ -397,7 +440,7 @@ const CreateProfile: React.FC = () => {
 
     const factorsToSave: Factors[] = [];
 
-    projectFolders[selectedFolder].folderData.data.forEach((element,index) => {
+    projectFolders[selectedFolder].folderData.data.forEach((element, index) => {
       const autocompleteInput = document.getElementById(
         `autocomplete-${index}`
       ) as HTMLInputElement | null;
@@ -477,10 +520,10 @@ const CreateProfile: React.FC = () => {
         let file = 0;
         file < project.folders[selectedFolder].data.length;
         file++
-      ) { 
+      ) {
         project.folders[selectedFolder].data[file].factor = factors[file];
       }
-      
+
       const folders: AllFolderData[] = projectFolders;
       folders[selectedFolder].multiplied = true;
 
@@ -488,15 +531,25 @@ const CreateProfile: React.FC = () => {
         folders[selectedFolder]
       );
 
-      for (let i = 0; i < folders[selectedFolder].tableData.excitation.length; i++) { //kazdy riadok
+      for (
+        let i = 0;
+        i < folders[selectedFolder].tableData.excitation.length;
+        i++
+      ) {
+        //kazdy riadok
         let max: number = -Infinity;
 
-        for (let j = 0; j < folders[selectedFolder].tableData.multipliedintensities!.length; j++) { 
-          const value = folders[selectedFolder].tableData.multipliedintensities![j].intensities[i];
-          
-          if(value != undefined && Number.isFinite(value)) { 
-            if(value > max) max = value;
-            
+        for (
+          let j = 0;
+          j < folders[selectedFolder].tableData.multipliedintensities!.length;
+          j++
+        ) {
+          const value =
+            folders[selectedFolder].tableData.multipliedintensities![j]
+              .intensities[i];
+
+          if (value != undefined && Number.isFinite(value)) {
+            if (value > max) max = value;
           }
         }
         profile.push(max);
@@ -509,7 +562,6 @@ const CreateProfile: React.FC = () => {
       project.folders[selectedFolder].profile = profile;
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
-
 
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
@@ -690,9 +742,8 @@ const CreateProfile: React.FC = () => {
 
       for (let i = 0; i < calculatedIntensities.length; i++) {
         if (calculatedIntensities[i] !== undefined) {
-          
-            excitations.push(excitation[i]);
-            intensities.push(calculatedIntensities[i]);
+          excitations.push(excitation[i]);
+          intensities.push(calculatedIntensities[i]);
         }
       }
 
@@ -709,12 +760,13 @@ const CreateProfile: React.FC = () => {
       loadProjectFromId();
     } else {
       for (let i = 0; i < calculatedIntensities.length; i++) {
-          columnToRewrite.intensity.push({
-            excitation: excitation[i],
-            intensity: calculatedIntensities[i],
-            multipliedintensity: columnToRewrite.factor ? calculatedIntensities[i] * columnToRewrite.factor : undefined,
-          });
-        
+        columnToRewrite.intensity.push({
+          excitation: excitation[i],
+          intensity: calculatedIntensities[i],
+          multipliedintensity: columnToRewrite.factor
+            ? calculatedIntensities[i] * columnToRewrite.factor
+            : undefined,
+        });
       }
 
       columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
@@ -723,16 +775,21 @@ const CreateProfile: React.FC = () => {
       projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
         columnToRewrite;
 
-
-      if(updatedFolders[selectedFolder].multiplied && updatedFolders[selectedFolder].folderData.profile) {
+      if (
+        updatedFolders[selectedFolder].multiplied &&
+        updatedFolders[selectedFolder].folderData.profile
+      ) {
         const newProfile = updatedFolders[selectedFolder].folderData.profile;
         for (let i = 0; i < calculatedIntensities.length; i++) {
-          if (columnToRewrite.intensity[i].multipliedintensity !== undefined && columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]) {
-              newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
-            }
+          if (
+            columnToRewrite.intensity[i].multipliedintensity !== undefined &&
+            columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]
+          ) {
+            newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
+          }
         }
         console.log(newProfile);
-        updatedFolders[selectedFolder].profileData.profile =  newProfile;
+        updatedFolders[selectedFolder].profileData.profile = newProfile;
         updatedFolders[selectedFolder].folderData.profile = newProfile;
       }
 
@@ -910,8 +967,11 @@ const CreateProfile: React.FC = () => {
                           </Tooltip>
                         )}
 
-                        <AddFolderMenu loadNewFolder={loadNewFolder} loadNewExcelFolder={loadNewExcelFolder}/>
-                        </Box>
+                        <AddFolderMenu
+                          loadNewFolder={loadNewFolder}
+                          loadNewExcelFolder={loadNewExcelFolder}
+                        />
+                      </Box>
 
                       <NunuButton
                         onClick={() => {
@@ -1054,40 +1114,16 @@ const CreateProfile: React.FC = () => {
                           boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 10px",
                         }}
                       >
-                        <ScatterChart
-                          series={projectFolders[selectedFolder].chartData.map(
-                            (data) => ({
-                              label: data.label,
-                              data: data.data
-                                .map(
-                                  (v, index) =>
-                                    v !== undefined
-                                      ? {
-                                          x: projectFolders[selectedFolder]
-                                            .folderData.excitation[index],
-                                          y: v,
-                                          id: index,
-                                        }
-                                      : null // Ak je hodnota `undefined`, vrátim `null`
-                                )
-                                .filter((point) => point !== null), // Odstránim `null` hodnoty
-                            })
-                          )}
-                          yAxis={[
-                            {
-                              min: projectFolders[selectedFolder].normalStatData
-                                .min
-                                ? projectFolders[selectedFolder].normalStatData
-                                    .min
-                                : 0,
-                            },
-                          ]}
-                          
-                          xAxis={[{ min: 250 }]}
-                          sx={{
-                            backgroundColor: "white",
-                          }}
-                        />
+                        {options && (
+                          <>
+                            <ReactECharts
+                              option={options}
+                              style={{ width: "100%", height: "100%", margin: 'none', paddingTop: '20px' }}
+                              key={selectedFolder}
+                              notMerge={true}
+                            />
+                          </>
+                        )}
                       </Box>
                     ) : (
                       ""
