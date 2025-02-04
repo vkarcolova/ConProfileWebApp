@@ -15,4 +15,6 @@ public class ApiDbContext : DbContext {
     public DbSet<Project> Projects { get; set; }
     public DbSet<Factors> Factors { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<DataBankFolder> DataBankFolders { get; set; }
+    public DbSet<DataBankFile> DataBankFiles { get; set; }
 }

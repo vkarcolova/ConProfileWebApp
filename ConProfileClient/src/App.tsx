@@ -7,6 +7,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import TabsLoginRegister from "./pages/RegisterLogin/TabsLoginRegister";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import DataBank from "./pages/DataBank/DataBank";
 
 const theme = createTheme({
   palette: {
@@ -29,6 +30,8 @@ function App() {
             <Route path="/uprava-profilu/" element={<CreateProfile />} />
             <Route path="/uprava-profilu/:id" element={<CreateProfile />} />
             <Route path="/auth/:type" element={<TabsLoginRegister />} />
+            <Route path="/databank" element={<DataBank />} />
+
           </Routes>
           <ToastContainer transition={Bounce} />
         </div>

@@ -11,7 +11,7 @@ export const AppBarLogin: React.FC<AppBarProps> = ({ content }) => {
   return (
     <div>
       <AppBar
-        position="fixed"
+        position="absolute"
         sx={{
           boxShadow: 0,
           bgcolor: "transparent",
