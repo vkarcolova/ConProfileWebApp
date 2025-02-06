@@ -20,7 +20,8 @@ options.AddPolicy(name: AllowSpecificOrigins,
                       {
                           policy.WithOrigins("http://localhost:5000", "http://conprofile.fri.uniza.sk:5000", "https://conprofile.fri.uniza.sk")
                             .AllowAnyHeader()
-                            .AllowAnyMethod(); 
+                            .AllowAnyMethod()
+                           .AllowCredentials();
                       });
 });
 
@@ -38,6 +39,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     {
                         "http://localhost:3000",
                         "http://conprofile.fri.uniza.sk:3000",
+                        "https://conprofile.fri.uniza.sk:3000",
+                        
                     },
                     ValidAudiences = new[]
                     {
@@ -68,6 +71,25 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        var origin = context.Request.Headers["Origin"].ToString();
+
+        var allowedOrigins = new[] { "http://localhost:5000", "https://conprofile.fri.uniza.sk" };
+
+        if (allowedOrigins.Contains(origin))
+            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+        else
+            context.Response.Headers["Access-Control-Allow-Origin"] = "null";
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type, UserEmail");
+        context.Response.StatusCode = 204;
+        return;
+    }
+    await next();
+});
 try { 
     using (var scope = app.Services.CreateScope())
     {
@@ -80,6 +102,8 @@ try {
 } catch {
     Console.WriteLine("No migrations.");
 }
+app.UseCors(AllowSpecificOrigins);
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -92,9 +116,6 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseHttpsRedirection();
-app.UseCors(AllowSpecificOrigins);
-app.UseAuthorization();
 
 app.MapControllers();
 

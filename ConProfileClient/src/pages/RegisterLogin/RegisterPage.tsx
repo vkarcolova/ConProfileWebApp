@@ -42,7 +42,7 @@ const RegisterPage: React.FC = () => {
         window.location.href = "/";
       }
     }).catch((error) => {
-        toast.error('Chyba pri registrácii: ' +  error.response.data);
+        toast.error('Chyba pri registrácii: ' +  error);
     });
   };
 
