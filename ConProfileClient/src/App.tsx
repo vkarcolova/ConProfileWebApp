@@ -13,6 +13,10 @@ const theme = createTheme({
   palette: {
     mode: "light",
   },
+  typography: {
+    fontFamily: "Poppins, Arial, sans-serif",
+  },
+
 });
 function App() {
   return (

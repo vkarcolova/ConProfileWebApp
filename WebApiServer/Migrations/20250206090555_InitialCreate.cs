@@ -7,21 +7,56 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WebApiServer.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "DataBankFiles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FolderId = table.Column<int>(type: "integer", nullable: true),
+                    FileName = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    Size = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<byte[]>(type: "bytea", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UploadedBy = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataBankFiles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataBankFolders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FolderName = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataBankFolders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Factors",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Spectrum = table.Column<int>(type: "integer", nullable: false),
                     Factor = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Factors", x => x.Spectrum);
+                    table.PrimaryKey("PK_Factors", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -48,7 +83,7 @@ namespace WebApiServer.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IdFolder = table.Column<int>(type: "integer", nullable: false),
                     Spectrum = table.Column<int>(type: "integer", nullable: false),
-                    Factor = table.Column<double>(type: "double precision", nullable: false),
+                    Factor = table.Column<double>(type: "double precision", nullable: true),
                     FileName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -117,6 +152,12 @@ namespace WebApiServer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "DataBankFiles");
+
+            migrationBuilder.DropTable(
+                name: "DataBankFolders");
+
             migrationBuilder.DropTable(
                 name: "Factors");
 

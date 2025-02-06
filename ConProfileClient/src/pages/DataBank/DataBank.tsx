@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +22,9 @@ import InfoIcon from "@mui/icons-material/Info";
 import UploadFileIcon from "@mui/icons-material/Upload";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useNavigate } from "react-router-dom";
-
+import { useUserContext } from "../../shared/context/useContext";
+import { toast } from "react-toastify";
+import SearchIcon from '@mui/icons-material/Search';
 const mockFiles = [
   {
     id: 1,
@@ -56,6 +58,15 @@ export default function DataBank() {
   const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const navigate = useNavigate();
+  const { user, logoutUser } = useUserContext();
+
+  useEffect(() => {
+    if (user === undefined) return;
+
+    if (!user) {
+      navigate("/auth/prihlasenie/");
+    }
+  }, [user]);
 
   const toggleSelection = (id: number) => {
     setSelectedFiles((prev) =>
@@ -83,184 +94,207 @@ export default function DataBank() {
   );
 
   return (
-    <div style={{ display: "flex", height: "100vh", marginTop: 100, gap: 20, paddingInline: 20 }}>
-      <AppBarLogin
-        content={
-          <>
-                  <Typography variant="h5">📁 Databanka súborov</Typography>
+    <div
+      style={{
+        display: "flex",
+        height: "100%",
+        paddingTop: 100,
+        gap: 20,
+        paddingInline: 20,
+      }}
+    >
+      {user && (
+        <>
+          <AppBarLogin
+            content={
+              <>
+                <Box sx={{ display: "flex" }}>
+                  <Typography
+                    sx={{
+                      color: "#454545",
+                      fontWeight: "550",
+                      marginRight: "10px",
+                      marginTop: "10px",
+                    }}
+                  >
+                    Prihlásený používateľ{" "}
+                    <span style={{ color: "rgba(59, 49, 119, 0.87)" }}>
+                      {user.email}
+                    </span>
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      logoutUser();
+                      toast.success("Boli ste úspešne odhlásený.");
+                    }}
+                    color="primary"
+                    variant="text"
+                    size="small"
+                    sx={{
+                      backgroundColor: "#BFC2D2",
+                      width: "80px",
+                      borderRadius: 100,
+                      color: "rgba(59, 49, 119, 0.87)",
+                      padding: "10px",
 
-            <Button
-              color="primary"
-              variant="text"
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "#E2E3E8",
+                      },
+                    }}
+                  >
+                    {" "}
+                    <Typography fontWeight={600}>Odhlásenie</Typography>
+                  </Button>
+                </Box>
+              </>
+            }
+          />
+          <Paper
+            sx={{
+              width: 280,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              p: 2,
+              backgroundColor: "#f5f5f5",
+            }}
+          >
+            <Typography variant="h6"> Vyhľadávanie</Typography>
+            <TextField
+              label="Názov súboru"
+              variant="outlined"
               size="small"
-              component="a"
-              sx={{
-                backgroundColor: "rgba(255, 255, 255, 0.15)",
-                width: "80px",
-                borderRadius: 100,
-                color: "rgba(59, 49, 119, 0.87)",
-                padding: "10px",
-                marginRight: "10px",
-
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#E2E3E8",
-                },
-              }}
-              onClick={() => {
-                navigate("/auth/prihlasenie/");
-              }}
-            >
-              <Typography fontWeight={600}>Prihlásenie</Typography>
-            </Button>
-            <Button
-              color="primary"
-              variant="text"
+              fullWidth
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Typography variant="h6"> Filtrovanie</Typography>
+            <TextField
+              select
+              label="Typ súboru"
+              variant="outlined"
               size="small"
-              component="a"
-              onClick={() => {
-                navigate("/auth/registracia/");
-              }}
-              sx={{
-                backgroundColor: "#BFC2D2",
-                width: "80px",
-                borderRadius: 100,
-                color: "rgba(59, 49, 119, 0.87)",
-                padding: "10px",
-
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#E2E3E8",
-                },
-              }}
+              fullWidth
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
             >
-              <Typography fontWeight={600}>Registrácia</Typography>
+              <MenuItem value="all">Všetko</MenuItem>
+              <MenuItem value="file">Súbory</MenuItem>
+              <MenuItem value="folder">Zložky</MenuItem>
+            </TextField>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Upload Section */}
+            <Typography variant="h6"> Nahrať súbor</Typography>
+            <Button
+              variant="contained"
+              component="label"
+              startIcon={<UploadFileIcon />}
+            >
+              Vybrať súbor
+              <input type="file" hidden multiple onChange={handleFileUpload} />
             </Button>
-          </>
-        }
-      />
-      <Paper
-        sx={{
-          width: 280,
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          p: 2,
-          backgroundColor: "#f5f5f5",
-        }}
-      >
-        <Typography variant="h6">🔍 Vyhľadávanie</Typography>
-        <TextField
-          label="Názov súboru"
-          variant="outlined"
-          size="small"
-          fullWidth
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Typography variant="h6">🛠️ Filtrovanie</Typography>
-        <TextField
-          select
-          label="Typ súboru"
-          variant="outlined"
-          size="small"
-          fullWidth
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <MenuItem value="all">Všetko</MenuItem>
-          <MenuItem value="file">Súbory</MenuItem>
-          <MenuItem value="folder">Zložky</MenuItem>
-        </TextField>
+          </Paper>
 
-        <Divider sx={{ my: 2 }} />
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              paddingRight: 4,
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "Poppins",
+                color: "#514986",
+                fontWeight: 600,
+                textShadow: "1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white",
+              }}
+              variant="h4"
+            >
+              Databanka súborov
+            </Typography>
 
-        {/* Upload Section */}
-        <Typography variant="h6">📤 Nahrať súbor</Typography>
-        <Button
-          variant="contained"
-          component="label"
-          startIcon={<UploadFileIcon />}
-        >
-          Vybrať súbor
-          <input type="file" hidden multiple onChange={handleFileUpload} />
-        </Button>
-      </Paper>
-
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", paddingRight: 4 }}>
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          {filteredFiles.map((file) => (
-            <Grid item xs={12} sm={6} md={4} lg={2.4} key={file.id}>
-              <Card
-                sx={{
-                  textAlign: "center",
-                  padding: 1,
-                  cursor: "pointer",
-                  position: "relative",
-                }}
-              >
-                {file.type === "folder" ? (
-                  <FolderIcon sx={{ fontSize: 40, color: "orange" }} />
-                ) : (
-                  <InsertDriveFileIcon sx={{ fontSize: 40, color: "blue" }} />
-                )}
-                <CardContent>
-                  <Typography variant="body1">{file.name}</Typography>
-                </CardContent>
-                <CardActions sx={{ justifyContent: "center" }}>
-                  <Checkbox
-                    checked={selectedFiles.includes(file.id)}
-                    onChange={() => toggleSelection(file.id)}
-                  />
-                  <IconButton onClick={() => setSelectedFile(file)}>
-                    <InfoIcon />
-                  </IconButton>
-                  <IconButton>
-                    <DownloadIcon />
-                  </IconButton>
-                </CardActions>
-              </Card>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              {filteredFiles.map((file) => (
+                <Grid item xs={12} sm={6} md={4} lg={2.4} key={file.id}>
+                  <Card
+                    sx={{
+                      textAlign: "center",
+                      padding: 1,
+                      cursor: "pointer",
+                      position: "relative",
+                    }}
+                  >
+                    {file.type === "folder" ? (
+                      <FolderIcon sx={{ fontSize: 40, color: "orange" }} />
+                    ) : (
+                      <InsertDriveFileIcon
+                        sx={{ fontSize: 40, color: "green" }}
+                      />
+                    )}
+                    <CardContent>
+                      <Typography variant="body1">{file.name}</Typography>
+                    </CardContent>
+                    <CardActions sx={{ justifyContent: "center" }}>
+                      <Checkbox
+                        checked={selectedFiles.includes(file.id)}
+                        onChange={() => toggleSelection(file.id)}
+                      />
+                      <IconButton onClick={() => setSelectedFile(file)}>
+                        <InfoIcon />
+                      </IconButton>
+                      <IconButton>
+                        <DownloadIcon />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-        <Button
-          variant="contained"
-          color="primary"
-          disabled={selectedFiles.length === 0}
-          sx={{ mt: 2 }}
-        >
-          Použiť vybrané súbory ({selectedFiles.length})
-        </Button>
-      </Box>
-
-      {/* Right Sidebar - File Info */}
-      <Drawer
-        anchor="right"
-        open={!!selectedFile}
-        onClose={() => setSelectedFile(null)}
-      >
-        {selectedFile && (
-          <Box sx={{ width: 280, padding: 2 }}>
-            <Typography variant="h6">ℹ️ Info o súbore</Typography>
-            <Typography variant="body1">
-              <strong>Názov:</strong> {selectedFile.name}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Typ:</strong>{" "}
-              {selectedFile.type === "folder" ? "Zložka" : "Súbor"}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Veľkosť:</strong> {selectedFile.size}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Dátum:</strong> {selectedFile.date}
-            </Typography>
-            <Button variant="contained" fullWidth sx={{ mt: 2 }}>
-              Stiahnuť
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={selectedFiles.length === 0}
+              sx={{ mt: 2 }}
+            >
+              Použiť vybrané súbory ({selectedFiles.length})
             </Button>
           </Box>
-        )}
-      </Drawer>
+
+          {/* Right Sidebar - File Info */}
+          <Drawer
+            anchor="right"
+            open={!!selectedFile}
+            onClose={() => setSelectedFile(null)}
+          >
+            {selectedFile && (
+              <Box sx={{ width: 280, padding: 2 }}>
+                <Typography variant="h6">ℹ️ Info o súbore</Typography>
+                <Typography variant="body1">
+                  <strong>Názov:</strong> {selectedFile.name}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Typ:</strong>{" "}
+                  {selectedFile.type === "folder" ? "Zložka" : "Súbor"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Veľkosť:</strong> {selectedFile.size}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Dátum:</strong> {selectedFile.date}
+                </Typography>
+                <Button variant="contained" fullWidth sx={{ mt: 2 }}>
+                  Stiahnuť
+                </Button>
+              </Box>
+            )}
+          </Drawer>
+        </>
+      )}
     </div>
   );
 }
