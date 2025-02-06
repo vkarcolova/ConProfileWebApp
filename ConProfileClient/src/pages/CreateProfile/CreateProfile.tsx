@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, useRef } from "react";
 import Home from "@mui/icons-material/HomeRounded";
 import ReactECharts from "echarts-for-react";
 
@@ -65,6 +66,8 @@ const CreateProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingFolders, setDeletingFolders] = useState(false);
 
+  const chartRef = useRef(null);
+
   //const foldersExpand: string[] = [];
 
   // const currentFolderData = useMemo(() => {
@@ -75,26 +78,18 @@ const CreateProfile: React.FC = () => {
   const [options, setOptions] = useState<any>(null);
 
   useEffect(() => {
-    console.log(projectFolders[selectedFolder]?.chartData);
+
     setOptions(null);
     const folderData = projectFolders[selectedFolder]?.folderData?.excitation;
     const chartData = projectFolders[selectedFolder]?.chartData;
-
     if (!folderData || !chartData || !projectData) return;
 
-    console.log(chartData);
-
-    if(projectData.folders[selectedFolder].profile) {
-      chartData.push({
-        data: projectData.folders[selectedFolder].profile,
-        label: "Profil",
-      });
-
-    }
 
     setOptions({
       xAxis: { type: "category", data: folderData },
       yAxis: {
+        nameGap: 30, 
+
         type: "value",
         min: projectFolders[selectedFolder].multiplied
           ? projectFolders[selectedFolder].multipliedStatData.min
@@ -102,9 +97,20 @@ const CreateProfile: React.FC = () => {
         max: projectFolders[selectedFolder].multiplied
           ? projectFolders[selectedFolder].multipliedStatData.max
           : projectFolders[selectedFolder].normalStatData.max,
-          axisLabel: {
-            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
-          },
+        axisLabel: {
+          formatter: (value: number) => value.toFixed(2),
+          margin: -2,
+
+        },
+      },
+      legend: {
+        type: "scroll",
+        orient: "horizontal", 
+        top: "top",
+        itemGap: 10, 
+        textStyle: {
+          fontSize: 10, 
+        },
       },
       series: chartData.map(({ data, label }) => ({
         name: label,
@@ -114,10 +120,8 @@ const CreateProfile: React.FC = () => {
         connectNulls: false,
       })),
       tooltip: { trigger: "axis" },
-      legend: { show: true },
-
     });
-  }, [projectFolders, selectedFolder]);
+  }, [projectFolders, selectedFolder,projectFolders[selectedFolder]?.chartData]);
 
   useEffect(() => {
     //console.log(projectData);
@@ -136,15 +140,18 @@ const CreateProfile: React.FC = () => {
             return;
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
-
+          console.log(obj);
           setProjectData(obj);
           const comparefolders: FolderDTO[] = [];
           const folders: AllFolderData[] = [];
           obj.folders.forEach(async (folder) => {
+            console.log(folder);
             const filledFolder = await fillFolder(folder);
             if (filledFolder.multiplied) {
               comparefolders.push(folder);
             }
+            console.log(filledFolder);
+
             folders.push(filledFolder);
           });
           setFoldersToCompare(comparefolders);
@@ -381,8 +388,8 @@ const CreateProfile: React.FC = () => {
 
         await clientApi.postExcelToProject(excelContent).then(() => {
           toast.success("Priečinok bol úspešne pridaný.");
-          return true;
           loadProjectFromId();
+          return true;
         });
       } catch (error) {
         toast.error("Chyba pri načítavaní dát.");
@@ -562,6 +569,28 @@ const CreateProfile: React.FC = () => {
       project.folders[selectedFolder].profile = profile;
       folders[selectedFolder].folderData.profile = profile;
       folders[selectedFolder].profileData = newProfile;
+      const newSeries = {
+        name: "Profil",
+        type: "line",
+        data: profile,
+        smooth: true,
+        connectNulls: false,
+      };
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setOptions((prevOptions: any) => ({
+        ...prevOptions,
+        series: [
+          ...(prevOptions?.series?.filter((s: any) => s.name !== "Profil") || []), // Odstránenie starej série
+          newSeries, // Pridanie novej série
+        ],
+        yAxis: {
+          ...prevOptions?.yAxis,
+          min: Math.min(...profile),
+          max: Math.max(...profile),
+        },
+      }));
+      
 
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);
@@ -724,9 +753,6 @@ const CreateProfile: React.FC = () => {
     calculatedIntensities: number[], //toto su cele data z nejakeho dovodu  chceme ibe tie dopocitane a bude to oke todooo
     excitation: number[]
   ): Promise<boolean> => {
-    console.log(excitation);
-    console.log(calculatedIntensities);
-
     const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
       (x) => x.filename === column.name
     );
@@ -788,7 +814,6 @@ const CreateProfile: React.FC = () => {
             newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
           }
         }
-        console.log(newProfile);
         updatedFolders[selectedFolder].profileData.profile = newProfile;
         updatedFolders[selectedFolder].folderData.profile = newProfile;
       }
@@ -1005,6 +1030,7 @@ const CreateProfile: React.FC = () => {
                       multiplied={!projectFolders[selectedFolder].multiplied}
                       tableData={projectFolders[selectedFolder].tableData!}
                       profile={projectFolders[selectedFolder].profileData}
+                      chartRef={chartRef}
                     />
                     <SaveToDbButton
                       loadedProjectId={loadedProjectId}
@@ -1058,6 +1084,7 @@ const CreateProfile: React.FC = () => {
                       tableData={projectFolders[selectedFolder].tableData!}
                       showAutocomplete={true}
                       factors={factors}
+                      folderData={projectFolders[selectedFolder].folderData}
                     />
                   </Grid>
                   <Grid
@@ -1117,8 +1144,14 @@ const CreateProfile: React.FC = () => {
                         {options && (
                           <>
                             <ReactECharts
+                              ref={chartRef}
                               option={options}
-                              style={{ width: "100%", height: "100%", margin: 'none', paddingTop: '20px' }}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                margin: "none",
+                                paddingTop: "20px",
+                              }}
                               key={selectedFolder}
                               notMerge={true}
                             />

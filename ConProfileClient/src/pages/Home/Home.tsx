@@ -33,6 +33,7 @@ const Home: React.FC = () => {
   const { user, logoutUser } = useUserContext();
 
   useEffect(() => {
+    console.log("user", user);
     getProjectsByUser();
   }, [user]);
 
@@ -75,6 +76,8 @@ const Home: React.FC = () => {
       await clientApi
         .getProjectByUser(user.email, localStorage.getItem("token"))
         .then((response) => {
+          console.log(response);
+
           setProjecsData(response.data);
         })
         .catch((error) => {

@@ -1,18 +1,21 @@
 # TODO
 
 NAJSKOR
-- [ ] Graf ako linechart
+
+
+- [ ] pridat exceli do batchdata upload
+- [ ] preco ked niekedy nacitas stranku zmiznu projekty?
+
 - [ ] Navrhnut tu databanku
 
 - [ ] Google ucet
 - [ ] mozno zabudnute heslo alebo zmazat ucet
-- [ ] Export obrazka
+- [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
 - [ ] Zda sa ze autocomplete spomaluje
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
 - [ ] Kliknem na graf zvacsi sa v modali
 - [ ] 15-92 ????
-- [ ] Aj tak by som asi pozrela iny chart asi je tento neefektivny
 - [ ] Ak rovnaky chart zmenit velkosti tych bodov tam a profil nejaku speci farbu a hrubsi
 - [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Loadingy - najprv na undefined a potom nedefined
@@ -21,7 +24,11 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
-
+- [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny
+- [x] lietanie cisel v exceli exportovat s ciarkami?
+- [x] ziadne faktory v batch upload 
+- [x] Factory nech su podla toho co bolo zadane
+- [x] Preco 0 v exceli asi ziadne spektrum?
 - [x] nacitanie z excelu aj do projektu existujuceho
 - [x] ~~Problem ked chybaju data na zaciatku v strede aj na konci?~~ Islo iba o medzeru pri data
 - [x] ~~Stats nech na mensej obrazovk su vyssie~~ este nech je tam prazdne miesto namiesto calculate data button nech sa to neposuva

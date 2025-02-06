@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Factors, TableData } from "../types";
+import { Factors, FolderDTO, TableData } from "../types";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
 import {
@@ -19,12 +19,14 @@ interface DataTableProps {
   tableData: TableData;
   showAutocomplete: boolean;
   factors?: Factors[];
+  folderData?: FolderDTO;
 }
 
 const DataTable: React.FC<DataTableProps> = ({
   tableData,
   showAutocomplete,
   factors,
+  folderData
 }) => {
   interface RowData {
     excitation: number;
@@ -53,7 +55,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const [intensityRows, setIntensityRows] = React.useState<RowData[]>([]);
   const calculateColumnWidth = () => {
     const totalColumns = tableData.intensities.length;
-    return `${100 / totalColumns}%`;
+    return totalColumns <= 10 ? `${100 / totalColumns}%` : '75px';
   };
   const VirtuosoTableComponents: TableComponents<RowData> = {
     Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
@@ -105,7 +107,7 @@ const DataTable: React.FC<DataTableProps> = ({
             </React.Fragment>
           ))}
         </TableRow>
-        {showAutocomplete && (
+        {showAutocomplete && folderData && (
           <TableRow>
             {tableData.intensities.map((tableData, index) => (
               <React.Fragment key={tableData.name}>
@@ -133,6 +135,7 @@ const DataTable: React.FC<DataTableProps> = ({
                       columnSpectrum={tableData.spectrum!}
                       allFactors={factors!}
                       id={index}
+                      inputedFactor={folderData.data[index].factor ? folderData.data[index].factor : null}
                     />
                   </Box>
                 </TableCell>
@@ -156,6 +159,9 @@ const DataTable: React.FC<DataTableProps> = ({
                   padding: "1px",
                   textAlign: "center",
                   borderBlock: "none",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap", 
+                  textOverflow: "ellipsis", 
                 }}
               >
                 <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>
@@ -171,6 +177,9 @@ const DataTable: React.FC<DataTableProps> = ({
                   padding: "1px",
                   textAlign: "center",
                   borderBlock: "none",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap", 
+                  textOverflow: "ellipsis",
                 }}
               >
                 <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>

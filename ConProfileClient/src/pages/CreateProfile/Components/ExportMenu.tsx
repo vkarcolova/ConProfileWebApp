@@ -63,12 +63,15 @@ interface ExportMenuProps {
   multiplied: boolean;
   tableData: TableData;
   profile: Profile | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  chartRef: React.RefObject<any>;
 }
 export const ExportMenu: React.FC<ExportMenuProps> = ({
   projectData,
   multiplied,
   tableData,
   profile,
+  chartRef
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -84,6 +87,16 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     const blob = new Blob([jsonString], { type: "application/json" });
     saveAs(blob, `project.cprj`);
     handleClose();
+  };
+
+  const replaceDotWithComma = (value: string | number) => {
+    if (typeof value === "number") {
+      return value.toString().replace(".", ",");
+    }
+    if (typeof value === "string" && value !== "") {
+      return value.replace(".", ",");
+    }
+    return value;
   };
 
   const handleExportDataAsCSV = () => {
@@ -105,7 +118,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         masterMatrix.push(intensity.intensities);
       });
 
-      header.push(" ", "Excitácie", "Profil");
+      header.push(" ", "Excitacie", "Profil");
       masterMatrix.push([]);
       masterMatrix.push(tableData.excitation);
       masterMatrix.push(profile.profile);
@@ -118,7 +131,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
 
     for (let i = 0; i < rowCount; i++) {
       const row = masterMatrix.map((column) =>
-        column[i] !== undefined ? column[i] : ""
+        column[i] !== undefined ? replaceDotWithComma(column[i]) : ""
       );
       rows.push(row.join(";"));
     }
@@ -133,6 +146,26 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportChart = () => {
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance();
+      
+      
+      const dataURL = chartInstance.getDataURL({
+        type: 'png',  
+        backgroundColor: '#fff',
+        pixelRatio: 2,  
+        width: 2000,  
+        height: 1000,  
+      });
+
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'chart.png';  
+      link.click();
+    }
   };
 
   return (
@@ -186,7 +219,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           <DatasetIcon />
           Exportovať dáta ako CSV
         </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem onClick={exportChart} disableRipple>
           <SsidChartIcon />
           Exportovať graf ako .png
         </MenuItem>

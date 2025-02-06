@@ -68,6 +68,7 @@ const BatchDataLoadButtonModal: React.FC<
           ? JSON.parse(factorsdata)
           : [];
         const updatedFactors = await clientApi.getFactors(localFactors);
+        console.log(updatedFactors);
         setAllFactors(updatedFactors);
       };
       fetchFactors();
@@ -177,6 +178,17 @@ const BatchDataLoadButtonModal: React.FC<
     return sortedExcitations;
   };
 
+  const replaceDotWithComma = (value: string | number) => {
+    if (typeof value === "number") {
+      return value.toString().replace(".", ",");
+    }
+    if (typeof value === "string" && value !== "") {
+      return value.replace(".", ",");
+    }
+    return value;
+  };
+
+
   const createCSV = () => {
     if (
       inputFactors.filter((factor) => factor == null).length > 0 ||
@@ -239,8 +251,8 @@ const BatchDataLoadButtonModal: React.FC<
 
     for (let i = 0; i < rowCount; i++) {
       const row = masterMatrix.map((column) =>
-        column[i] !== undefined ? column[i] : ""
-      ); // Pridaj hodnoty z každého stĺpca
+        column[i] !== undefined ? replaceDotWithComma(column[i]) : ""
+    ); // Pridaj hodnoty z každého stĺpca
       rows.push(row.join(";"));
     }
 

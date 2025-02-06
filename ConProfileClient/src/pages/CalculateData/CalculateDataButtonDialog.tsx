@@ -17,7 +17,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../shared/apis";
 import ReactECharts from 'echarts-for-react';
 import { toast } from "react-toastify";
-import { color } from "echarts";
 
 interface CalculateDataProps {
   columns: ColumnDTO[];
@@ -58,7 +57,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         min: Math.min(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
         max: Math.max(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
           axisLabel: {
-            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+            formatter: (value: number) => value.toFixed(2), 
           },
       },
       series: chartData.map(({ data, label }) => ({
@@ -87,7 +86,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       if (value === undefined) {
         for (let i = index - 1; i >= 0; i--) {
           if (numbers[i] !== undefined) {
-            gapLastIndices.add(i); // Pridaj posledný index pred medzerou
+            gapLastIndices.add(i); 
             break;
           }
         }
@@ -105,11 +104,11 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       : [];
 
   const onClick = async () => {
-    setOpen(true); // Otvorenie modálneho okna po kliknutí
+    setOpen(true);
   };
 
   const handleClose = () => {
-    setOpen(false); // Zatvorenie modálneho okna
+    setOpen(false); 
     setCalculatedIntensities([]);
     setChartData(undefined);
     setSelectedTab(0);
@@ -132,7 +131,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         min: Math.min(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
         max: Math.max(...chartData.flatMap(obj => obj.data.filter((value): value is number => value !== undefined))),
           axisLabel: {
-            formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
+            formatter: (value: number) => value.toFixed(2),
           },
       },
       series: chartData.map(({ data, label }) => ({
@@ -158,7 +157,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     await clientApi
       .calculateEmptyData(columns[selectedTab])
       .then(async (response) => {
-        console.log(response.data.onlyValues);
         setCalculatedIntensities(response.data.onlyValues);
         const newChartData = chartData!;
         newChartData.push({
