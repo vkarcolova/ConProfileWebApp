@@ -89,6 +89,16 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     handleClose();
   };
 
+  const replaceDotWithComma = (value: string | number) => {
+    if (typeof value === "number") {
+      return value.toString().replace(".", ",");
+    }
+    if (typeof value === "string" && value !== "") {
+      return value.replace(".", ",");
+    }
+    return value;
+  };
+
   const handleExportDataAsCSV = () => {
     const masterMatrix = [];
     const header = [];
@@ -108,7 +118,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         masterMatrix.push(intensity.intensities);
       });
 
-      header.push(" ", "Excitácie", "Profil");
+      header.push(" ", "Excitacie", "Profil");
       masterMatrix.push([]);
       masterMatrix.push(tableData.excitation);
       masterMatrix.push(profile.profile);
@@ -121,7 +131,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
 
     for (let i = 0; i < rowCount; i++) {
       const row = masterMatrix.map((column) =>
-        column[i] !== undefined ? column[i] : ""
+        column[i] !== undefined ? replaceDotWithComma(column[i]) : ""
       );
       rows.push(row.join(";"));
     }

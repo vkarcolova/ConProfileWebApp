@@ -26,6 +26,8 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
     const filtered = allFactors.filter(
       (factor) => factor.spectrum === columnSpectrum
     );
+    console.log(columnSpectrum);
+    console.log(filtered);
     setFactors(filtered);
     let factorValue = filtered.length > 0 ? filtered[0].factor.toString() : "";
     if (inputedFactor) {
@@ -36,7 +38,7 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
     if (changeFactorValue) {
       changeFactorValue(id, parseFloat(factorValue) || null);
     }
-  }, []);
+  }, [allFactors, columnSpectrum, id, inputedFactor]);
 
   const parseNumber = (input: string): number | null => {
     const parsedNumber = parseFloat(input);

@@ -3,6 +3,8 @@
 NAJSKOR
 
 
+- [ ] pridat exceli do batchdata upload
+- [ ] preco ked niekedy nacitas stranku zmiznu projekty?
 
 - [ ] Navrhnut tu databanku
 
@@ -23,7 +25,8 @@ NAJSKOR
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
 - [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny
-
+- [x] lietanie cisel v exceli exportovat s ciarkami?
+- [x] ziadne faktory v batch upload 
 - [x] Factory nech su podla toho co bolo zadane
 - [x] Preco 0 v exceli asi ziadne spektrum?
 - [x] nacitanie z excelu aj do projektu existujuceho
