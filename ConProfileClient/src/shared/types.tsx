@@ -112,3 +112,21 @@ export interface CalculatedDataDTO {
   calculatedintensities: number[];
   excitacions: number[];
 }
+
+export interface DataBankFileDTO {
+  id?: number;
+  folderId: number | null;
+  fileName: string;
+  type: string;
+  size: number;
+  content: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+export interface DataBankFolderDTO {
+  id?: number;
+  folderName: string;
+  uploadedAt: string;
+  files: DataBankFileDTO[];
+}

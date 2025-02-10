@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -24,7 +24,9 @@ import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../shared/context/useContext";
 import { toast } from "react-toastify";
-import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@mui/icons-material/Search";
+import { clientApi } from "../../shared/apis";
+import { DataBankFileDTO, DataBankFolderDTO } from "../../shared/types";
 const mockFiles = [
   {
     id: 1,
@@ -59,6 +61,7 @@ export default function DataBank() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const navigate = useNavigate();
   const { user, logoutUser } = useUserContext();
+  const inputRefFolder = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -74,17 +77,98 @@ export default function DataBank() {
     );
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const filesArray = Array.from(event.target.files).map((file) => ({
-        id: mockFiles.length + uploadedFiles.length + 1,
-        name: file.name,
-        type: "file",
-        size: `${(file.size / 1024).toFixed(2)} KB`,
-        date: new Date().toISOString().split("T")[0],
-      }));
-      setUploadedFiles((prev) => [...prev, ...filesArray]);
+  const handleExcelFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileContent = await fileToBase64(file);
+
+      const data: DataBankFileDTO = {
+        folderId: null,
+        fileName: file.name,
+        type: "Excel",
+        size: file.size,
+        content: fileContent,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: user?.email || "unknown",
+      };
+
+      await clientApi.uploadExcelToDatabank(data).then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("Súbor bol úspešne nahraný.");
+        } else {
+          toast.error("Nepodarilo sa nahrať súbor.");
+        }
+      });
+    } catch (error) {
+      console.error("Chyba pri nahrávaní súboru:", error);
+      throw error;
     }
+  };
+
+  const handleFolderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles) return;
+    const filesArray: File[] = Array.from(selectedFiles).filter((file) => {
+      const pathParts = file.webkitRelativePath.split("/");
+      return file.name.endsWith(".sp") && pathParts.length === 2;
+    });
+    const folderName = filesArray[0].webkitRelativePath.split("/")[0];
+    const loadedFiles: DataBankFileDTO[] = [];
+
+    for (const file of filesArray) {
+      try {
+        const fileContent = await fileToBase64(file);
+
+        const loadedFile: DataBankFileDTO = {
+          folderId: null,
+          fileName: file.name,
+          type: "SP",
+          size: file.size,
+          content: fileContent,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: user?.email || "unknown",
+        };
+
+        loadedFiles.push(loadedFile);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    try {
+      const folder: DataBankFolderDTO = {
+        folderName: folderName,
+        uploadedAt: new Date().toISOString(),
+        files: loadedFiles,
+      };
+
+      await clientApi.uploadFolderToDatabank(folder).then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("Súbor bol úspešne nahraný.");
+        } else {
+          toast.error("Nepodarilo sa nahrať súbor.");
+        }
+      });
+    } catch (error) {
+      console.error("Chyba pri nahrávaní súboru:", error);
+      throw error;
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () =>
+        resolve(reader.result?.toString().split(",")[1] || "");
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   const filteredFiles = [...mockFiles, ...uploadedFiles].filter(
@@ -92,12 +176,19 @@ export default function DataBank() {
       file.name.toLowerCase().includes(search.toLowerCase()) &&
       (filter === "all" || file.type === filter)
   );
+  const buttonStyle = {
+    backgroundColor: "#bfc3d9",
+    color: "black",
+    "&:hover": {
+      backgroundColor: "#a6abc9",
+    },
+  };
 
   return (
     <div
       style={{
         display: "flex",
-        height: "100%",
+        height: "80%",
         paddingTop: 100,
         gap: 20,
         paddingInline: 20,
@@ -158,6 +249,7 @@ export default function DataBank() {
               gap: 2,
               p: 2,
               backgroundColor: "#f5f5f5",
+              height: "100%",
             }}
           >
             <Typography variant="h6"> Vyhľadávanie</Typography>
@@ -188,14 +280,39 @@ export default function DataBank() {
 
             {/* Upload Section */}
             <Typography variant="h6"> Nahrať súbor</Typography>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFileIcon />}
-            >
-              Vybrať súbor
-              <input type="file" hidden multiple onChange={handleFileUpload} />
-            </Button>
+            <div style={{ display: "flex", gap: "10px", paddingInline: 15 }}>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<UploadFileIcon />}
+                sx={buttonStyle}
+              >
+                Vybrať priečinok
+                <input
+                  ref={inputRefFolder}
+                  type="file"
+                  directory=""
+                  webkitdirectory=""
+                  onChange={handleFolderUpload}
+                  multiple
+                  style={{ display: "none" }}
+                />
+              </Button>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<UploadFileIcon />}
+                sx={buttonStyle}
+              >
+                Vybrať XLSX súbor
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleExcelFileUpload}
+                  hidden
+                />
+              </Button>
+            </div>
           </Paper>
 
           <Box
@@ -204,6 +321,7 @@ export default function DataBank() {
               display: "flex",
               flexDirection: "column",
               paddingRight: 4,
+              height: "100%",
             }}
           >
             <Typography
@@ -211,7 +329,8 @@ export default function DataBank() {
                 fontFamily: "Poppins",
                 color: "#514986",
                 fontWeight: 600,
-                textShadow: "1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white",
+                textShadow:
+                  "1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white",
               }}
               variant="h4"
             >
@@ -265,7 +384,6 @@ export default function DataBank() {
             </Button>
           </Box>
 
-          {/* Right Sidebar - File Info */}
           <Drawer
             anchor="right"
             open={!!selectedFile}
@@ -297,4 +415,11 @@ export default function DataBank() {
       )}
     </div>
   );
+}
+
+declare module "react" {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    directory?: string;
+    webkitdirectory?: string;
+  }
 }

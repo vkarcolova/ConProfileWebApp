@@ -4,6 +4,8 @@ import config from "../../config";
 import {
   CalculatedDataDTO,
   ColumnDTO,
+  DataBankFileDTO,
+  DataBankFolderDTO,
   ExcelContent,
   Factors,
   FileContent,
@@ -173,7 +175,6 @@ export const clientApi = {
     headers: string[],
     name: string
   ) => {
-
     const content: ExcelContent = {
       data: data,
       header: headers,
@@ -247,7 +248,6 @@ export const clientApi = {
     );
   },
 
-
   calculateEmptyData: async (column: ColumnDTO) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
@@ -275,7 +275,6 @@ export const clientApi = {
       }
     );
   },
-
 
   postFolderMultiply: async (dataToSend: MultiplyFolderDTO) => {
     return axios.post(
@@ -320,6 +319,34 @@ export const clientApi = {
           "Content-Type": "application/json",
         },
         data: request,
+      }
+    );
+  },
+
+  uploadExcelToDatabank: async (data: DataBankFileDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/DataBank/UploadExcelToDatabank`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  uploadFolderToDatabank: async (folder: DataBankFolderDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/DataBank/UploadFolderToDatabank`,
+      folder,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
       }
     );
   },

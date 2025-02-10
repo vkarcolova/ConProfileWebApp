@@ -101,4 +101,24 @@ namespace WebApiServer.DTOs
         public double[] CALCULATEDINTENSITIES { get; set; }
         public double[] EXCITACIONS { get; set; }
     }
+
+    public class ExcelDatabankDTO
+    {
+        public int? FolderId { get; set; }
+        public string FileName { get; set; }
+        public string Type { get; set; }
+        public int Size { get; set; }
+        public string Content { get; set; }
+        public DateTime UploadedAt { get; set; }
+        public string UploadedBy { get; set; }
+    }
+
+    public class DatabankFolderDTO
+    {
+        public int Id { get; set; }
+        public string FolderName { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public List<ExcelDatabankDTO> Files { get; set; }
+    }
 }
