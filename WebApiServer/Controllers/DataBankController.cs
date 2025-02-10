@@ -28,7 +28,7 @@ namespace WebApiServer.Controllers
         }
 
         [HttpPost("UploadExcelToDatabank")]
-        public async Task<IActionResult> UploadExcelToDatabank([FromBody] ExcelDatabankDTO excelFile)
+        public async Task<IActionResult> UploadExcelToDatabank([FromBody] DatabankFileDTO excelFile)
         {
             if (excelFile == null || string.IsNullOrEmpty(excelFile.Content))
                 return BadRequest("Neplatné dáta súboru.");
@@ -111,7 +111,7 @@ namespace WebApiServer.Controllers
                     CreatedAt = folder.CreatedAt
                 };
                 _context.DataBankFolders.Add(newFolder);
-               
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Súbor bol úspešne uložený!", folder = newFolder.Id });
@@ -119,6 +119,54 @@ namespace WebApiServer.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Interná chyba servera: {ex.Message}");
+            }
+        }
+
+        [HttpGet("GetAllDatabankData")] // ked je v rezime  prihlasenia  
+        public ActionResult<List<DatabankFolderDTO>> GetAllDatabankData()
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+            List<DataBankFolder> folders = _context.DataBankFolders.ToList();
+            List<DatabankFolderDTO> result = new List<DatabankFolderDTO>();
+            foreach (var folder in folders)
+            {
+                List<DataBankFile> files = _context.DataBankFiles.Where(x => x.FolderId == folder.Id).ToList();
+                List<DatabankFileDTO> resultFiles = new List<DatabankFileDTO>();
+                foreach(var file in files)
+                {
+                    resultFiles.Add(new DatabankFileDTO
+                    {
+                        FolderId = folder.Id,
+                        FileName = file.FileName,
+                        Content = "", //TODO zatial nejdem posielat aj obsahy
+                        Size = file.Size,
+                        Type = file.Type,
+                        UploadedAt = file.UploadedAt,
+                        UploadedBy = file.UploadedBy,
+                    });
+                }
+
+                result.Add(new DatabankFolderDTO{
+                   CreatedAt= folder.CreatedAt,
+                   FolderName = folder.FolderName,
+                   Id = folder.Id,
+                   Files = resultFiles
+                });
+            }
+            
+
+            if (projects == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return getSpecificProjectDTOs(projects);
             }
         }
 

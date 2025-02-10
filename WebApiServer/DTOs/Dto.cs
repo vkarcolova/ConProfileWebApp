@@ -102,7 +102,7 @@ namespace WebApiServer.DTOs
         public double[] EXCITACIONS { get; set; }
     }
 
-    public class ExcelDatabankDTO
+    public class DatabankFileDTO
     {
         public int? FolderId { get; set; }
         public string FileName { get; set; }
@@ -119,6 +119,6 @@ namespace WebApiServer.DTOs
         public string FolderName { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public List<ExcelDatabankDTO> Files { get; set; }
+        public List<DatabankFileDTO> Files { get; set; }
     }
 }
