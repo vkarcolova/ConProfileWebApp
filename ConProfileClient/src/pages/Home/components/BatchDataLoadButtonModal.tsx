@@ -180,14 +180,14 @@ const BatchDataLoadButtonModal: React.FC<
 
   const replaceDotWithComma = (value: string | number) => {
     if (typeof value === "number") {
+      if (isNaN(value)) return "0";
       return value.toString().replace(".", ",");
     }
     if (typeof value === "string" && value !== "") {
       return value.replace(".", ",");
     }
-    return value;
+    return "0";
   };
-
   const createCSV = () => {
     if (
       inputFactors.filter((factor) => factor == null).length > 0 ||
@@ -219,26 +219,32 @@ const BatchDataLoadButtonModal: React.FC<
         const column: TableDataColumn = {
           name: file.filename,
           intensities: intensities.map((x) =>
-            x?.intensity ? x?.intensity * inputFactors[index]! : x?.intensity
+            x?.intensity != null && inputFactors[index] != null
+              ? x.intensity * inputFactors[index]
+              : 0
           ),
           spectrum: file.spectrum,
         };
+
         folderIntensitiesColums.push(column);
       });
       const profile = [];
       for (let i = 0; i < excitationValues.length; i++) {
-        let maxIntensity = folderIntensitiesColums[0].intensities[i];
+        let maxIntensity: number | undefined = undefined;
+
         folderIntensitiesColums.forEach((column) => {
+          const intensity = column.intensities[i];
           if (
-            column.intensities[i] != undefined &&
-            (maxIntensity === undefined ||
-              column.intensities[i]! > maxIntensity)
+            intensity !== undefined &&
+            (maxIntensity === undefined || intensity > maxIntensity)
           ) {
-            maxIntensity = column.intensities[i];
+            maxIntensity = intensity;
           }
         });
-        profile.push(maxIntensity);
+
+        profile.push(maxIntensity ?? "");
       }
+
       masterMatrix.push(profile);
       header.push(folderData.foldername);
     });
