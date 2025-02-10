@@ -29,11 +29,21 @@ const baseStyle = {
   transition: "border .24s ease-in-out",
 };
 
-const focusedStyle = { borderColor: "#2196f3" };
-const acceptStyle = { borderColor: "#00e676" };
-const rejectStyle = { borderColor: "#ff1744" };
+const focusedStyle = {
+  borderColor: "#2196f3",
+};
 
-type FileMap = { [folder: string]: FileWithPath[] };
+const acceptStyle = {
+  borderColor: "#00e676",
+};
+
+const rejectStyle = {
+  borderColor: "#ff1744",
+};
+
+type FileMap = {
+  [folder: string]: FileWithPath[];
+};
 
 interface MultiFolderUploaderProps {
   setStep: (step: number) => void;
@@ -50,6 +60,7 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
   const {
     getRootProps,
     getInputProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acceptedFiles,
     isFocused,
     isDragAccept,
@@ -57,7 +68,7 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
   } = useDropzone({
     noClick: true,
     accept: { ".sp": [] },
-    onDrop: (newFiles) => {
+    onDrop: (newFiles: FileWithPath[]) => {
       const newGroupedFiles = { ...existingFolders };
 
       newFiles.forEach((file) => {
@@ -111,30 +122,32 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
     };
 
     const loadedFiles: FileContent[] = [];
+
     for (const file of filesArray) {
       try {
         const result = await readFileAsync(file);
-        const folderName = file.path
-          ? file.path.split("/")[1]
-          : "Neznámy priečinok";
-
-        loadedFiles.push({
+        const folderName = file.path ? file.path.split("/")[1] : "";
+        const loadedFile: FileContent = {
           IDPROJECT: -1,
           FILENAME: file.name,
           FOLDERNAME: folderName,
           CONTENT: result,
-        });
+        };
+
+        loadedFiles.push(loadedFile);
       } catch (error) {
         console.error(error);
       }
     }
 
     setLoading(true);
+
     try {
-      const response = await clientApi.batchProcessFolders(loadedFiles);
-      setLoading(false);
-      setFolders(response.data.folders);
-      setStep(3);
+      await clientApi.batchProcessFolders(loadedFiles).then((response) => {
+        setLoading(false);
+        setFolders(response.data.folders);
+        setStep(3);
+      });
     } catch (error) {
       toast.error("Chyba pri načítavaní dát.");
       setLoading(false);
@@ -188,7 +201,6 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
           <CircularProgress color={"inherit"} sx={{ color: "white" }} />
         </Backdrop>
       )}
-
       <Box
         sx={{
           height: "100px",
@@ -196,7 +208,7 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
           border: "1px solid #ddd",
           padding: "10px",
           borderRadius: "5px",
-          position: "relative",
+          position: "relative", // Potrebné pre overlay
         }}
       >
         {Object.keys(existingFolders).length > 0 ? (
