@@ -40,7 +40,7 @@ const BatchDataLoadButtonModal: React.FC<
   const [inputFactors, setInputFactors] = React.useState<(number | null)[]>([]);
 
   useEffect(() => {
-    if(openModal) return;
+    if (openModal) return;
     setFolders([]);
     setSpectrums([]);
     setInputFactors([]);
@@ -188,7 +188,6 @@ const BatchDataLoadButtonModal: React.FC<
     return value;
   };
 
-
   const createCSV = () => {
     if (
       inputFactors.filter((factor) => factor == null).length > 0 ||
@@ -252,7 +251,7 @@ const BatchDataLoadButtonModal: React.FC<
     for (let i = 0; i < rowCount; i++) {
       const row = masterMatrix.map((column) =>
         column[i] !== undefined ? replaceDotWithComma(column[i]) : ""
-    ); // Pridaj hodnoty z každého stĺpca
+      ); // Pridaj hodnoty z každého stĺpca
       rows.push(row.join(";"));
     }
 
@@ -414,7 +413,7 @@ const BatchDataLoadButtonModal: React.FC<
     if (step === 4) {
       return (
         <Box textAlign="center" sx={{ height: "70vh" }}>
-          <ExcelUploader newProject={true}/>
+          <ExcelUploader newProject={true} />
         </Box>
       );
     }
@@ -546,7 +545,6 @@ const BatchDataLoadButtonModal: React.FC<
           aria-label="close"
           onClick={() => {
             setOpenModal(false);
-
           }}
           sx={{
             position: "absolute",

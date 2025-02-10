@@ -16,11 +16,13 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { toast } from "react-toastify";
 import { clientApi } from "../../shared/apis";
 import { useUserContext } from "../../shared/context/useContext";
+import config from "../../../config";
+
 
 const LoginPage: React.FC = () => {
   const { loginUser } = useUserContext();
-  const [email, setEmail] = React.useState("admin@gmail.com");
-  const [password, setPassword] = React.useState("admin");
+  const [email, setEmail] = React.useState(config.apiUrl.includes("localhost") ? "admin@gmail.com" : "");
+  const [password, setPassword] = React.useState(config.apiUrl.includes("localhost") ? "admin" : "");
 
   const handleSubmit = async () => {
     await clientApi.login(email, password).then((response) => { 

@@ -6,7 +6,7 @@ interface User {
 }
 
 interface UserContextProps {
-  user: User | null;
+  user: User | null | undefined;
   loginUser: (token: string, email: string) => void;
   logoutUser: () => void;
 }
@@ -20,13 +20,16 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined); // Začína ako undefined (nevieme stav)
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const email = localStorage.getItem("useremail");
+
     if (token && email) {
-      setUser({ token, email });
+      setUser({ token, email }); // Používateľ je prihlásený
+    } else {
+      setUser(null); // Používateľ nie je prihlásený
     }
   }, []);
 
@@ -48,3 +51,4 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     </UserContext.Provider>
   );
 };
+
