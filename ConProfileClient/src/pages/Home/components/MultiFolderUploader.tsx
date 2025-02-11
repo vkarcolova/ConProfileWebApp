@@ -75,11 +75,11 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
         const folder = file.path
           ? file.path.split("/")[1]
           : "Neznámy priečinok";
+
         if (!newGroupedFiles[folder]) {
           newGroupedFiles[folder] = [];
         }
 
-        // Zabránenie duplikátom
         if (!newGroupedFiles[folder].some((f) => f.name === file.name)) {
           newGroupedFiles[folder].push(file);
         }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.NetworkInformation;
 using System.Security.Claims;
@@ -30,7 +31,7 @@ namespace WebApiServer.Controllers
         [HttpPost("UploadExcelToDatabank")]
         public async Task<IActionResult> UploadExcelToDatabank([FromBody] DatabankFileDTO excelFile)
         {
-            if (excelFile == null || string.IsNullOrEmpty(excelFile.Content))
+            if (excelFile == null || excelFile.Content == null)
                 return BadRequest("Neplatné dáta súboru.");
 
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -41,14 +42,13 @@ namespace WebApiServer.Controllers
 
             try
             {
-                var fileBytes = Convert.FromBase64String(excelFile.Content);
 
                 var newFile = new DataBankFile
                 {
                     FileName = excelFile.FileName,
                     Type = excelFile.Type,
                     Size = excelFile.Size,
-                    Content = fileBytes,
+                    Content = excelFile.Content,
                     UploadedBy = excelFile.UploadedBy,
                     UploadedAt = excelFile.UploadedAt
                 };
@@ -88,14 +88,14 @@ namespace WebApiServer.Controllers
                 }
                 foreach (var file in folder.Files)
                 {
-                    var fileBytes = Convert.FromBase64String(file.Content);
+                    var testBytes = Convert.ToBase64String(file.Content);
 
                     var newFile = new DataBankFile
                     {
                         FileName = file.FileName,
                         Type = file.Type,
                         Size = file.Size,
-                        Content = fileBytes,
+                        Content = file.Content,
                         FolderId = idFolder,
                         UploadedBy = file.UploadedBy,
                         UploadedAt = file.UploadedAt
@@ -141,9 +141,10 @@ namespace WebApiServer.Controllers
                 {
                     resultFiles.Add(new DatabankFileDTO
                     {
+                        Id = file.Id,
                         FolderId = folder.Id,
                         FileName = file.FileName,
-                        Content = "", //TODO zatial nejdem posielat aj obsahy
+                        Content = [], //TODO zatial nejdem posielat aj obsahy
                         Size = file.Size,
                         Type = file.Type,
                         UploadedAt = file.UploadedAt,
@@ -158,15 +159,37 @@ namespace WebApiServer.Controllers
                    Files = resultFiles
                 });
             }
-            
 
-            if (projects == null)
+            List<DataBankFile> excelFiles = _context.DataBankFiles.Where(x => x.FolderId == null && x.Type == "Excel").ToList();
+            List<DatabankFileDTO> resultExcelFiles = new List<DatabankFileDTO>();
+            foreach (var file in excelFiles)
+            {
+                resultExcelFiles.Add(new DatabankFileDTO
+                {
+                    Id = file.Id,
+                    FileName = file.FileName,
+                    Content = [], 
+                    Size = file.Size,
+                    Type = file.Type,
+                    UploadedAt = file.UploadedAt,
+                    UploadedBy = file.UploadedBy,
+                });
+            }
+
+            result.Add(new DatabankFolderDTO
+            {
+                CreatedAt = DateTime.Now,
+                FolderName = "Dummy",
+                Files = resultExcelFiles
+            });
+
+            if (result == null)
             {
                 return NotFound();
             }
             else
             {
-                return getSpecificProjectDTOs(projects);
+                return result;
             }
         }
 

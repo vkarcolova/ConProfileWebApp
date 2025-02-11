@@ -127,6 +127,6 @@ export interface DataBankFileDTO {
 export interface DataBankFolderDTO {
   id?: number;
   folderName: string;
-  uploadedAt: string;
+  createdAt: string;
   files: DataBankFileDTO[];
 }

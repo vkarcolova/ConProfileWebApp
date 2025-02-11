@@ -96,7 +96,7 @@ const Home: React.FC = () => {
           })
           .finally(() => {});
       }
-    } else {
+    } else if (user == undefined) {
       setProjecsData([]);
     }
   };

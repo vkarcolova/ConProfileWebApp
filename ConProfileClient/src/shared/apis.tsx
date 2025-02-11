@@ -170,6 +170,20 @@ export const clientApi = {
     );
   },
 
+  createProjectFromDatabank: async (ids: string[]) => {
+    return await axios.post(
+      `${config.apiUrl}/Project/CreateNewProjectWithDatabank`,
+      JSON.stringify(ids),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   createProjectWithExcel: async (
     data: string[][],
     headers: string[],
@@ -346,6 +360,18 @@ export const clientApi = {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           UserEmail: localStorage.getItem("useremail"),
           "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  getAllDatabankData: async () => {
+    return await axios.get<DataBankFolderDTO[]>(
+      `${config.apiUrl}/DataBank/GetAllDatabankData/`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
         },
       }
     );

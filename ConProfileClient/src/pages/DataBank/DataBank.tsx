@@ -27,41 +27,36 @@ import { toast } from "react-toastify";
 import SearchIcon from "@mui/icons-material/Search";
 import { clientApi } from "../../shared/apis";
 import { DataBankFileDTO, DataBankFolderDTO } from "../../shared/types";
-const mockFiles = [
-  {
-    id: 1,
-    name: "Projekt A",
-    type: "folder",
-    size: "5 MB",
-    date: "2024-02-01",
-  },
-  {
-    id: 2,
-    name: "Vysledky.xlsx",
-    type: "file",
-    size: "50 KB",
-    date: "2024-01-20",
-  },
-  { id: 3, name: "Dáta.csv", type: "file", size: "120 KB", date: "2024-01-25" },
-  { id: 4, name: "Reporty", type: "folder", size: "10 MB", date: "2024-02-02" },
-  {
-    id: 5,
-    name: "Analyza.docx",
-    type: "file",
-    size: "80 KB",
-    date: "2024-01-10",
-  },
-];
+
+interface DatabankObject {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  date: string;
+  subfiles?: string[];
+}
 
 export default function DataBank() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState<DatabankObject | null>();
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [objects, setObjects] = useState<DatabankObject[]>([]);
   const navigate = useNavigate();
   const { user, logoutUser } = useUserContext();
   const inputRefFolder = useRef<HTMLInputElement>(null);
+
+  const shortenFileName = (fileName: string, maxLength: number) => {
+    if (fileName.length <= maxLength) return fileName;
+
+    const extensionIndex = fileName.lastIndexOf(".");
+    const extension =
+      extensionIndex !== -1 ? fileName.slice(extensionIndex) : "";
+    const namePart = fileName.slice(0, maxLength - extension.length - 3);
+
+    return `${namePart}...${extension}`;
+  };
 
   useEffect(() => {
     if (user === undefined) return;
@@ -69,9 +64,47 @@ export default function DataBank() {
     if (!user) {
       navigate("/auth/prihlasenie/");
     }
+    refreshData();
   }, [user]);
 
-  const toggleSelection = (id: number) => {
+  const refreshData = async () => {
+    clientApi.getAllDatabankData().then((res) => {
+      console.log(res);
+      let data: DatabankObject[] = [];
+      const folders: DataBankFolderDTO[] = res.data;
+      folders.forEach((element) => {
+        if (element.folderName == "Dummy") {
+          element.files.forEach((file) => {
+            data.push({
+              id: "file" + file.id!,
+              name: file.fileName,
+              type: "file",
+              size: file.size,
+              date: file.uploadedAt,
+            });
+          });
+        } else {
+          data.push({
+            id: "folder" + element.id!,
+            name: element.folderName,
+            type: "folder",
+            size: element.files
+              .map((file) => file.size)
+              .reduce((a, b) => a + b),
+            date: element.createdAt,
+            subfiles: element.files.map((file) => file.fileName),
+          });
+        }
+      });
+      data = data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      console.log(data);
+      setObjects(data);
+    });
+  };
+
+  const toggleSelection = (id: string) => {
     setSelectedFiles((prev) =>
       prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
     );
@@ -100,6 +133,7 @@ export default function DataBank() {
         console.log(res);
         if (res.status === 200) {
           toast.success("Súbor bol úspešne nahraný.");
+          refreshData();
         } else {
           toast.error("Nepodarilo sa nahrať súbor.");
         }
@@ -143,7 +177,7 @@ export default function DataBank() {
     try {
       const folder: DataBankFolderDTO = {
         folderName: folderName,
-        uploadedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         files: loadedFiles,
       };
 
@@ -151,6 +185,7 @@ export default function DataBank() {
         console.log(res);
         if (res.status === 200) {
           toast.success("Súbor bol úspešne nahraný.");
+          refreshData();
         } else {
           toast.error("Nepodarilo sa nahrať súbor.");
         }
@@ -170,11 +205,16 @@ export default function DataBank() {
       reader.onerror = (error) => reject(error);
     });
   };
-
-  const filteredFiles = [...mockFiles, ...uploadedFiles].filter(
-    (file) =>
-      file.name.toLowerCase().includes(search.toLowerCase()) &&
-      (filter === "all" || file.type === filter)
+  const filteredFiles = Array.from(
+    new Map(
+      [...objects]
+        .filter(
+          (file) =>
+            file.name.toLowerCase().includes(search.toLowerCase()) &&
+            (filter === "all" || file.type === filter)
+        )
+        .map((file) => [file.id, file])
+    ).values()
   );
   const buttonStyle = {
     backgroundColor: "#bfc3d9",
@@ -182,6 +222,16 @@ export default function DataBank() {
     "&:hover": {
       backgroundColor: "#a6abc9",
     },
+  };
+
+  const formatFileSize = (sizeInBytes: number): string => {
+    if (sizeInBytes < 1024) return `${sizeInBytes} B`;
+    const kb = sizeInBytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(2)} KB`;
+    const mb = kb / 1024;
+    if (mb < 1024) return `${mb.toFixed(2)} MB`;
+    const gb = mb / 1024;
+    return `${gb.toFixed(2)} GB`;
   };
 
   return (
@@ -338,7 +388,7 @@ export default function DataBank() {
             </Typography>
 
             <Grid container spacing={2} sx={{ mt: 2 }}>
-              {filteredFiles.map((file) => (
+              {filteredFiles.map((file: DatabankObject) => (
                 <Grid item xs={12} sm={6} md={4} lg={2.4} key={file.id}>
                   <Card
                     sx={{
@@ -356,7 +406,9 @@ export default function DataBank() {
                       />
                     )}
                     <CardContent>
-                      <Typography variant="body1">{file.name}</Typography>
+                      <Typography variant="body1">
+                        {shortenFileName(file.name, 20)}{" "}
+                      </Typography>
                     </CardContent>
                     <CardActions sx={{ justifyContent: "center" }}>
                       <Checkbox
@@ -378,7 +430,31 @@ export default function DataBank() {
               variant="contained"
               color="primary"
               disabled={selectedFiles.length === 0}
-              sx={{ mt: 2 }}
+              onClick={async () => {
+                try {
+                  await clientApi
+                    .createProjectFromDatabank(selectedFiles)
+                    .then((response) => {
+                      const token = response.data.token;
+                      localStorage.setItem("token", token);
+                      const objString = JSON.stringify(response.data.project);
+                      sessionStorage.setItem("loadeddata", objString);
+                      navigate("/uprava-profilu/");
+                    });
+                } catch (error) {
+                  console.error("Chyba pri načítavaní dát:", error);
+                }
+              }}
+              sx={{
+                mt: 2,
+                backgroundColor: "rgba(59, 49, 119, 0.87)",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#625b92",
+                },
+
+                fontWeight: 600,
+              }}
             >
               Použiť vybrané súbory ({selectedFiles.length})
             </Button>
@@ -400,11 +476,28 @@ export default function DataBank() {
                   {selectedFile.type === "folder" ? "Zložka" : "Súbor"}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Veľkosť:</strong> {selectedFile.size}
+                  <strong>Veľkosť:</strong> {formatFileSize(selectedFile.size)}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Dátum:</strong> {selectedFile.date}
                 </Typography>
+                {selectedFile.type === "folder" && (
+                  <>
+                    <Typography variant="body2">
+                      <strong>Obsahuje súbory:</strong>
+                    </Typography>
+                    {selectedFile.subfiles?.map((subfile, index) => (
+                      <Typography
+                        sx={{ marginLeft: 2 }}
+                        key={index}
+                        variant="body2"
+                      >
+                        {subfile}
+                      </Typography>
+                    ))}
+                  </>
+                )}
+
                 <Button variant="contained" fullWidth sx={{ mt: 2 }}>
                   Stiahnuť
                 </Button>
