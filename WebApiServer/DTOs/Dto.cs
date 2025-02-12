@@ -109,7 +109,7 @@ namespace WebApiServer.DTOs
         public string FileName { get; set; }
         public string Type { get; set; }
         public int Size { get; set; }
-        public byte[] Content { get; set; }
+        public string Content { get; set; }
         public DateTime UploadedAt { get; set; }
         public string UploadedBy { get; set; }
     }

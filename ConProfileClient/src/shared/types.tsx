@@ -1,9 +1,3 @@
-export interface ExcelContent {
-  data: string[][];
-  header: string[];
-  name: string;
-  idproject?: number;
-}
 export interface FileContent {
   //na nacitanie suboru
   FILENAME: string;
@@ -129,4 +123,17 @@ export interface DataBankFolderDTO {
   folderName: string;
   createdAt: string;
   files: DataBankFileDTO[];
+}
+
+export interface DatabankExcelContentDTO {
+  id: number;
+  fileName: string;
+  contentBase64: string;
+}
+
+export interface ExcelContent {
+  data: string[][];
+  header: string[];
+  name: string;
+  idproject?: number;
 }

@@ -42,13 +42,12 @@ namespace WebApiServer.Controllers
 
             try
             {
-
                 var newFile = new DataBankFile
                 {
                     FileName = excelFile.FileName,
                     Type = excelFile.Type,
                     Size = excelFile.Size,
-                    Content = excelFile.Content,
+                    Content = Convert.FromBase64String(excelFile.Content),
                     UploadedBy = excelFile.UploadedBy,
                     UploadedAt = excelFile.UploadedAt
                 };
@@ -88,19 +87,17 @@ namespace WebApiServer.Controllers
                 }
                 foreach (var file in folder.Files)
                 {
-                    var testBytes = Convert.ToBase64String(file.Content);
 
                     var newFile = new DataBankFile
                     {
                         FileName = file.FileName,
                         Type = file.Type,
                         Size = file.Size,
-                        Content = file.Content,
+                        Content = Convert.FromBase64String(file.Content),
                         FolderId = idFolder,
                         UploadedBy = file.UploadedBy,
                         UploadedAt = file.UploadedAt
                     };
-
                     _context.DataBankFiles.Add(newFile);
                 }
 
@@ -144,7 +141,7 @@ namespace WebApiServer.Controllers
                         Id = file.Id,
                         FolderId = folder.Id,
                         FileName = file.FileName,
-                        Content = [], //TODO zatial nejdem posielat aj obsahy
+                        Content = "", //TODO zatial nejdem posielat aj obsahy
                         Size = file.Size,
                         Type = file.Type,
                         UploadedAt = file.UploadedAt,
@@ -160,6 +157,7 @@ namespace WebApiServer.Controllers
                 });
             }
 
+
             List<DataBankFile> excelFiles = _context.DataBankFiles.Where(x => x.FolderId == null && x.Type == "Excel").ToList();
             List<DatabankFileDTO> resultExcelFiles = new List<DatabankFileDTO>();
             foreach (var file in excelFiles)
@@ -168,7 +166,7 @@ namespace WebApiServer.Controllers
                 {
                     Id = file.Id,
                     FileName = file.FileName,
-                    Content = [], 
+                    Content = "", 
                     Size = file.Size,
                     Type = file.Type,
                     UploadedAt = file.UploadedAt,
@@ -190,6 +188,44 @@ namespace WebApiServer.Controllers
             else
             {
                 return result;
+            }
+        }
+
+
+        [HttpPost("GetExcelsForUpload")] // ked je v rezime  prihlasenia  
+        public IActionResult GetExcelsForUpload(string[] ids)
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+
+
+            List<int> excelFileIds = ids
+                .Where(id => id.StartsWith("file"))
+                .Select(id => int.Parse(id.Substring(4)))
+                .ToList();
+
+
+            var files = _context.DataBankFiles
+                .Where(x => excelFileIds.Contains(x.Id) && x.Type == "Excel")
+                  .Select(file => new
+                  {
+                      file.Id,
+                      file.FileName,
+                      ContentBase64 = Convert.ToBase64String(file.Content)
+                  })
+                .ToList();
+
+
+            if (files == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(files);
             }
         }
 

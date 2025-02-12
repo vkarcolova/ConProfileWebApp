@@ -4,6 +4,7 @@ import config from "../../config";
 import {
   CalculatedDataDTO,
   ColumnDTO,
+  DatabankExcelContentDTO,
   DataBankFileDTO,
   DataBankFolderDTO,
   ExcelContent,
@@ -368,6 +369,19 @@ export const clientApi = {
   getAllDatabankData: async () => {
     return await axios.get<DataBankFolderDTO[]>(
       `${config.apiUrl}/DataBank/GetAllDatabankData/`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  getExcelContents: async (ids: string[]) => {
+    return await axios.post<DatabankExcelContentDTO[]>(
+      `${config.apiUrl}/DataBank/GetExcelsForUpload/`,
+      ids,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

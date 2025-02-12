@@ -24,9 +24,14 @@ import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../shared/context/useContext";
 import { toast } from "react-toastify";
-import SearchIcon from "@mui/icons-material/Search";
+//import SearchIcon from "@mui/icons-material/Search";
 import { clientApi } from "../../shared/apis";
-import { DataBankFileDTO, DataBankFolderDTO } from "../../shared/types";
+import {
+  DatabankExcelContentDTO,
+  DataBankFileDTO,
+  DataBankFolderDTO,
+} from "../../shared/types";
+import DatabankExcelUploader from "./components/DatabankExcelDialog";
 
 interface DatabankObject {
   id: string;
@@ -43,6 +48,10 @@ export default function DataBank() {
   const [selectedFile, setSelectedFile] = useState<DatabankObject | null>();
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [objects, setObjects] = useState<DatabankObject[]>([]);
+  const [selectedExcelContents, setSelectedExcelContents] = useState<
+    DatabankExcelContentDTO[]
+  >([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logoutUser } = useUserContext();
   const inputRefFolder = useRef<HTMLInputElement>(null);
@@ -157,6 +166,7 @@ export default function DataBank() {
     for (const file of filesArray) {
       try {
         const fileContent = await fileToBase64(file);
+        console.log("Base64 obsah súboru:", fileContent);
 
         const loadedFile: DataBankFileDTO = {
           folderId: null,
@@ -199,12 +209,22 @@ export default function DataBank() {
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // 📌
       reader.onload = () =>
-        resolve(reader.result?.toString().split(",")[1] || "");
+        resolve(reader.result?.toString().split(",")[1] || ""); // 📌 Odstránenie prefixu
       reader.onerror = (error) => reject(error);
     });
   };
+
+  // const excelFileToBase64 = (file: File): Promise<string> => {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => resolve(reader.result?.toString() || "");
+  //     reader.onerror = (error) => reject(error);
+  //   });
+  // };
+
   const filteredFiles = Array.from(
     new Map(
       [...objects]
@@ -232,6 +252,32 @@ export default function DataBank() {
     if (mb < 1024) return `${mb.toFixed(2)} MB`;
     const gb = mb / 1024;
     return `${gb.toFixed(2)} GB`;
+  };
+
+  const handleCreateProject = async () => {
+    if (selectedFiles.length === 0) return;
+    const containsFile = selectedFiles.some((id) => id.startsWith("file"));
+    // if (!containsFile) {
+    try {
+      await clientApi
+        .createProjectFromDatabank(selectedFiles)
+        .then((response) => {
+          const token = response.data.token;
+          localStorage.setItem("token", token);
+          const objString = JSON.stringify(response.data.project);
+          sessionStorage.setItem("loadeddata", objString);
+          navigate("/uprava-profilu/");
+        });
+    } catch (error) {
+      console.error("Chyba pri načítavaní dát:", error);
+    }
+    // } else {
+    // await clientApi.getExcelContents(selectedFiles).then((response) => {
+    //   const excelContents = response.data;
+    //   setSelectedExcelContents(excelContents);
+    //   setDialogOpen(true);
+    // });
+    //}
   };
 
   return (
@@ -430,21 +476,7 @@ export default function DataBank() {
               variant="contained"
               color="primary"
               disabled={selectedFiles.length === 0}
-              onClick={async () => {
-                try {
-                  await clientApi
-                    .createProjectFromDatabank(selectedFiles)
-                    .then((response) => {
-                      const token = response.data.token;
-                      localStorage.setItem("token", token);
-                      const objString = JSON.stringify(response.data.project);
-                      sessionStorage.setItem("loadeddata", objString);
-                      navigate("/uprava-profilu/");
-                    });
-                } catch (error) {
-                  console.error("Chyba pri načítavaní dát:", error);
-                }
-              }}
+              onClick={handleCreateProject}
               sx={{
                 mt: 2,
                 backgroundColor: "rgba(59, 49, 119, 0.87)",
@@ -504,6 +536,13 @@ export default function DataBank() {
               </Box>
             )}
           </Drawer>
+          {selectedExcelContents.length > 0 && (
+            <DatabankExcelUploader
+              excelContentsFromDb={selectedExcelContents}
+              dialogOpen={dialogOpen}
+              setDialogOpen={setDialogOpen}
+            />
+          )}
         </>
       )}
     </div>

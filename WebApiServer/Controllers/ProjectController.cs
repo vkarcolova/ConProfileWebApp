@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -204,10 +205,6 @@ namespace WebAPI.Controllers
                 if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
                     return Unauthorized("Neplatné prihlásenie");
 
-                List<int> excelFileIds = ids
-                    .Where(id => id.StartsWith("file"))
-                    .Select(id => int.Parse(id.Substring(4)))
-                    .ToList();
 
                 List<int> folderIds = ids
                     .Where(id => id.StartsWith("folder"))
@@ -227,9 +224,10 @@ namespace WebAPI.Controllers
                             FILENAME = filesFromFolder[i].FileName,
                             FOLDERNAME = folderData.FolderName,
                             USEREMAIL = userEmail,
-                            CONTENT = Convert.ToBase64String(filesFromFolder[i].Content)
+                            CONTENT = Encoding.UTF8.GetString(filesFromFolder[i].Content)
                         };
                     }
+
                     folders.Add(_loadedDataService.ProcessUploadedFolder(filecontents));
 
                 }
