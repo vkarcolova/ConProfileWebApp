@@ -257,27 +257,27 @@ export default function DataBank() {
   const handleCreateProject = async () => {
     if (selectedFiles.length === 0) return;
     const containsFile = selectedFiles.some((id) => id.startsWith("file"));
-    // if (!containsFile) {
-    try {
-      await clientApi
-        .createProjectFromDatabank(selectedFiles)
-        .then((response) => {
-          const token = response.data.token;
-          localStorage.setItem("token", token);
-          const objString = JSON.stringify(response.data.project);
-          sessionStorage.setItem("loadeddata", objString);
-          navigate("/uprava-profilu/");
-        });
-    } catch (error) {
-      console.error("Chyba pri načítavaní dát:", error);
+    if (!containsFile) {
+      try {
+        await clientApi
+          .createProjectFromDatabank(selectedFiles)
+          .then((response) => {
+            const token = response.data.token;
+            localStorage.setItem("token", token);
+            const objString = JSON.stringify(response.data.project);
+            sessionStorage.setItem("loadeddata", objString);
+            navigate("/uprava-profilu/");
+          });
+      } catch (error) {
+        console.error("Chyba pri načítavaní dát:", error);
+      }
+    } else {
+      await clientApi.getExcelContents(selectedFiles).then((response) => {
+        const excelContents = response.data;
+        setSelectedExcelContents(excelContents);
+        setDialogOpen(true);
+      });
     }
-    // } else {
-    // await clientApi.getExcelContents(selectedFiles).then((response) => {
-    //   const excelContents = response.data;
-    //   setSelectedExcelContents(excelContents);
-    //   setDialogOpen(true);
-    // });
-    //}
   };
 
   return (

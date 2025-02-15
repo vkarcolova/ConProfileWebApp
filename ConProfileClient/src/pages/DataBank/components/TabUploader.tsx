@@ -18,28 +18,38 @@ import {
   Typography,
 } from "@mui/material";
 import { DatabankExcelContentDTO } from "../../../shared/types";
-
 interface ExcelUploaderProps {
   ExcelData: DatabankExcelContentDTO;
+  chosenInput: {
+    sheet: string | null;
+    headerRow: number | null;
+    startRow: number | null;
+    selectedColumns: number[] | null;
+  };
+  updateChosenInput: (newInput: any) => void;
 }
 
-const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
+const ExcelUploader: React.FC<ExcelUploaderProps> = ({
+  ExcelData,
+  chosenInput,
+  updateChosenInput,
+}) => {
   const [sheets, setSheets] = useState<string[]>([]);
-  const [selectedSheet, setSelectedSheet] = useState<string>("");
   const [tableData, setTableData] = useState<string[][]>([]);
-  const [headerRow, setHeaderRow] = useState<number | null>(0);
-  const [startRow, setStartRow] = useState<number | null>(null);
-  const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
-
   useEffect(() => {
     const arrayBuffer = base64ToArrayBuffer(ExcelData.contentBase64);
     const wb = XLSX.read(arrayBuffer, { type: "array" });
     setWorkbook(wb);
     const sheetNames = Object.keys(wb.Sheets);
     setSheets(sheetNames);
-    setSelectedSheet(sheetNames[0]);
-    loadSheetData(wb, sheetNames[0]);
+
+    if (!chosenInput.sheet) {
+      updateChosenInput({ ...chosenInput, sheet: sheetNames[0] });
+      loadSheetData(wb, sheetNames[0]);
+    } else {
+      loadSheetData(wb, chosenInput.sheet);
+    }
   }, [ExcelData]);
 
   const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
@@ -65,61 +75,66 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
     );
 
     setTableData(normalizedData);
-    setHeaderRow(null);
-    setStartRow(null);
-    setSelectedColumns([]);
+    // updateChosenInput({
+    //   ...chosenInput,
+    //   headerRow: null,
+    //   startRow: null,
+    //   selectedColumns: [],
+    // });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSheetChange = (event: any) => {
-    setSelectedSheet(event.target.value);
+    const newSheet = event.target.value;
+
+    updateChosenInput({ ...chosenInput, sheet: newSheet });
     if (workbook) {
-      loadSheetData(workbook, event.target.value);
+      loadSheetData(workbook, newSheet);
     }
   };
 
   const handleRowClick = (index: number) => {
-    if (headerRow === null) {
-      setHeaderRow(index);
-    } else if (startRow === null && index !== headerRow) {
-      setStartRow(index);
+    if (chosenInput.headerRow === null) {
+      updateChosenInput({ ...chosenInput, headerRow: index });
+    } else if (
+      chosenInput.startRow === null &&
+      index !== chosenInput.headerRow
+    ) {
+      updateChosenInput({ ...chosenInput, startRow: index });
     }
   };
-
   const handleColumnToggle = (index: number) => {
-    setSelectedColumns((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
+    const updatedColumns = chosenInput.selectedColumns?.includes(index)
+      ? chosenInput.selectedColumns.filter((i) => i !== index)
+      : [...(chosenInput.selectedColumns || []), index];
+
+    updateChosenInput({ ...chosenInput, selectedColumns: updatedColumns });
   };
 
   const handleSubmit = async () => {
-    if (headerRow === null || startRow === null)
-      return alert("Vyberte hlavičkový riadok a začiatok dát!");
-    if (selectedColumns.length === 0)
-      return alert("Vyberte aspoň jeden stĺpec!");
-
-    const header = tableData[headerRow].map((col, i) =>
-      selectedColumns.includes(i) ? col : null
-    );
-
-    const filteredData = tableData
-      .slice(startRow)
-      .map((row) => selectedColumns.map((colIndex) => row[colIndex]));
-
-    const columns: string[][] = [];
-    for (let i = 0; i < selectedColumns.length; i++) {
-      const column: string[] = [];
-      for (let j = 0; j < filteredData.length; j++) {
-        column.push(filteredData[j][i]);
-      }
-      columns.push(column);
-    }
-
-    // Tu môžeš uložiť dáta alebo poslať na server
+    // if (headerRow === null || startRow === null)
+    //   return alert("Vyberte hlavičkový riadok a začiatok dát!");
+    // if (selectedColumns.length === 0)
+    //   return alert("Vyberte aspoň jeden stĺpec!");
+    // const header = tableData[headerRow].map((col, i) =>
+    //   selectedColumns.includes(i) ? col : null
+    // );
+    // const filteredData = tableData
+    //   .slice(startRow)
+    //   .map((row) => selectedColumns.map((colIndex) => row[colIndex]));
+    // const columns: string[][] = [];
+    // for (let i = 0; i < selectedColumns.length; i++) {
+    //   const column: string[] = [];
+    //   for (let j = 0; j < filteredData.length; j++) {
+    //     column.push(filteredData[j][i]);
+    //   }
+    //   columns.push(column);
+    // }
+    // // Tu môžeš uložiť dáta alebo poslať na server
   };
 
   const handleReset = () => {
-    setHeaderRow(null);
-    setStartRow(null);
+    updateChosenInput({ ...chosenInput, headerRow: null, startRow: null });
   };
 
   return (
@@ -135,7 +150,10 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
           >
             <FormControl style={{ marginTop: 20 }}>
               <InputLabel>Vyberte hárok</InputLabel>
-              <Select value={selectedSheet} onChange={handleSheetChange}>
+              <Select
+                value={chosenInput.sheet || sheets[0]}
+                onChange={handleSheetChange}
+              >
                 {sheets.map((sheet) => (
                   <MenuItem key={sheet} value={sheet}>
                     {sheet}
@@ -165,11 +183,7 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
             </Typography>
           </Box>
 
-          <TableContainer
-            component={Paper}
-            style={{ marginTop: 10 }}
-            sx={{ height: "68%" }}
-          >
+          <TableContainer component={Paper} sx={{ height: "94%" }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -185,7 +199,10 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
                     >
                       <Checkbox
                         sx={{ padding: "1px" }}
-                        checked={selectedColumns.includes(colIndex)}
+                        checked={
+                          chosenInput.selectedColumns?.includes(colIndex) ||
+                          false
+                        }
                         onChange={() => handleColumnToggle(colIndex)}
                       />
                       Stĺpec {colIndex + 1}
@@ -200,12 +217,15 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
                     key={rowIndex}
                     hover
                     onClick={() => handleRowClick(rowIndex)}
-                    selected={rowIndex === headerRow || rowIndex === startRow}
+                    selected={
+                      rowIndex === chosenInput.headerRow ||
+                      rowIndex === chosenInput.startRow
+                    }
                     style={{
                       backgroundColor:
-                        rowIndex === headerRow
+                        rowIndex === chosenInput.headerRow
                           ? "#ffeb3b"
-                          : rowIndex === startRow
+                          : rowIndex === chosenInput.startRow
                             ? "#ddd"
                             : "inherit",
                       cursor: "pointer",
@@ -237,35 +257,6 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({ ExcelData }) => {
               </TableBody>
             </Table>
           </TableContainer>
-
-          {headerRow !== null &&
-            startRow !== null &&
-            selectedColumns.length !== 0 && (
-              <Button
-                sx={{
-                  backgroundColor: "rgba(59, 49, 119, 0.87)",
-                  borderRadius: "10px",
-                  color: "white",
-                  "&:hover": {
-                    backgroundColor: "#E2E3E8",
-                    color: "white",
-                    boxShadow: "none",
-                  },
-                  boxShadow: "none",
-                }}
-                onClick={handleSubmit}
-                disabled={
-                  headerRow === null ||
-                  startRow === null ||
-                  selectedColumns.length === 0
-                }
-                style={{ marginTop: 20 }}
-              >
-                <Typography sx={{ fontWeight: "400", fontSize: "14px" }}>
-                  Spracovať dáta
-                </Typography>
-              </Button>
-            )}
         </>
       )}
     </Box>
