@@ -2,15 +2,14 @@
 
 NAJSKOR
 
+- [ ] pridat databanku na hlavnu stranku
+- [ ] skupiny databanky
+- [ ] ked je vela dat za sebou tak tiez na vypocet dat
+- [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
 
-- [ ] pridat exceli do batchdata upload
 - [ ] preco ked niekedy nacitas stranku zmiznu projekty?
-
-- [ ] Navrhnut tu databanku
-
 - [ ] Google ucet
 - [ ] mozno zabudnute heslo alebo zmazat ucet
-- [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
 - [ ] Zda sa ze autocomplete spomaluje
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
@@ -26,7 +25,7 @@ NAJSKOR
 
 - [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny
 - [x] lietanie cisel v exceli exportovat s ciarkami?
-- [x] ziadne faktory v batch upload 
+- [x] ziadne faktory v batch upload
 - [x] Factory nech su podla toho co bolo zadane
 - [x] Preco 0 v exceli asi ziadne spektrum?
 - [x] nacitanie z excelu aj do projektu existujuceho

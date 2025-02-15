@@ -4,6 +4,7 @@ import config from "../../config";
 import {
   CalculatedDataDTO,
   ColumnDTO,
+  DatabankDataToSend,
   DatabankExcelContentDTO,
   DataBankFileDTO,
   DataBankFolderDTO,
@@ -171,10 +172,10 @@ export const clientApi = {
     );
   },
 
-  createProjectFromDatabank: async (ids: string[]) => {
+  createProjectFromDatabank: async (data: DatabankDataToSend) => {
     return await axios.post(
       `${config.apiUrl}/Project/CreateNewProjectWithDatabank`,
-      JSON.stringify(ids),
+      JSON.stringify(data),
       {
         headers: {
           "Content-Type": "application/json",

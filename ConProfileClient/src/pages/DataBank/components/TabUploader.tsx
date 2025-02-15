@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -17,52 +18,39 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { DatabankExcelContentDTO } from "../../../shared/types";
-interface ExcelUploaderProps {
-  ExcelData: DatabankExcelContentDTO;
-  chosenInput: {
-    sheet: string | null;
-    headerRow: number | null;
-    startRow: number | null;
-    selectedColumns: number[] | null;
-  };
+import { ChosenInput } from "./DatabankExcelDialog";
+interface TabExcelUploaderProps {
+  ExcelData: XLSX.WorkBook;
+  chosenInput: ChosenInput;
   updateChosenInput: (newInput: any) => void;
 }
 
-const ExcelUploader: React.FC<ExcelUploaderProps> = ({
+const TabExcelUploader: React.FC<TabExcelUploaderProps> = ({
   ExcelData,
   chosenInput,
   updateChosenInput,
 }) => {
   const [sheets, setSheets] = useState<string[]>([]);
-  const [tableData, setTableData] = useState<string[][]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   useEffect(() => {
-    const arrayBuffer = base64ToArrayBuffer(ExcelData.contentBase64);
-    const wb = XLSX.read(arrayBuffer, { type: "array" });
-    setWorkbook(wb);
-    const sheetNames = Object.keys(wb.Sheets);
+    setWorkbook(ExcelData);
+    const sheetNames = Object.keys(ExcelData.Sheets);
     setSheets(sheetNames);
 
     if (!chosenInput.sheet) {
-      updateChosenInput({ ...chosenInput, sheet: sheetNames[0] });
-      loadSheetData(wb, sheetNames[0]);
+      const data = loadSheetData(ExcelData, sheetNames[0]);
+      updateChosenInput({
+        ...chosenInput,
+        sheet: sheetNames[0],
+        tableData: data,
+      });
     } else {
-      loadSheetData(wb, chosenInput.sheet);
+      const data = loadSheetData(ExcelData, chosenInput.sheet);
+      updateChosenInput({ ...chosenInput, tableData: data });
     }
   }, [ExcelData]);
 
-  const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-  };
-
-  const loadSheetData = (wb: XLSX.WorkBook, sheetName: string) => {
+  const loadSheetData = (wb: XLSX.WorkBook, sheetName: string): string[][] => {
     const sheet = wb.Sheets[sheetName];
     const jsonData: string[][] = XLSX.utils.sheet_to_json(sheet, {
       header: 1,
@@ -73,23 +61,23 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
     const normalizedData = jsonData.map((row) =>
       Array.from({ length: maxColumns }, (_, i) => row[i] || "-")
     );
-
-    setTableData(normalizedData);
-    // updateChosenInput({
-    //   ...chosenInput,
-    //   headerRow: null,
-    //   startRow: null,
-    //   selectedColumns: [],
-    // });
+    return normalizedData;
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSheetChange = (event: any) => {
     const newSheet = event.target.value;
 
-    updateChosenInput({ ...chosenInput, sheet: newSheet });
     if (workbook) {
-      loadSheetData(workbook, newSheet);
+      const data = loadSheetData(workbook, newSheet);
+      updateChosenInput({
+        ...chosenInput,
+        sheet: newSheet,
+        headerRow: null,
+        startRow: null,
+        selectedColumns: [],
+        tableData: data,
+      });
     }
   };
 
@@ -111,35 +99,13 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
     updateChosenInput({ ...chosenInput, selectedColumns: updatedColumns });
   };
 
-  const handleSubmit = async () => {
-    // if (headerRow === null || startRow === null)
-    //   return alert("Vyberte hlavičkový riadok a začiatok dát!");
-    // if (selectedColumns.length === 0)
-    //   return alert("Vyberte aspoň jeden stĺpec!");
-    // const header = tableData[headerRow].map((col, i) =>
-    //   selectedColumns.includes(i) ? col : null
-    // );
-    // const filteredData = tableData
-    //   .slice(startRow)
-    //   .map((row) => selectedColumns.map((colIndex) => row[colIndex]));
-    // const columns: string[][] = [];
-    // for (let i = 0; i < selectedColumns.length; i++) {
-    //   const column: string[] = [];
-    //   for (let j = 0; j < filteredData.length; j++) {
-    //     column.push(filteredData[j][i]);
-    //   }
-    //   columns.push(column);
-    // }
-    // // Tu môžeš uložiť dáta alebo poslať na server
-  };
-
   const handleReset = () => {
     updateChosenInput({ ...chosenInput, headerRow: null, startRow: null });
   };
 
   return (
     <Box sx={{ height: "100%" }}>
-      {tableData.length > 0 && (
+      {chosenInput.tableData !== null && chosenInput.tableData.length > 0 && (
         <>
           <Box
             sx={{
@@ -183,12 +149,15 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
             </Typography>
           </Box>
 
-          <TableContainer component={Paper} sx={{ height: "94%" }}>
+          <TableContainer
+            component={Paper}
+            sx={{ height: "90%", marginTop: "20px" }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>#</TableCell>
-                  {tableData[0].map((_, colIndex) => (
+                  {chosenInput.tableData[0].map((_, colIndex) => (
                     <TableCell
                       key={colIndex}
                       style={{
@@ -211,7 +180,7 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {tableData.slice(0, 20).map((row, rowIndex) => (
+                {chosenInput.tableData.slice(0, 20).map((row, rowIndex) => (
                   <TableRow
                     sx={{ padding: "0px", margin: "0px" }}
                     key={rowIndex}
@@ -263,4 +232,4 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
   );
 };
 
-export default ExcelUploader;
+export default TabExcelUploader;

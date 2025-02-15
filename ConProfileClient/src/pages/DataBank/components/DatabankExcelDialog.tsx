@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -9,33 +10,34 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { DatabankExcelContentDTO } from "../../../shared/types";
-import ExcelUploader from "./TabUploader";
+import { DatabankExcelContentDTO, ExcelContent } from "../../../shared/types";
+import TabExcelUploader from "./TabUploader";
 
 interface DatabankExcelDialogProps {
   dialogOpen: boolean;
   setDialogOpen: (open: boolean) => void;
   excelContentsFromDb?: DatabankExcelContentDTO[];
+  sendExcels: (excels: ExcelContent[]) => void;
 }
 
-interface ChosenInput {
+export interface ChosenInput {
   sheet: string | null;
   headerRow: number | null;
   startRow: number | null;
   selectedColumns: number[] | null;
+  tableData: string[][] | null;
 }
 
 const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
   dialogOpen,
   setDialogOpen,
   excelContentsFromDb = [],
+  sendExcels,
 }) => {
   const [tabs, setTabs] = useState<{ [key: string]: any }>({});
   const [tabKeys, setTabKeys] = useState<string[]>([]);
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
-  const [fileMap, setFileMap] = useState<Map<string, DatabankExcelContentDTO>>(
-    new Map()
-  );
+  const [fileMap, setFileMap] = useState<Map<string, XLSX.WorkBook>>(new Map());
   const [chosenInputs, setChosenInputs] = useState<{
     [key: string]: ChosenInput;
   }>({});
@@ -43,7 +45,7 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
   useEffect(() => {
     const newTabs: { [key: string]: any } = {};
     const keys: string[] = [];
-    const tempFileMap = new Map<string, DatabankExcelContentDTO>();
+    const tempFileMap = new Map<string, XLSX.WorkBook>();
     const nameCounts: { [key: string]: number } = {};
     const tempChosenInputs: { [key: string]: ChosenInput } = {};
 
@@ -64,13 +66,14 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
         sheets: Object.keys(wb.Sheets),
       };
       keys.push(uniqueName);
-      tempFileMap.set(uniqueName, content);
+      tempFileMap.set(uniqueName, wb);
 
       tempChosenInputs[uniqueName] = {
         sheet: Object.keys(wb.Sheets)[0],
         headerRow: null,
         selectedColumns: null,
         startRow: null,
+        tableData: null,
       };
     });
 
@@ -95,6 +98,52 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
     }));
   };
 
+  const handleSubmit = async () => {
+    const hasNullValue = Object.values(chosenInputs).some((input) =>
+      Object.values(input).some((value) => value === null)
+    );
+
+    if (hasNullValue) {
+      alert("Vyplňte všetky požadované hodnoty pred spracovaním dát!");
+      return;
+    }
+    const allChosenInputs = Object.entries(chosenInputs);
+    const results: ExcelContent[] = [];
+
+    allChosenInputs.forEach(([filename, input]) => {
+      if (
+        input.tableData !== null &&
+        input.headerRow !== null &&
+        input.selectedColumns !== null &&
+        input.startRow !== null &&
+        input.sheet !== null
+      ) {
+        const header = input.tableData[input.headerRow].map((col, i) =>
+          input.selectedColumns!.includes(i) ? col : null
+        );
+
+        const headers = header.filter((col) => col !== null);
+        const filteredData = input.tableData
+          .slice(input.startRow)
+          .map((row) =>
+            input.selectedColumns!.map((colIndex) => row[colIndex])
+          );
+        const columns: string[][] = [];
+        for (let i = 0; i < input.selectedColumns.length; i++) {
+          const column: string[] = [];
+          for (let j = 0; j < filteredData.length; j++) {
+            column.push(filteredData[j][i]);
+          }
+          columns.push(column);
+        }
+
+        results.push({ data: columns, header: headers, name: filename });
+      }
+    });
+
+    sendExcels(results);
+  };
+
   const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     const binaryString = atob(base64);
     const len = binaryString.length;
@@ -113,7 +162,7 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
       onClose={() => setDialogOpen(false)}
       sx={{ height: "100%" }}
     >
-      <DialogTitle>Spracovať Excel</DialogTitle>
+      <DialogTitle>Nastavte vstupné hodnoty pre Excel súbory: </DialogTitle>
       <DialogContent sx={{ height: "90vh" }}>
         <Tabs
           value={tabKeys.indexOf(selectedTab!)}
@@ -128,7 +177,7 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
         </Tabs>
         <div style={{ marginTop: 20, height: "80%" }}>
           {selectedTab && tabs[selectedTab] && fileMap.has(selectedTab) && (
-            <ExcelUploader
+            <TabExcelUploader
               ExcelData={fileMap.get(selectedTab)!}
               chosenInput={chosenInputs[selectedTab]}
               updateChosenInput={(newInput) =>
@@ -142,7 +191,14 @@ const DatabankExcelDialog: React.FC<DatabankExcelDialogProps> = ({
         <Button onClick={() => setDialogOpen(false)} color="secondary">
           Zrušiť
         </Button>
-        <Button sx={{ backgroundColor: "#e0e4ff" }} color="secondary">
+        <Button
+          onClick={handleSubmit}
+          disabled={Object.values(chosenInputs).some((input) =>
+            Object.values(input).some((value) => value === null)
+          )}
+          sx={{ backgroundColor: "#e0e4ff" }}
+          color="secondary"
+        >
           Spracovať dáta
         </Button>
       </DialogActions>

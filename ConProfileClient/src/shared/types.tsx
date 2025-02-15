@@ -137,3 +137,8 @@ export interface ExcelContent {
   name: string;
   idproject?: number;
 }
+
+export interface DatabankDataToSend {
+  excelContents: ExcelContent[];
+  ids: string[];
+}

@@ -122,4 +122,10 @@ namespace WebApiServer.DTOs
 
         public List<DatabankFileDTO> Files { get; set; }
     }
+
+    public class DatabankDataToSend
+    {
+        public List<ExcelFileContent> excelContents { get; set; }
+        public List<string> ids { get; set; }
+    }
 }

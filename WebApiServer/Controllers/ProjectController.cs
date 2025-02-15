@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Claims;
 using System.Text;
@@ -185,31 +186,31 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("CreateNewProjectWithDatabank")]
-        public async Task<IActionResult> CreateNewProjectWithDatabank([FromBody] List<string> ids)
+        public async Task<IActionResult> CreateNewProjectWithDatabank([FromBody] DatabankDataToSend data)
         {
             // Spracovanie prijatých súborov
-            if (ids != null && ids.Count > 0)
+            if(data == null) return BadRequest();
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
+            string token = "";
+            if (userToken == "")
             {
-                var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var userEmail = Request.Headers["UserEmail"].ToString();
-                string token = "";
-                if (userToken == "")
-                {
-                    if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
-                    else token = _userService.GenerateJwtToken(userEmail!);
+                if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
+                else token = _userService.GenerateJwtToken(userEmail!);
 
-                }
-                else token = userToken;
-                List<FolderDTO> folders = new List<FolderDTO>();
+            }
+            else token = userToken;
+            List<FolderDTO> folders = new List<FolderDTO>();
 
-                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                    return Unauthorized("Neplatné prihlásenie");
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+            if (data.ids != null && data.ids.Count > 0)
+            {
 
-
-                List<int> folderIds = ids
-                    .Where(id => id.StartsWith("folder"))
-                    .Select(id => int.Parse(id.Substring(6)))
-                    .ToList();
+                List<int> folderIds = data.ids
+                .Where(id => id.StartsWith("folder"))
+                .Select(id => int.Parse(id.Substring(6)))
+                .ToList();
 
 
                 foreach (var folder in folderIds)
@@ -231,22 +232,25 @@ namespace WebAPI.Controllers
                     folders.Add(_loadedDataService.ProcessUploadedFolder(filecontents));
 
                 }
+            }
 
-                ProjectDTO result = new ProjectDTO
-                {
-                    CREATED = DateTime.Now,
-                    FOLDERS = folders,
-                    IDPROJECT = -1,
-                    PROJECTNAME = "NovyProjekt",
-                    USEREMAIL = userEmail
-                };
-                if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
-                else return BadRequest(result);
-            }
-            else
+            if (data.excelContents != null && data.excelContents.Count > 0)
             {
-                return BadRequest("Chybný formát dát.");
+                foreach (var file in data.excelContents)
+                {
+                    folders.Add(_loadedDataService.ProcessUploadedFolderFromExcel(file));
+                }
             }
+            ProjectDTO result = new ProjectDTO
+            {
+                CREATED = DateTime.Now,
+                FOLDERS = folders,
+                IDPROJECT = -1,
+                PROJECTNAME = "NovyProjekt",
+                USEREMAIL = userEmail
+            };
+            if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
+            else return BadRequest(result);
         }
 
 

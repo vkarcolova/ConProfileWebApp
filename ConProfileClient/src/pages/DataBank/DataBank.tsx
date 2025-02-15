@@ -30,6 +30,7 @@ import {
   DatabankExcelContentDTO,
   DataBankFileDTO,
   DataBankFolderDTO,
+  ExcelContent,
 } from "../../shared/types";
 import DatabankExcelUploader from "./components/DatabankExcelDialog";
 
@@ -260,7 +261,7 @@ export default function DataBank() {
     if (!containsFile) {
       try {
         await clientApi
-          .createProjectFromDatabank(selectedFiles)
+          .createProjectFromDatabank({ excelContents: [], ids: selectedFiles })
           .then((response) => {
             const token = response.data.token;
             localStorage.setItem("token", token);
@@ -278,6 +279,20 @@ export default function DataBank() {
         setDialogOpen(true);
       });
     }
+  };
+
+  const sendDataWithExcels = async (excels: ExcelContent[]) => {
+    if (selectedFiles.length === 0) return;
+
+    await clientApi
+      .createProjectFromDatabank({ excelContents: excels, ids: selectedFiles })
+      .then((response) => {
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        const objString = JSON.stringify(response.data.project);
+        sessionStorage.setItem("loadeddata", objString);
+        navigate("/uprava-profilu/");
+      });
   };
 
   return (
@@ -541,6 +556,7 @@ export default function DataBank() {
               excelContentsFromDb={selectedExcelContents}
               dialogOpen={dialogOpen}
               setDialogOpen={setDialogOpen}
+              sendExcels={sendDataWithExcels}
             />
           )}
         </>
