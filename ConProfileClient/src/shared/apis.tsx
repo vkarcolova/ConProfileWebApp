@@ -391,4 +391,18 @@ export const clientApi = {
       }
     );
   },
+
+  deleteDatabankObject: async (id: string) => {
+    const token = localStorage.getItem("token");
+    if (!token || token == null) return;
+    return await axios.delete(
+      `${config.apiUrl}/DataBank/DeleteDatabankObject/` + id,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
 };

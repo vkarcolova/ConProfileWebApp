@@ -55,6 +55,9 @@ namespace WebApiServer.Migrations
                     b.Property<int?>("FolderId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Public")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Size")
                         .HasColumnType("integer");
 
@@ -86,6 +89,13 @@ namespace WebApiServer.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FolderName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Public")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UploadedBy")
                         .IsRequired()
                         .HasColumnType("text");
 

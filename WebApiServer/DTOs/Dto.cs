@@ -112,6 +112,8 @@ namespace WebApiServer.DTOs
         public string Content { get; set; }
         public DateTime UploadedAt { get; set; }
         public string UploadedBy { get; set; }
+        public bool Public { get; set; }
+        public List<string> Shares { get; set; } = new List<string>();
     }
 
     public class DatabankFolderDTO
@@ -119,8 +121,11 @@ namespace WebApiServer.DTOs
         public int Id { get; set; }
         public string FolderName { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string UploadedBy { get; set; }
 
         public List<DatabankFileDTO> Files { get; set; }
+        public bool Public { get; set; }
+        public List<string> Shares { get; set; } = new List<string>();
     }
 
     public class DatabankDataToSend

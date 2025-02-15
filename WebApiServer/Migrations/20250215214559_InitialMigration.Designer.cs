@@ -12,8 +12,8 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20250206090555_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250215214559_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,6 +58,9 @@ namespace WebApiServer.Migrations
                     b.Property<int?>("FolderId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Public")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Size")
                         .HasColumnType("integer");
 
@@ -89,6 +92,13 @@ namespace WebApiServer.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FolderName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Public")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UploadedBy")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -83,7 +83,7 @@ app.Use(async (context, next) =>
             context.Response.Headers["Access-Control-Allow-Origin"] = origin;
         else
             context.Response.Headers["Access-Control-Allow-Origin"] = "null";
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
         context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type, UserEmail");
         context.Response.StatusCode = 204;
         return;

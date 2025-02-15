@@ -10,7 +10,6 @@ import {
   Button,
   TextField,
   MenuItem,
-  Drawer,
   Box,
   Paper,
   Divider,
@@ -26,6 +25,8 @@ import { useUserContext } from "../../shared/context/useContext";
 import { toast } from "react-toastify";
 //import SearchIcon from "@mui/icons-material/Search";
 import { clientApi } from "../../shared/apis";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 import {
   DatabankExcelContentDTO,
   DataBankFileDTO,
@@ -33,13 +34,15 @@ import {
   ExcelContent,
 } from "../../shared/types";
 import DatabankExcelUploader from "./components/DatabankExcelDialog";
+import ObjectDrawer from "./components/ObjectDrawer";
 
-interface DatabankObject {
+export interface DatabankObject {
   id: string;
   name: string;
   type: string;
   size: number;
   date: string;
+  uploadedBy: string;
   subfiles?: string[];
 }
 
@@ -91,6 +94,7 @@ export default function DataBank() {
               type: "file",
               size: file.size,
               date: file.uploadedAt,
+              uploadedBy: file.uploadedBy,
             });
           });
         } else {
@@ -103,6 +107,7 @@ export default function DataBank() {
               .reduce((a, b) => a + b),
             date: element.createdAt,
             subfiles: element.files.map((file) => file.fileName),
+            uploadedBy: element.files[0].uploadedBy,
           });
         }
       });
@@ -217,42 +222,30 @@ export default function DataBank() {
     });
   };
 
-  // const excelFileToBase64 = (file: File): Promise<string> => {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.readAsDataURL(file);
-  //     reader.onload = () => resolve(reader.result?.toString() || "");
-  //     reader.onerror = (error) => reject(error);
-  //   });
-  // };
-
   const filteredFiles = Array.from(
     new Map(
       [...objects]
-        .filter(
-          (file) =>
-            file.name.toLowerCase().includes(search.toLowerCase()) &&
-            (filter === "all" || file.type === filter)
-        )
+        .filter((file) => {
+          const matchesSearch = file.name
+            .toLowerCase()
+            .includes(search.toLowerCase());
+          if (filter === "all") return matchesSearch;
+          if (filter === "file" || filter === "folder")
+            return matchesSearch && file.type === filter;
+          if (filter === "mine")
+            return matchesSearch && file.uploadedBy === user?.email;
+          return matchesSearch;
+        })
         .map((file) => [file.id, file])
     ).values()
   );
+
   const buttonStyle = {
     backgroundColor: "#bfc3d9",
     color: "black",
     "&:hover": {
       backgroundColor: "#a6abc9",
     },
-  };
-
-  const formatFileSize = (sizeInBytes: number): string => {
-    if (sizeInBytes < 1024) return `${sizeInBytes} B`;
-    const kb = sizeInBytes / 1024;
-    if (kb < 1024) return `${kb.toFixed(2)} KB`;
-    const mb = kb / 1024;
-    if (mb < 1024) return `${mb.toFixed(2)} MB`;
-    const gb = mb / 1024;
-    return `${gb.toFixed(2)} GB`;
   };
 
   const handleCreateProject = async () => {
@@ -293,6 +286,17 @@ export default function DataBank() {
         sessionStorage.setItem("loadeddata", objString);
         navigate("/uprava-profilu/");
       });
+  };
+
+  const handleDeleteFile = async (id: string) => {
+    await clientApi.deleteDatabankObject(id).then((res) => {
+      if (res && res.status === 200) {
+        toast.success("Súbor bol úspešne vymazaný.");
+        refreshData();
+      } else {
+        toast.error("Nepodarilo sa vymazať súbor.");
+      }
+    });
   };
 
   return (
@@ -385,6 +389,7 @@ export default function DataBank() {
               <MenuItem value="all">Všetko</MenuItem>
               <MenuItem value="file">Súbory</MenuItem>
               <MenuItem value="folder">Zložky</MenuItem>
+              <MenuItem value="mine">Moje súbory</MenuItem>
             </TextField>
 
             <Divider sx={{ my: 2 }} />
@@ -448,7 +453,11 @@ export default function DataBank() {
               Databanka súborov
             </Typography>
 
-            <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid
+              container
+              spacing={2}
+              sx={{ mt: 2, maxHeight: "90%", overflowY: "auto" }}
+            >
               {filteredFiles.map((file: DatabankObject) => (
                 <Grid item xs={12} sm={6} md={4} lg={2.4} key={file.id}>
                   <Card
@@ -482,6 +491,11 @@ export default function DataBank() {
                       <IconButton>
                         <DownloadIcon />
                       </IconButton>
+                      {file.uploadedBy === user?.email && (
+                        <IconButton onClick={() => handleDeleteFile(file.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
                     </CardActions>
                   </Card>
                 </Grid>
@@ -503,54 +517,15 @@ export default function DataBank() {
                 fontWeight: 600,
               }}
             >
-              Použiť vybrané súbory ({selectedFiles.length})
+              Použiť vybrané súbory v novom projekte ({selectedFiles.length})
             </Button>
           </Box>
 
-          <Drawer
-            anchor="right"
-            open={!!selectedFile}
-            onClose={() => setSelectedFile(null)}
-          >
-            {selectedFile && (
-              <Box sx={{ width: 280, padding: 2 }}>
-                <Typography variant="h6">ℹ️ Info o súbore</Typography>
-                <Typography variant="body1">
-                  <strong>Názov:</strong> {selectedFile.name}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Typ:</strong>{" "}
-                  {selectedFile.type === "folder" ? "Zložka" : "Súbor"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Veľkosť:</strong> {formatFileSize(selectedFile.size)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Dátum:</strong> {selectedFile.date}
-                </Typography>
-                {selectedFile.type === "folder" && (
-                  <>
-                    <Typography variant="body2">
-                      <strong>Obsahuje súbory:</strong>
-                    </Typography>
-                    {selectedFile.subfiles?.map((subfile, index) => (
-                      <Typography
-                        sx={{ marginLeft: 2 }}
-                        key={index}
-                        variant="body2"
-                      >
-                        {subfile}
-                      </Typography>
-                    ))}
-                  </>
-                )}
+          <ObjectDrawer
+            selectedFile={selectedFile}
+            setSelectedFile={setSelectedFile}
+          />
 
-                <Button variant="contained" fullWidth sx={{ mt: 2 }}>
-                  Stiahnuť
-                </Button>
-              </Box>
-            )}
-          </Drawer>
           {selectedExcelContents.length > 0 && (
             <DatabankExcelUploader
               excelContentsFromDb={selectedExcelContents}
