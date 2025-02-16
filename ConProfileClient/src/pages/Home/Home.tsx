@@ -76,8 +76,6 @@ const Home: React.FC = () => {
       await clientApi
         .getProjectByUser(user.email, localStorage.getItem("token"))
         .then((response) => {
-          console.log(response);
-
           setProjecsData(response.data);
         })
         .catch((error) => {

@@ -44,6 +44,8 @@ export interface DatabankObject {
   date: string;
   uploadedBy: string;
   subfiles?: string[];
+  shares: string[];
+  public: boolean;
 }
 
 export default function DataBank() {
@@ -82,7 +84,6 @@ export default function DataBank() {
 
   const refreshData = async () => {
     clientApi.getAllDatabankData().then((res) => {
-      console.log(res);
       let data: DatabankObject[] = [];
       const folders: DataBankFolderDTO[] = res.data;
       folders.forEach((element) => {
@@ -95,6 +96,8 @@ export default function DataBank() {
               size: file.size,
               date: file.uploadedAt,
               uploadedBy: file.uploadedBy,
+              shares: file.shares,
+              public: file.public,
             });
           });
         } else {
@@ -108,14 +111,16 @@ export default function DataBank() {
             date: element.createdAt,
             subfiles: element.files.map((file) => file.fileName),
             uploadedBy: element.files[0].uploadedBy,
+            shares: element.shares,
+            public: element.public,
           });
         }
       });
       data = data.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-      console.log(data);
       setObjects(data);
+      console.log(data);
     });
   };
 
@@ -142,10 +147,11 @@ export default function DataBank() {
         content: fileContent,
         uploadedAt: new Date().toISOString(),
         uploadedBy: user?.email || "unknown",
+        public: false,
+        shares: [],
       };
 
       await clientApi.uploadExcelToDatabank(data).then((res) => {
-        console.log(res);
         if (res.status === 200) {
           toast.success("Súbor bol úspešne nahraný.");
           refreshData();
@@ -182,6 +188,8 @@ export default function DataBank() {
           content: fileContent,
           uploadedAt: new Date().toISOString(),
           uploadedBy: user?.email || "unknown",
+          public: false,
+          shares: [],
         };
 
         loadedFiles.push(loadedFile);
@@ -195,10 +203,12 @@ export default function DataBank() {
         folderName: folderName,
         createdAt: new Date().toISOString(),
         files: loadedFiles,
+        public: false,
+        shares: [],
+        uploadedBy: user?.email || "unknown",
       };
 
       await clientApi.uploadFolderToDatabank(folder).then((res) => {
-        console.log(res);
         if (res.status === 200) {
           toast.success("Súbor bol úspešne nahraný.");
           refreshData();
@@ -524,6 +534,7 @@ export default function DataBank() {
           <ObjectDrawer
             selectedFile={selectedFile}
             setSelectedFile={setSelectedFile}
+            refreshData={refreshData}
           />
 
           {selectedExcelContents.length > 0 && (

@@ -12,7 +12,7 @@ using WebApiServer.Data;
 namespace WebApiServer.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20250215214559_InitialMigration")]
+    [Migration("20250216125043_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -105,6 +105,36 @@ namespace WebApiServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DataBankFolders");
+                });
+
+            modelBuilder.Entity("WebApiServer.Models.DatabankShareUsers", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ShareableId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ShareableType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DatabankShareUsers");
                 });
 
             modelBuilder.Entity("WebApiServer.Models.Factors", b =>

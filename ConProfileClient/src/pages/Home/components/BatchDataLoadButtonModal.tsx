@@ -73,7 +73,6 @@ const BatchDataLoadButtonModal: React.FC<
           ? JSON.parse(factorsdata)
           : [];
         const updatedFactors = await clientApi.getFactors(localFactors);
-        console.log(updatedFactors);
         setAllFactors(updatedFactors);
       };
       fetchFactors();
