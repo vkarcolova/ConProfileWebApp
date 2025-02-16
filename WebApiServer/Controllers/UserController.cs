@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
+using WebApiServer.Models;
 using WebApiServer.Services;
 
 namespace WebApiServer.Controllers
@@ -84,6 +85,19 @@ namespace WebApiServer.Controllers
             }
 
             return Ok(new { TOKEN = userToken, EMAIL = loginUser.EMAIL });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized("Neplatné prihlásenie");
+            var allLoadedData = await _context.Users.Select(x => x.UserEmail).ToListAsync();
+
+            return Ok(allLoadedData);
         }
     }
 }

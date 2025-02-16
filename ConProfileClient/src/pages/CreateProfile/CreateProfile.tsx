@@ -78,17 +78,15 @@ const CreateProfile: React.FC = () => {
   const [options, setOptions] = useState<any>(null);
 
   useEffect(() => {
-
     setOptions(null);
     const folderData = projectFolders[selectedFolder]?.folderData?.excitation;
     const chartData = projectFolders[selectedFolder]?.chartData;
     if (!folderData || !chartData || !projectData) return;
 
-
     setOptions({
       xAxis: { type: "category", data: folderData },
       yAxis: {
-        nameGap: 30, 
+        nameGap: 30,
 
         type: "value",
         min: projectFolders[selectedFolder].multiplied
@@ -100,16 +98,15 @@ const CreateProfile: React.FC = () => {
         axisLabel: {
           formatter: (value: number) => value.toFixed(2),
           margin: -2,
-
         },
       },
       legend: {
         type: "scroll",
-        orient: "horizontal", 
+        orient: "horizontal",
         top: "top",
-        itemGap: 10, 
+        itemGap: 10,
         textStyle: {
-          fontSize: 10, 
+          fontSize: 10,
         },
       },
       series: chartData.map(({ data, label }) => ({
@@ -121,7 +118,11 @@ const CreateProfile: React.FC = () => {
       })),
       tooltip: { trigger: "axis" },
     });
-  }, [projectFolders, selectedFolder,projectFolders[selectedFolder]?.chartData]);
+  }, [
+    projectFolders,
+    selectedFolder,
+    projectFolders[selectedFolder]?.chartData,
+  ]);
 
   useEffect(() => {
     //console.log(projectData);
@@ -140,18 +141,14 @@ const CreateProfile: React.FC = () => {
             return;
           }
           const obj = JSON.parse(sessionData) as ProjectDTO;
-          console.log(obj);
           setProjectData(obj);
           const comparefolders: FolderDTO[] = [];
           const folders: AllFolderData[] = [];
           obj.folders.forEach(async (folder) => {
-            console.log(folder);
             const filledFolder = await fillFolder(folder);
             if (filledFolder.multiplied) {
               comparefolders.push(folder);
             }
-            console.log(filledFolder);
-
             folders.push(filledFolder);
           });
           setFoldersToCompare(comparefolders);
@@ -576,12 +573,13 @@ const CreateProfile: React.FC = () => {
         smooth: true,
         connectNulls: false,
       };
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setOptions((prevOptions: any) => ({
         ...prevOptions,
         series: [
-          ...(prevOptions?.series?.filter((s: any) => s.name !== "Profil") || []), // Odstránenie starej série
+          ...(prevOptions?.series?.filter((s: any) => s.name !== "Profil") ||
+            []), // Odstránenie starej série
           newSeries, // Pridanie novej série
         ],
         yAxis: {
@@ -590,7 +588,6 @@ const CreateProfile: React.FC = () => {
           max: Math.max(...profile),
         },
       }));
-      
 
       fillMultipliedFolder(folders[selectedFolder]);
       setProjectFolders(folders);

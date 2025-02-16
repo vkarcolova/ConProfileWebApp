@@ -41,10 +41,15 @@ const BatchDataLoadButtonModal: React.FC<
 
   useEffect(() => {
     if (openModal) return;
-    setFolders([]);
-    setSpectrums([]);
-    setInputFactors([]);
-    setStep(1);
+
+    const timeout = setTimeout(() => {
+      setFolders([]);
+      setSpectrums([]);
+      setInputFactors([]);
+      setStep(1);
+    }, 300);
+
+    return () => clearTimeout(timeout);
   }, [openModal]);
 
   useEffect(() => {
@@ -68,7 +73,6 @@ const BatchDataLoadButtonModal: React.FC<
           ? JSON.parse(factorsdata)
           : [];
         const updatedFactors = await clientApi.getFactors(localFactors);
-        console.log(updatedFactors);
         setAllFactors(updatedFactors);
       };
       fetchFactors();
@@ -287,7 +291,8 @@ const BatchDataLoadButtonModal: React.FC<
           >
             Pri tvorbe koncentračného modelu sú dostupné dve možnosti: <br />
             <b>
-              1. Načítanie jedného priečinka alebo dát priamo zo súboru .xlsx :
+              1. Vytvorenie projektu pomocou priečinka alebo dát priamo zo
+              súboru .xlsx :
             </b>{" "}
             <br />
             • Pri tejto možnosti bude vytvorený jeden projekt, ktorý sa uloží do
@@ -295,8 +300,13 @@ const BatchDataLoadButtonModal: React.FC<
             • Do tohto projektu je možné následne pridávať ďalšie priečinky,
             odoberať ich, meniť faktory, porovnávať koncentračné profily a
             exportovať výsledky. <br />
+            <b>2. Vytvoriť projektov pomocou súborov z databanky:</b> <br />
+            • Môžete vybrať vopred nahraté priečinky alebo XLSX súbory a pomocou
+            nich vytvoriť nový projekt. <br />
+            • Môžete nahrať svoje súbory pre všetkých alebo iba konkrétnych
+            užívateľov. <br />
             <b>
-              2. Načítanie viacerých priečinkov naraz (zrýchlený režim):
+              3. Načítanie viacerých priečinkov naraz (zrýchlený režim):
             </b>{" "}
             <br />• Priečinky sa automaticky načítajú a extrahujú sa z nich
             spektrá. <br />
@@ -316,6 +326,7 @@ const BatchDataLoadButtonModal: React.FC<
             <Button
               variant="outlined"
               sx={{
+                backgroundColor: "#f6fafd",
                 borderRadius: "30px",
                 border: "2px solid #514986",
                 "&:hover": {
@@ -343,6 +354,8 @@ const BatchDataLoadButtonModal: React.FC<
               variant="outlined"
               sx={{
                 borderRadius: "30px",
+                backgroundColor: "#f6fafd",
+
                 border: "2px solid #514986",
                 "&:hover": {
                   border: "2px solid #dcdbe7",
@@ -374,12 +387,42 @@ const BatchDataLoadButtonModal: React.FC<
               multiple
               style={{ display: "none" }}
             />
+
             <Button
               variant="outlined"
               sx={{
                 borderRadius: "30px",
-                border: "2px solid #dcdbe7",
-                backgroundColor: "#d5e1fb",
+                backgroundColor: "#E4EBFD",
+
+                border: "2px solid #514986",
+                "&:hover": {
+                  border: "2px solid #dcdbe7",
+                },
+                width: "60%",
+              }}
+              onClick={() => navigate("/databanka/")}
+            >
+              <Typography
+                sx={{
+                  fontFamily: "Poppins",
+                  fontWeight: 500,
+                  fontSize: "15px",
+                  padding: "2px",
+                  color: "#514986",
+                }}
+                textTransform={"none"}
+              >
+                Vybrať súbory v databanke
+              </Typography>
+            </Button>
+
+            <Button
+              variant="outlined"
+              sx={{
+                borderRadius: "30px",
+                backgroundColor: "#D6DDED",
+
+                border: "2px solid black",
                 "&:hover": {
                   border: "2px solid #dcdbe7",
                 },
@@ -397,7 +440,7 @@ const BatchDataLoadButtonModal: React.FC<
                 }}
                 textTransform={"none"}
               >
-                Načítať viac priečinkov{" "}
+                Spracovať viac priečinkov naraz{" "}
               </Typography>
             </Button>
           </Box>

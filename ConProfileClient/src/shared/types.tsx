@@ -116,6 +116,8 @@ export interface DataBankFileDTO {
   content: string;
   uploadedAt: string;
   uploadedBy: string;
+  public: boolean;
+  shares: string[];
 }
 
 export interface DataBankFolderDTO {
@@ -123,6 +125,10 @@ export interface DataBankFolderDTO {
   folderName: string;
   createdAt: string;
   files: DataBankFileDTO[];
+  public: boolean;
+  uploadedBy: string;
+
+  shares: string[];
 }
 
 export interface DatabankExcelContentDTO {
@@ -141,4 +147,10 @@ export interface ExcelContent {
 export interface DatabankDataToSend {
   excelContents: ExcelContent[];
   ids: string[];
+}
+
+export interface ShareDatabankObjectDTO {
+  id: string;
+  users: string[];
+  public: boolean;
 }

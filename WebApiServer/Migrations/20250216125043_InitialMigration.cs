@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WebApiServer.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,7 +24,8 @@ namespace WebApiServer.Migrations
                     Size = table.Column<int>(type: "integer", nullable: false),
                     Content = table.Column<byte[]>(type: "bytea", nullable: false),
                     UploadedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UploadedBy = table.Column<string>(type: "text", nullable: false)
+                    UploadedBy = table.Column<string>(type: "text", nullable: false),
+                    Public = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,11 +39,30 @@ namespace WebApiServer.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FolderName = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Public = table.Column<bool>(type: "boolean", nullable: false),
+                    UploadedBy = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DataBankFolders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DatabankShareUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ShareableId = table.Column<int>(type: "integer", nullable: false),
+                    ShareableType = table.Column<int>(type: "integer", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DatabankShareUsers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -157,6 +177,9 @@ namespace WebApiServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "DataBankFolders");
+
+            migrationBuilder.DropTable(
+                name: "DatabankShareUsers");
 
             migrationBuilder.DropTable(
                 name: "Factors");

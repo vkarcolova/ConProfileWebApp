@@ -4,10 +4,10 @@ namespace WebApiServer.DTOs
 {
     public class FileContent
     {
-        public int IDPROJECT {  get; set; }
+        public int IDPROJECT { get; set; }
         public string FILENAME { get; set; }
         public string FOLDERNAME { get; set; }
-        public string CONTENT {  get; set; }
+        public string CONTENT { get; set; }
         public string? USEREMAIL { get; set; }
 
     }
@@ -43,7 +43,7 @@ namespace WebApiServer.DTOs
         public int ID { get; set; }
         public string FOLDERNAME { get; set; }
         public List<double> EXCITATION { get; set; }
-        public List<double>? PROFILE {  get; set; }
+        public List<double>? PROFILE { get; set; }
         public List<FileDTO> DATA { get; set; }
 
     }
@@ -89,8 +89,8 @@ namespace WebApiServer.DTOs
 
     public class ColumnDTO
     {
-        public string Name { get; set; } = string.Empty; 
-        public List<double?> Intensities { get; set; } = new List<double?>(); 
+        public string Name { get; set; } = string.Empty;
+        public List<double?> Intensities { get; set; } = new List<double?>();
 
         public List<double> Excitations { get; set; }
     }
@@ -104,7 +104,7 @@ namespace WebApiServer.DTOs
 
     public class DatabankFileDTO
     {
-        public int Id {  get; set; }
+        public int Id { get; set; }
         public int? FolderId { get; set; }
         public string FileName { get; set; }
         public string Type { get; set; }
@@ -112,6 +112,8 @@ namespace WebApiServer.DTOs
         public string Content { get; set; }
         public DateTime UploadedAt { get; set; }
         public string UploadedBy { get; set; }
+        public bool Public { get; set; }
+        public List<string> Shares { get; set; } = new List<string>();
     }
 
     public class DatabankFolderDTO
@@ -119,13 +121,22 @@ namespace WebApiServer.DTOs
         public int Id { get; set; }
         public string FolderName { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string UploadedBy { get; set; }
 
         public List<DatabankFileDTO> Files { get; set; }
+        public bool Public { get; set; }
+        public List<string> Shares { get; set; } = new List<string>();
     }
 
     public class DatabankDataToSend
     {
         public List<ExcelFileContent> excelContents { get; set; }
         public List<string> ids { get; set; }
+    }
+
+    public class ShareDatabankObjectDTO {
+        public string Id { get; set; } 
+        public List<string> Users { get; set; }
+        public bool Public { get; set; }
     }
 }

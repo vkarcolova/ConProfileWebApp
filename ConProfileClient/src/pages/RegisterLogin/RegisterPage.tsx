@@ -11,39 +11,48 @@ import {
   Button,
 } from "@mui/material";
 import "../../index.css";
-import React  from "react";
+import React from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { clientApi } from "../../shared/apis";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useUserContext } from "../../shared/context/useContext";
+import { useNavigate } from "react-router-dom";
+import config from "../../../config";
 const defaultTheme = createTheme();
 
 const RegisterPage: React.FC = () => {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [password2, setPassword2] = React.useState("");
-
+  const [email, setEmail] = React.useState(
+    config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
+  );
+  const [password, setPassword] = React.useState(
+    config.apiUrl.includes("localhost") ? "admin" : ""
+  );
+  const [password2, setPassword2] = React.useState(
+    config.apiUrl.includes("localhost") ? "admin" : ""
+  );
 
   const { loginUser } = useUserContext();
-
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     //TODO skontrolvoat ci su rovnake s form ak by usestate bol pomaly
-    await clientApi.register(email, password, password2).then((response) => { 
-
-      if (response.status === 200) {
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        const useremail = response.data.email;
-        localStorage.setItem("useremail", useremail);
-        toast.success("Registrácia prebehla úspešne.");
-        loginUser(token, useremail);
-        window.location.href = "/";
-      }
-    }).catch((error) => {
-        toast.error('Chyba pri registrácii: ' +  error);
-    });
+    await clientApi
+      .register(email, password, password2)
+      .then((response) => {
+        if (response.status === 200) {
+          const token = response.data.token;
+          localStorage.setItem("token", token);
+          const useremail = response.data.email;
+          localStorage.setItem("useremail", useremail);
+          toast.success("Registrácia prebehla úspešne.");
+          loginUser(token, useremail);
+          navigate("/");
+        }
+      })
+      .catch((error) => {
+        toast.error("Chyba pri registrácii: " + error);
+      });
   };
 
   return (
@@ -79,6 +88,7 @@ const RegisterPage: React.FC = () => {
                   label="Emailová adresa"
                   name="email"
                   autoComplete="email"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </Grid>
@@ -87,6 +97,7 @@ const RegisterPage: React.FC = () => {
                 <TextField
                   required
                   fullWidth
+                  value={password}
                   name="password"
                   label="Heslo"
                   type="password"
@@ -99,6 +110,7 @@ const RegisterPage: React.FC = () => {
                 <TextField
                   required
                   fullWidth
+                  value={password2}
                   name="password"
                   label="Zopakujte heslo"
                   type="password"
@@ -115,7 +127,12 @@ const RegisterPage: React.FC = () => {
               size="small"
               component="a"
               target="_blank"
-              disabled={email == "" || password == "" || password2 == "" || password != password2} 
+              disabled={
+                email == "" ||
+                password == "" ||
+                password2 == "" ||
+                password != password2
+              }
               sx={{
                 backgroundColor: "rgba(59, 49, 119, 0.87)",
                 width: "100%",
@@ -128,17 +145,20 @@ const RegisterPage: React.FC = () => {
                   backgroundColor: "#9997c3",
                   color: "white",
                 },
-
               }}
             >
-              <Typography onClick={handleSubmit} variant="button" fontWeight={500} fontSize={"14px"}>
+              <Typography
+                onClick={handleSubmit}
+                variant="button"
+                fontWeight={500}
+                fontSize={"14px"}
+              >
                 Registrovať sa
               </Typography>
             </Button>
           </Box>
         </Box>
         <ToastContainer transition={Bounce} />
-
       </Container>
       <ToastContainer transition={Bounce} />
     </ThemeProvider>

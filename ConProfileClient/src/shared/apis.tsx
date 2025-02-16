@@ -13,6 +13,7 @@ import {
   FileContent,
   MultiplyFolderDTO,
   ProjectDTO,
+  ShareDatabankObjectDTO,
 } from "./types";
 
 export const clientApi = {
@@ -390,5 +391,42 @@ export const clientApi = {
         },
       }
     );
+  },
+
+  deleteDatabankObject: async (id: string) => {
+    const token = localStorage.getItem("token");
+    if (!token || token == null) return;
+    return await axios.delete(
+      `${config.apiUrl}/DataBank/DeleteDatabankObject/` + id,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
+  changeDatabankShareSettings: async (share: ShareDatabankObjectDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/DataBank/ChangeDatabankShareSettings`,
+      share,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  getAllUserNames: async () => {
+    return await axios.get<string[]>(`${config.apiUrl}/User/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        UserEmail: localStorage.getItem("useremail"),
+      },
+    });
   },
 };
