@@ -245,6 +245,47 @@ namespace WebApiServer.Controllers
           
 
         }
+        public static List<double?> RemoveLongRepeatingValues(List<double?> data, int minRepeatCount = 20)
+        {
+            if (data == null || data.Count == 0) return data;
+
+            List<double?> result = new List<double?>(data);
+            int count = 1;
+            double? lastValue = data[0];
+            int startIndex = 0;
+
+            for (int i = 1; i < data.Count; i++)
+            {
+                if (data[i] == lastValue && lastValue != 0)
+                {
+                    count++;
+                }
+                else
+                {
+                    if (count >= minRepeatCount && lastValue != 0)
+                    {
+                        for (int j = startIndex; j < startIndex + count; j++)
+                        {
+                            result[j] = null;
+                        }
+                    }
+                    count = 1;
+                    lastValue = data[i];
+                    startIndex = i;
+                }
+            }
+
+            if (count >= minRepeatCount && lastValue != 0)
+            {
+                for (int j = startIndex; j < startIndex + count; j++)
+                {
+                    result[j] = null;
+                }
+            }
+
+            return result;
+        }
+
 
 
         [HttpPost("AddCalculatedData")]

@@ -204,7 +204,34 @@ const CreateProfile: React.FC = () => {
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
 
-      if (column.intensities.some((x) => x === undefined)) {
+      // Počítame, koľkokrát sa hodnota opakuje za sebou
+      const threshold = 20;
+      //const threshold = Math.floor(column.intensities.length / 5);
+
+      let count = 1;
+      let lastValue = column.intensities[0];
+      let hasTooManyRepeats = false;
+
+      column.intensities.forEach((value, index) => {
+        if (index === 0) return;
+
+        if (value === lastValue) {
+          count++;
+        } else {
+          count = 1;
+          lastValue = value;
+        }
+
+        if (count > threshold) {
+          hasTooManyRepeats = true;
+        }
+      });
+
+      // Ak má stĺpec undefined hodnoty alebo príliš veľa opakovaní, pridáme ho do emptyColumns
+      if (
+        column.intensities.some((x) => x === undefined) ||
+        hasTooManyRepeats
+      ) {
         emptyColumns.push({
           intensities: column.intensities,
           name: column.name,
@@ -212,6 +239,7 @@ const CreateProfile: React.FC = () => {
         });
       }
     });
+
     if (allFolderData.multiplied) {
       dynamicChartData.filter((item) => item.label !== "Profil");
 
@@ -745,7 +773,7 @@ const CreateProfile: React.FC = () => {
     setSelectedFolder(0);
   };
 
-  const saveCalculatedColumn = async (
+  const saveCalculatedColumnWithEmptyData = async (
     column: ColumnDTO,
     calculatedIntensities: number[], //toto su cele data z nejakeho dovodu  chceme ibe tie dopocitane a bude to oke todooo
     excitation: number[]
@@ -1250,7 +1278,9 @@ const CreateProfile: React.FC = () => {
                           folders[selectedFolder].emptyDataColums = columns;
                           setProjectFolders(folders);
                         }}
-                        saveColumn={saveCalculatedColumn}
+                        saveColumnWithEmptyData={
+                          saveCalculatedColumnWithEmptyData
+                        }
                       />
                     </Box>
                   </Box>

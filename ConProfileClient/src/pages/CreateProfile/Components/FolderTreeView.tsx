@@ -84,70 +84,71 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
 
       return (
         <Box
-        key={node.id}
-        sx={{
-          marginBottom: "8px",
-          maxWidth: "100%",
-        }}
-      >
-        <Box
+          key={node.id}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-            width: "100%",
+            marginBottom: "8px",
+            maxWidth: "100%",
           }}
         >
-          {hasChildren && (
-            <IconButton
-              size="small"
-              disabled={deleting}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleNode(node.id);
-              }}
-              sx={{ visibility: deleting ? "hidden" : "visible" }}
-            >
-              {isExpanded ? <ExpandMore /> : <ChevronRight />}
-            </IconButton>
-          )}
-          {!hasChildren && <Box sx={{ width: "24px" }} />}{" "}
-          {deleting && (
-            <Checkbox
-              onChange={(e) => {
-                e.stopPropagation();
-                handleCheckboxChange(node.label);
-              }}
-              color="default"
-              sx={{
-                width: "20px",
-                height: "20px",
-                padding: 0,
-                position: "relative",
-              }}
-            />
-          )}
-          <Typography
-            onClick={(e) => handleNodeSelect(e, node.id)}
+          <Box
             sx={{
-              fontWeight: index === selectedFolder ? "bold" : "normal",
-              fontSize: { md: "1rem", lg: "1.2rem" },
-              marginLeft: "8px",
-              textAlign: "center",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              flex: 1, // Zaberie zvyšok dostupného priestoru
+              cursor: "pointer",
+              width: "100%",
             }}
           >
-              {node.label.length > 24 ? `${node.label.slice(0, 21)}...` : node.label}
+            {hasChildren && (
+              <IconButton
+                size="small"
+                disabled={deleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleNode(node.id);
+                }}
+                sx={{ visibility: deleting ? "hidden" : "visible" }}
+              >
+                {isExpanded ? <ExpandMore /> : <ChevronRight />}
+              </IconButton>
+            )}
+            {!hasChildren && <Box sx={{ width: "24px" }} />}{" "}
+            {deleting && (
+              <Checkbox
+                onChange={(e) => {
+                  e.stopPropagation();
+                  handleCheckboxChange(node.label);
+                }}
+                color="default"
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  padding: 0,
+                  position: "relative",
+                }}
+              />
+            )}
+            <Typography
+              onClick={(e) => handleNodeSelect(e, node.id)}
+              sx={{
+                fontWeight: index === selectedFolder ? "bold" : "normal",
+                fontSize: { lg: "10px", xl: "14px" },
+                marginLeft: "8px",
+                textAlign: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                flex: 1, // Zaberie zvyšok dostupného priestoru
+              }}
+            >
+              {node.label.length > 18
+                ? `${node.label.slice(0, 15)}...`
+                : node.label}
+            </Typography>
+          </Box>
 
-          </Typography>
-        </Box>
-      
           {isExpanded && node.children && !deleting && (
             <Box sx={{ paddingLeft: "16px" }}>
               {node.children.map((child) => {
@@ -167,7 +168,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                         <Typography
                           sx={{
                             fontWeight: "normal",
-                            fontSize: { md: "1rem", lg: "1.2rem" },
+                            fontSize: { lg: "10px", xl: "14px" },
                             marginLeft: "8px",
                           }}
                         >

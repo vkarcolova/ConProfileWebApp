@@ -1,9 +1,11 @@
 # TODO
 
 NAJSKOR
+//pri dopocitani tam dat toto
+//vysledok porovnat s povodnymi hodnotami
+//ak su nejake na rovnakom indexe dat do osobitneho pola ostatne do osobitneho
+//jedny pojdu do povodnej funkcie druhe do nahradzovacej
 
-- [ ] pridat databanku na hlavnu stranku
-- [ ] skupiny databanky
 - [ ] ked je vela dat za sebou tak tiez na vypocet dat
 - [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
 
@@ -23,6 +25,8 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+- [x] pridat databanku na hlavnu stranku
+- [x] skupiny databanky
 - [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny
 - [x] lietanie cisel v exceli exportovat s ciarkami?
 - [x] ziadne faktory v batch upload
