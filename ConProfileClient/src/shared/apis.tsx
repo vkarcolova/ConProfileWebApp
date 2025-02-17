@@ -293,6 +293,20 @@ export const clientApi = {
     );
   },
 
+  replaceCalculatedData: async (calculatedData: CalculatedDataDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/ReplaceCalculatedData`,
+      JSON.stringify(calculatedData),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   postFolderMultiply: async (dataToSend: MultiplyFolderDTO) => {
     return axios.post(
       `${config.apiUrl}/LoadedFolder/PostFactorsMultiply`,

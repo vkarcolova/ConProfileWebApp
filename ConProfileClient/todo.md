@@ -7,7 +7,37 @@ NAJSKOR
 //jedny pojdu do povodnej funkcie druhe do nahradzovacej
 
 - [ ] ked je vela dat za sebou tak tiez na vypocet dat
+- [ ] na grafe inak dopocitane same inak empty
+- [ ] nejako tie tlacitka domysliet to chato
+- [ ] ked nahravas excel musia sa zakliknut v poradi tie stlpceky to opravit !
 - [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
+
+##
+
+TESTING dopocitania
+
+Session
+
+- [x] Prazdne data na konci
+- [x] Prazdne data v strede
+- [x] Prazdne data na konci a v strede
+- [x] Rovnake data 1x
+- [x] Prazdne data 2x
+- [x] Rovnake data 1x s prazdnymi
+- [x] Prazdne data 2x s prazdnymi
+
+Do db
+Session
+
+- [ ] Prazdne data na konci
+- [ ] Prazdne data v strede
+- [ ] Prazdne data na konci a v strede
+- [ ] Rovnake data 1x
+- [ ] Prazdne data 2x
+- [ ] Rovnake data 1x s prazdnymi
+- [ ] Prazdne data 2x s prazdnymi
+
+##
 
 - [ ] preco ked niekedy nacitas stranku zmiznu projekty?
 - [ ] Google ucet

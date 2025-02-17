@@ -204,10 +204,7 @@ const CreateProfile: React.FC = () => {
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
 
-      // Počítame, koľkokrát sa hodnota opakuje za sebou
       const threshold = 20;
-      //const threshold = Math.floor(column.intensities.length / 5);
-
       let count = 1;
       let lastValue = column.intensities[0];
       let hasTooManyRepeats = false;
@@ -215,19 +212,18 @@ const CreateProfile: React.FC = () => {
       column.intensities.forEach((value, index) => {
         if (index === 0) return;
 
-        if (value === lastValue) {
+        if (value === lastValue && value !== 0) {
           count++;
         } else {
           count = 1;
           lastValue = value;
         }
 
-        if (count > threshold) {
+        if (count > threshold && lastValue !== 0) {
           hasTooManyRepeats = true;
         }
       });
 
-      // Ak má stĺpec undefined hodnoty alebo príliš veľa opakovaní, pridáme ho do emptyColumns
       if (
         column.intensities.some((x) => x === undefined) ||
         hasTooManyRepeats
@@ -856,6 +852,93 @@ const CreateProfile: React.FC = () => {
     return true;
   };
 
+  const saveCalculatedColumnWithSameData = async (
+    column: ColumnDTO,
+    calculatedIntensities: number[],
+    excitation: number[]
+  ): Promise<boolean> => {
+    console.log(column);
+    console.log(calculatedIntensities);
+    console.log(excitation);
+
+    const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
+      (x) => x.filename === column.name
+    );
+    const columntToRewriteIndex = projectFolders[
+      selectedFolder
+    ].folderData.data.findIndex((x) => x.filename === column.name);
+
+    if (columnToRewrite === undefined) return false;
+
+    if (loadedProjectId) {
+      const excitations: number[] = [];
+      const intensities: number[] = [];
+
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        if (calculatedIntensities[i] !== undefined) {
+          excitations.push(excitation[i]);
+          intensities.push(calculatedIntensities[i]);
+        }
+      }
+
+      const calculatedColumn: CalculatedDataDTO = {
+        calculatedintensities: intensities,
+        excitacions: excitations,
+        idfile: columnToRewrite.id,
+      };
+
+      await clientApi.replaceCalculatedData(calculatedColumn).catch(() => {
+        toast.error("Chyba pri ukladaní dát.");
+        return false;
+      });
+      loadProjectFromId();
+    } else {
+      columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
+
+      const allExcitations = columnToRewrite.intensity.map((x) => x.excitation);
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        const index = allExcitations.findIndex((x) => x === excitation[i]); //index kde sa nahradia calculated
+        if (index !== i) {
+          console.log("nerovna sa ");
+          columnToRewrite.intensity[index].intensity = calculatedIntensities[i];
+        }
+      }
+
+      const projectCopy: ProjectDTO = projectData!;
+      const updatedFolders = projectFolders;
+      projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
+        columnToRewrite;
+
+      if (
+        updatedFolders[selectedFolder].multiplied &&
+        updatedFolders[selectedFolder].folderData.profile
+      ) {
+        const newProfile = updatedFolders[selectedFolder].folderData.profile;
+        for (let i = 0; i < calculatedIntensities.length; i++) {
+          if (
+            columnToRewrite.intensity[i].multipliedintensity !== undefined &&
+            columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]
+          ) {
+            newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
+          }
+        }
+        updatedFolders[selectedFolder].profileData.profile = newProfile;
+        updatedFolders[selectedFolder].folderData.profile = newProfile;
+      }
+
+      updatedFolders[selectedFolder] = await fillFolder(
+        projectCopy.folders[selectedFolder]
+      );
+      updatedFolders[selectedFolder].tableData = await processDataForTable(
+        updatedFolders[selectedFolder]
+      );
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
+    }
+    return true;
+  };
+
   if (!projectFolders) {
     return <Box>Error loading data.</Box>;
   }
@@ -1280,6 +1363,9 @@ const CreateProfile: React.FC = () => {
                         }}
                         saveColumnWithEmptyData={
                           saveCalculatedColumnWithEmptyData
+                        }
+                        saveColumnWithSameData={
+                          saveCalculatedColumnWithSameData
                         }
                       />
                     </Box>
