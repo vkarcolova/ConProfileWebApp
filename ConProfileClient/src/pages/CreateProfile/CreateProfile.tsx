@@ -49,6 +49,7 @@ import { NunuButton } from "../../shared/components/NunuButton";
 import { UserMenu } from "./Components/UserMenu";
 import CalculateData from "../CalculateData/CalculateDataButtonDialog";
 import { AddFolderMenu } from "./Components/AddFolderMenu";
+import GraphDialog from "../GraphDialog/GraphDialog";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -60,6 +61,8 @@ const CreateProfile: React.FC = () => {
   const [projectFolders, setProjectFolders] = useState<AllFolderData[]>([]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [graphDialogOpen, setGraphDialogOpen] = useState(false);
+
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
   );
@@ -204,7 +207,30 @@ const CreateProfile: React.FC = () => {
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
 
-      if (column.intensities.some((x) => x === undefined)) {
+      const threshold = 20;
+      let count = 1;
+      let lastValue = column.intensities[0];
+      let hasTooManyRepeats = false;
+
+      column.intensities.forEach((value, index) => {
+        if (index === 0) return;
+
+        if (value === lastValue && value !== 0) {
+          count++;
+        } else {
+          count = 1;
+          lastValue = value;
+        }
+
+        if (count > threshold && lastValue !== 0) {
+          hasTooManyRepeats = true;
+        }
+      });
+
+      if (
+        column.intensities.some((x) => x === undefined) ||
+        hasTooManyRepeats
+      ) {
         emptyColumns.push({
           intensities: column.intensities,
           name: column.name,
@@ -212,6 +238,7 @@ const CreateProfile: React.FC = () => {
         });
       }
     });
+
     if (allFolderData.multiplied) {
       dynamicChartData.filter((item) => item.label !== "Profil");
 
@@ -305,14 +332,19 @@ const CreateProfile: React.FC = () => {
         file.name.endsWith(".sp")
       );
       const folderName = filesArray[0].webkitRelativePath.split("/")[0];
-      if (
+      let newFolderName = folderName;
+      let counter = 1;
+
+      while (
         projectData?.folders.some(
-          (element) => element.foldername === folderName
+          (element) => element.foldername === newFolderName
         )
       ) {
-        toast.info("Priečinok s rovnakým názvom už bol do projektu nahraný.");
-        return;
+        newFolderName = `${folderName} (${counter})`;
+        counter++;
+        console.log(counter);
       }
+
       const loadedFiles: FileContent[] = [];
 
       const readFileAsync = (file: File): Promise<string> => {
@@ -335,7 +367,7 @@ const CreateProfile: React.FC = () => {
           const loadedFile: FileContent = {
             IDPROJECT: projectData?.idproject ? projectData?.idproject : -1,
             FILENAME: file.name,
-            FOLDERNAME: folderName,
+            FOLDERNAME: newFolderName,
             CONTENT: result,
           };
 
@@ -374,11 +406,25 @@ const CreateProfile: React.FC = () => {
         }
       }
     }
+    e.target.value = "";
   };
 
   const loadNewExcelFolder = async (
     excelContent: ExcelContent
   ): Promise<boolean> => {
+    let newFolderName = excelContent.name;
+    let counter = 1;
+
+    while (
+      projectData?.folders.some(
+        (element) => element.foldername === newFolderName
+      )
+    ) {
+      newFolderName = `${excelContent.name} (${counter})`;
+      counter++;
+      console.log(counter);
+    }
+    excelContent.name = newFolderName;
     if (loadedProjectId) {
       try {
         excelContent.idproject = projectData?.idproject;
@@ -416,6 +462,7 @@ const CreateProfile: React.FC = () => {
         console.error("Chyba pri načítavaní dát:", error);
       }
     }
+
     return false;
   };
 
@@ -745,7 +792,7 @@ const CreateProfile: React.FC = () => {
     setSelectedFolder(0);
   };
 
-  const saveCalculatedColumn = async (
+  const saveCalculatedColumnWithEmptyData = async (
     column: ColumnDTO,
     calculatedIntensities: number[], //toto su cele data z nejakeho dovodu  chceme ibe tie dopocitane a bude to oke todooo
     excitation: number[]
@@ -793,6 +840,93 @@ const CreateProfile: React.FC = () => {
       }
 
       columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
+      const projectCopy: ProjectDTO = projectData!;
+      const updatedFolders = projectFolders;
+      projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
+        columnToRewrite;
+
+      if (
+        updatedFolders[selectedFolder].multiplied &&
+        updatedFolders[selectedFolder].folderData.profile
+      ) {
+        const newProfile = updatedFolders[selectedFolder].folderData.profile;
+        for (let i = 0; i < calculatedIntensities.length; i++) {
+          if (
+            columnToRewrite.intensity[i].multipliedintensity !== undefined &&
+            columnToRewrite.intensity[i].multipliedintensity! > newProfile[i]
+          ) {
+            newProfile[i] = columnToRewrite.intensity[i].multipliedintensity!;
+          }
+        }
+        updatedFolders[selectedFolder].profileData.profile = newProfile;
+        updatedFolders[selectedFolder].folderData.profile = newProfile;
+      }
+
+      updatedFolders[selectedFolder] = await fillFolder(
+        projectCopy.folders[selectedFolder]
+      );
+      updatedFolders[selectedFolder].tableData = await processDataForTable(
+        updatedFolders[selectedFolder]
+      );
+      setProjectData(projectCopy);
+      setProjectFolders(updatedFolders);
+      saveSessionData(projectCopy);
+    }
+    return true;
+  };
+
+  const saveCalculatedColumnWithSameData = async (
+    column: ColumnDTO,
+    calculatedIntensities: number[],
+    excitation: number[]
+  ): Promise<boolean> => {
+    console.log(column);
+    console.log(calculatedIntensities);
+    console.log(excitation);
+
+    const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
+      (x) => x.filename === column.name
+    );
+    const columntToRewriteIndex = projectFolders[
+      selectedFolder
+    ].folderData.data.findIndex((x) => x.filename === column.name);
+
+    if (columnToRewrite === undefined) return false;
+
+    if (loadedProjectId) {
+      const excitations: number[] = [];
+      const intensities: number[] = [];
+
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        if (calculatedIntensities[i] !== undefined) {
+          excitations.push(excitation[i]);
+          intensities.push(calculatedIntensities[i]);
+        }
+      }
+
+      const calculatedColumn: CalculatedDataDTO = {
+        calculatedintensities: intensities,
+        excitacions: excitations,
+        idfile: columnToRewrite.id,
+      };
+
+      await clientApi.replaceCalculatedData(calculatedColumn).catch(() => {
+        toast.error("Chyba pri ukladaní dát.");
+        return false;
+      });
+      loadProjectFromId();
+    } else {
+      columnToRewrite.intensity.sort((a, b) => a.excitation - b.excitation);
+
+      const allExcitations = columnToRewrite.intensity.map((x) => x.excitation);
+      for (let i = 0; i < calculatedIntensities.length; i++) {
+        const index = allExcitations.findIndex((x) => x === excitation[i]); //index kde sa nahradia calculated
+        if (index !== i) {
+          console.log("nerovna sa ");
+          columnToRewrite.intensity[index].intensity = calculatedIntensities[i];
+        }
+      }
+
       const projectCopy: ProjectDTO = projectData!;
       const updatedFolders = projectFolders;
       projectCopy.folders[selectedFolder].data[columntToRewriteIndex] =
@@ -1027,7 +1161,7 @@ const CreateProfile: React.FC = () => {
                       multiplied={!projectFolders[selectedFolder].multiplied}
                       tableData={projectFolders[selectedFolder].tableData!}
                       profile={projectFolders[selectedFolder].profileData}
-                      chartRef={chartRef}
+                      setGraphDialogOpen={setGraphDialogOpen}
                     />
                     <SaveToDbButton
                       loadedProjectId={loadedProjectId}
@@ -1113,12 +1247,14 @@ const CreateProfile: React.FC = () => {
                       />
 
                       <NunuButton
-                        onClick={() => {}}
+                        onClick={() => {
+                          setGraphDialogOpen(true);
+                        }}
                         bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
-                        label="Exportovať graf"
+                        label="Zväčšiť graf"
                         sx={{
                           maxWidth: "150px",
                           height: "40px",
@@ -1250,7 +1386,12 @@ const CreateProfile: React.FC = () => {
                           folders[selectedFolder].emptyDataColums = columns;
                           setProjectFolders(folders);
                         }}
-                        saveColumn={saveCalculatedColumn}
+                        saveColumnWithEmptyData={
+                          saveCalculatedColumnWithEmptyData
+                        }
+                        saveColumnWithSameData={
+                          saveCalculatedColumnWithSameData
+                        }
                       />
                     </Box>
                   </Box>
@@ -1258,6 +1399,12 @@ const CreateProfile: React.FC = () => {
               </Grid>
             </Grid>
           </Grid>
+          <GraphDialog
+            open={graphDialogOpen}
+            setOpen={setGraphDialogOpen}
+            options={options}
+            selectedFolder={selectedFolder}
+          />
         </>
       )}
     </>

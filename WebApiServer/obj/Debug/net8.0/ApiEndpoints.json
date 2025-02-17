@@ -1,5 +1,105 @@
 [
   {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "ChangeDatabankShareSettings",
+    "RelativePath": "DataBank/ChangeDatabankShareSettings",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shareData",
+        "Type": "WebApiServer.DTOs.ShareDatabankObjectDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "DeleteDatabankObject",
+    "RelativePath": "DataBank/DeleteDatabankObject/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "GetAllDatabankData",
+    "RelativePath": "DataBank/GetAllDatabankData",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[WebApiServer.DTOs.DatabankFolderDTO, WebApiServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "GetExcelsForUpload",
+    "RelativePath": "DataBank/GetExcelsForUpload",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ids",
+        "Type": "System.String[]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "UploadExcelToDatabank",
+    "RelativePath": "DataBank/UploadExcelToDatabank",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "excelFile",
+        "Type": "WebApiServer.DTOs.DatabankFileDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.DataBankController",
+    "Method": "UploadFolderToDatabank",
+    "RelativePath": "DataBank/UploadFolderToDatabank",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "folder",
+        "Type": "WebApiServer.DTOs.DatabankFolderDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "WebApiServer.Controllers.FactorController",
     "Method": "GetAll",
     "RelativePath": "Factor",
@@ -148,6 +248,22 @@
       {
         "Name": "loadedFiles",
         "Type": "WebApiServer.DTOs.FileContent[]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.ProjectController",
+    "Method": "CreateNewProjectWithDatabank",
+    "RelativePath": "Project/CreateNewProjectWithDatabank",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "data",
+        "Type": "WebApiServer.DTOs.DatabankDataToSend",
         "IsRequired": true
       }
     ],
@@ -335,6 +451,16 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "WebApiServer.Controllers.UserController",
+    "Method": "GetAllUsers",
+    "RelativePath": "User",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "WebApiServer.Controllers.UserController",

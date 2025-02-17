@@ -2,10 +2,39 @@
 
 NAJSKOR
 
-- [ ] pridat databanku na hlavnu stranku
-- [ ] skupiny databanky
-- [ ] ked je vela dat za sebou tak tiez na vypocet dat
-- [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
+- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
+
+- [ ] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
+
+- [x] ked je vela dat za sebou tak tiez na vypocet dat
+
+##
+
+TESTING dopocitania
+
+Session
+
+- [x] Prazdne data na konci
+- [x] Prazdne data v strede
+- [x] Prazdne data na konci a v strede
+- [x] Rovnake data 1x
+- [x] Prazdne data 2x
+- [x] Rovnake data 1x s prazdnymi
+- [x] Prazdne data 2x s prazdnymi
+
+Do db
+Session
+ASI OK
+
+- [ ] Prazdne data na konci
+- [ ] Prazdne data v strede
+- [ ] Prazdne data na konci a v strede
+- [ ] Rovnake data 1x
+- [ ] Prazdne data 2x
+- [ ] Rovnake data 1x s prazdnymi
+- [ ] Prazdne data 2x s prazdnymi
+
+##
 
 - [ ] preco ked niekedy nacitas stranku zmiznu projekty?
 - [ ] Google ucet
@@ -23,6 +52,11 @@ NAJSKOR
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+- [x] povolit nahravanie rovnakych priecinkov s tym ze sa prida ciselko bcs inak sa zle ulozia
+- [x] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
+- [x] ked nahravas excel musia sa zakliknut v poradi tie stlpceky to opravit
+- [x] pridat databanku na hlavnu stranku
+- [x] skupiny databanky
 - [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny
 - [x] lietanie cisel v exceli exportovat s ciarkami?
 - [x] ziadne faktory v batch upload

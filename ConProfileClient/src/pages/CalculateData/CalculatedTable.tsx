@@ -15,7 +15,7 @@ import { TableComponents, TableVirtuoso } from "react-virtuoso";
 interface CalculatedTableProps {
   excitacion: number[];
   intensities: (number | undefined)[];
-  calculatedIntensities?: number[];
+  calculatedIntensities?: (number | undefined)[];
 }
 export const CalculatedTable: React.FC<CalculatedTableProps> = ({
   excitacion,

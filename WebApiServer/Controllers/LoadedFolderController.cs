@@ -245,6 +245,47 @@ namespace WebApiServer.Controllers
           
 
         }
+        public static List<double?> RemoveLongRepeatingValues(List<double?> data, int minRepeatCount = 20)
+        {
+            if (data == null || data.Count == 0) return data;
+
+            List<double?> result = new List<double?>(data);
+            int count = 1;
+            double? lastValue = data[0];
+            int startIndex = 0;
+
+            for (int i = 1; i < data.Count; i++)
+            {
+                if (data[i] == lastValue && lastValue != 0)
+                {
+                    count++;
+                }
+                else
+                {
+                    if (count >= minRepeatCount && lastValue != 0)
+                    {
+                        for (int j = startIndex; j < startIndex + count; j++)
+                        {
+                            result[j] = null;
+                        }
+                    }
+                    count = 1;
+                    lastValue = data[i];
+                    startIndex = i;
+                }
+            }
+
+            if (count >= minRepeatCount && lastValue != 0)
+            {
+                for (int j = startIndex; j < startIndex + count; j++)
+                {
+                    result[j] = null;
+                }
+            }
+
+            return result;
+        }
+
 
 
         [HttpPost("AddCalculatedData")]
@@ -330,8 +371,67 @@ namespace WebApiServer.Controllers
                     Error = "Chyba pri uložení projektu: " + e.Message
                 });
             }
+        }
+
+        [HttpPost("ReplaceCalculatedData")]
+        public async Task<IActionResult> ReplaceCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+        {
+            try
+            {
+                if (calculatedData != null)
+                {
+                    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    string token;
+                    if (userToken == "") token = _userService.GenerateJwtToken();
+                    else token = userToken;
+                    var userEmail = Request.Headers["UserEmail"].ToString();
+
+                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                        return Unauthorized("Neplatné prihlásenie");
+
+                    //zobrat podla excitacie dane dato 
+
+                    LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
+                    double? factor = null;
+                    if (file.Factor.HasValue)
+                    {
+                        factor = file.Factor.Value;
+                    }
+
+                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                    {
+                        LoadedData dataToReplace = _context.LoadedDatas.Where(x => x.IdFile ==  calculatedData.IDFILE &&  x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
+                        dataToReplace.Intensity = calculatedData.CALCULATEDINTENSITIES[i];
+                        if (file.Factor.HasValue && factor.HasValue && factor != null )
+                        {
+                            double multiplied = dataToReplace.Intensity * factor.Value;
+                            dataToReplace.MultipliedIntensity = multiplied;
+                            ProfileData profile = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
+                            if(profile.MaxIntensity < multiplied)
+                            {
+                                profile.MaxIntensity = multiplied;
+                            }
+                        }
+                    };
+                    await _context.SaveChangesAsync();
+
+                     return Ok();
+                }
+                else
+                {
+                    return BadRequest("Chybný formát dát.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Error = "Chyba pri uložení projektu: " + e.Message
+                });
+            }
 
         }
+
 
 
         //if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
