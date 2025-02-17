@@ -35,7 +35,10 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 }) => {
   const [open, setOpen] = useState(false); // Stav pre modálne okno
   const [selectedTab, setSelectedTab] = useState(0); // Stav pre aktuálne vybraný tab
-  const [calculatedIntensities, setCalculatedIntensities] = useState<number[]>(
+  const [calculatedEmptyIntensities, setCalculatedEmptyIntensities] = useState<(number | undefined)[]>(
+    []
+  );
+  const [calculatedSameIntensities, setCalculatedSameIntensities] =  useState<(number | undefined)[]>(
     []
   );
   const [chartData, setChartData] = useState<ChartData[] | undefined>([]);
@@ -43,11 +46,18 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   const [options, setOptions] = useState<any>(null);
   const [isSameValues, setIsSameValues] = useState(false);
   const [isEmptyValues, setIsEmptyValues] = useState(false);
+  const [sameValuesRemoved, setSameValuesRemoved] = useState<(number | undefined)[]>([]);
 
   //ak ma vela hodnot za sebou da sa to ako usestate ze boolean a iba s undefined
   //dopocitat sa poslu tie
   //pri ulozeni sa poslu povodne a zas sa odstrania predtym v backende
 
+  useEffect(() => {
+    columns.forEach((element, index) => {
+      console.log(index + " " +element.intensities.filter((x) => x !== undefined).length);
+    });
+
+  },[columns[selectedTab].intensities]);
   useEffect(() => {
     if (columns.length === 0 || open === false) return;
     const issamevalues = hasTooManyRepeats(columns[selectedTab].intensities);
@@ -64,11 +74,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       yAxis: {
         type: "value",
         min: Math.min(
-          ...chartData.flatMap((obj) =>
-            obj.data.filter((value): value is number => value !== undefined)
-          )
-        ),
-        max: Math.max(
           ...chartData.flatMap((obj) =>
             obj.data.filter((value): value is number => value !== undefined)
           )
@@ -122,20 +127,21 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   //vysledok porovnat s povodnymi hodnotami
   //ak su nejake na rovnakom indexe dat do osobitneho pola ostatne do osobitneho
   //jedny pojdu do povodnej funkcie druhe do nahradzovacej
+
   function replaceLongRepeatingNumbers(
     numbers: (number | undefined)[],
     minRepeatCount: number = 20
   ): (number | undefined)[] {
     if (!numbers || numbers.length === 0) return numbers;
-
-    const result: (number | undefined)[] = [...numbers]; // Kopírujeme vstupné dáta
+  
+    const result: (number | undefined)[] = [...numbers]; // Kópia pôvodného poľa
     let count = 1;
     let lastValue = numbers[0];
     let startIndex = 0;
-
+  
     for (let i = 1; i < numbers.length; i++) {
       const currentValue = numbers[i];
-
+  
       if (
         currentValue === lastValue &&
         currentValue !== 0 &&
@@ -143,34 +149,30 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       ) {
         count++;
       } else {
-        // Ak je sekvencia príliš dlhá, nahradíme ju `undefined`
         if (
           count >= minRepeatCount &&
           lastValue !== 0 &&
           lastValue !== undefined
         ) {
           for (let j = startIndex; j < i; j++) {
-            result[j] = undefined;
+            result[j] = undefined; // Nastavíme na undefined len v kópii
           }
         }
-
-        // Resetujeme počítadlo
         count = 1;
         lastValue = currentValue;
         startIndex = i;
       }
     }
-
-    // Spracovanie poslednej série
+  
     if (count >= minRepeatCount && lastValue !== 0 && lastValue !== undefined) {
       for (let j = startIndex; j < numbers.length; j++) {
         result[j] = undefined;
       }
     }
-
-    return result;
+  
+    return result; // Vrátime kópiu, nemeníme originál
   }
-
+  
   const findgapStartValues = (numbers: (number | undefined)[]): number[] => {
     if (columns.length === 0 || open === false) return [];
 
@@ -206,7 +208,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 
   const handleClose = () => {
     setOpen(false);
-    setCalculatedIntensities([]);
+    setCalculatedEmptyIntensities([]);
     setChartData(undefined);
     setSelectedTab(0);
     setOptions(null);
@@ -215,14 +217,14 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     changeTab(newValue);
     const chartData: ChartData[] = [];
-    const issamevalues = hasTooManyRepeats(columns[selectedTab].intensities);
+    const issamevalues = hasTooManyRepeats(columns[newValue].intensities);
 
     chartData.push({
       data: columns[newValue].intensities,
       label: columns[newValue].name,
     });
     setIsSameValues(issamevalues);
-    setIsEmptyValues(columns[selectedTab].intensities.includes(undefined));
+    setIsEmptyValues(columns[newValue].intensities.includes(undefined));
     setOptions({
       xAxis: { type: "category", data: columns[newValue].excitations },
       yAxis: {
@@ -251,19 +253,63 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   };
 
   useEffect(() => {
-    console.log(isEmptyValues);
-    console.log(isSameValues);
+    console.log("Su tu prazdne hodnoty " + isEmptyValues);
+    console.log("Su tu rovnake hodnoty " + isSameValues);
   }, [isEmptyValues, isSameValues]);
   const changeTab = (newValue: number) => {
     setSelectedTab(newValue); // Zmena aktívneho tabu
-    setCalculatedIntensities([]);
+    setCalculatedEmptyIntensities([]);
   };
 
   const handleCalculateData = async () => {
+    let valuesToCalculate = [...columns[selectedTab].intensities];
+    if(isSameValues){
+      valuesToCalculate = replaceLongRepeatingNumbers(valuesToCalculate)
+      setSameValuesRemoved([...valuesToCalculate]); 
+        }
+
+      const columnToSend = {
+          ...columns[selectedTab], // Plytká kópia objektu
+          intensities: [...valuesToCalculate], // Hlboká kópia intenzít
+        };
+    
     await clientApi
-      .calculateEmptyData(columns[selectedTab])
+      .calculateEmptyData(columnToSend)
       .then(async (response) => {
-        setCalculatedIntensities(response.data.onlyValues);
+        const all : (number | undefined)[] = response.data.onlyValues;
+        const onlyEmpty = [];
+        const onlySame = [];
+        if(isEmptyValues){
+          for(let i = 0; i < all.length; i++){
+            if(columns[selectedTab].intensities[i] == undefined){
+              onlyEmpty[i] = all[i];
+            }
+            else {
+              onlyEmpty[i] = undefined;
+            }
+          }
+          setCalculatedEmptyIntensities(onlyEmpty);
+        }
+
+        if(isSameValues){
+          for(let i = 0; i < all.length; i++){
+            if(columns[selectedTab].intensities[i] != undefined && all[i] != null){
+              onlySame[i] = all[i];
+            }            else {
+              onlyEmpty[i] = undefined;
+            }
+          }
+          setCalculatedSameIntensities(onlySame);
+        }
+
+        console.log(onlyEmpty);
+        console.log(onlySame);
+        console.log(response.data.onlyValues);
+        console.log("pocet povodnych hodnot: " + columns[selectedTab].intensities.filter((x) => x !== undefined).length);
+        console.log("pocet vsetkych hodnot bez prazdnych: " + valuesToCalculate.filter((x) => x !== undefined).length);
+        console.log("pocet vsetkych dopocitanych hodnot: " + all.filter((x) => x !== null).length);
+        console.log("pocet chybajucich hodnot: " + onlyEmpty.filter((x) => x !== undefined).length);
+        console.log("pocet rovnakych hodnot: " + onlySame.filter((x) => x !== undefined).length);
         const newChartData = chartData!;
         newChartData.push({
           data: response.data.onlyValues,
@@ -287,13 +333,15 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   };
 
   const handleApplyDataWithEmptyData = async () => {
-    const intensities = calculatedIntensities.filter((x) => x !== null);
+    const intensities = calculatedEmptyIntensities.filter((x) => x !== undefined);
+    console.log(intensities);
     const onlyExcitations = [];
     for (let i = 0; i < columns[selectedTab].excitations.length; i++) {
       if (columns[selectedTab].intensities[i] === undefined) {
         onlyExcitations.push(columns[selectedTab].excitations[i]);
       }
     }
+    console.log(onlyExcitations); 
     const result = await saveColumnWithEmptyData(
       columns[selectedTab],
       intensities,
@@ -431,7 +479,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                     <CalculatedTable
                       excitacion={columns[selectedTab].excitations}
                       intensities={columns[selectedTab].intensities}
-                      calculatedIntensities={calculatedIntensities}
+                      calculatedIntensities={calculatedEmptyIntensities}
                     />
                   </Box>
                 </Box>
@@ -490,15 +538,19 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                           border: "2px solid #dcdbe7",
                         },
                         backgroundColor:
-                          calculatedIntensities.length > 0
+                          calculatedEmptyIntensities.length > 0
                             ? "#f6fafd"
                             : "#d5e1fb",
 
                         width: "60%",
                         marginBottom: "10px",
                       }}
-                      disabled={calculatedIntensities.length > 0}
-                      onClick={() => handleCalculateData()}
+                      disabled={calculatedEmptyIntensities.length > 0}
+                      onClick={() => {const oldColumns = JSON.stringify(columns);
+                        handleCalculateData();
+                        const newColumns = JSON.stringify(columns);
+                        
+                        console.log("Columns mutated?", oldColumns !== newColumns);}}
                     >
                       <Typography
                         sx={{
@@ -507,7 +559,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                           fontSize: "15px",
                           padding: "2px",
                           color:
-                            calculatedIntensities.length > 0
+                            calculatedEmptyIntensities.length > 0
                               ? "#84809c"
                               : "#514986",
                         }}
@@ -529,7 +581,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                           width: "60%",
                           marginBottom: "10px",
                           visibility:
-                            calculatedIntensities.length > 0
+                            calculatedEmptyIntensities.length > 0
                               ? "visible"
                               : "hidden",
                         }}
@@ -562,7 +614,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                           backgroundColor: "#d5e1fb",
                           width: "60%",
                           visibility:
-                            calculatedIntensities.length > 0
+                            calculatedEmptyIntensities.length > 0
                               ? "visible"
                               : "hidden",
                         }}
