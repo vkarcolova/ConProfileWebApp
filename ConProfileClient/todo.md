@@ -1,16 +1,12 @@
 # TODO
 
 NAJSKOR
-//pri dopocitani tam dat toto
-//vysledok porovnat s povodnymi hodnotami
-//ak su nejake na rovnakom indexe dat do osobitneho pola ostatne do osobitneho
-//jedny pojdu do povodnej funkcie druhe do nahradzovacej
 
-- [ ] ked je vela dat za sebou tak tiez na vypocet dat
-- [ ] na grafe inak dopocitane same inak empty
-- [ ] nejako tie tlacitka domysliet to chato
-- [ ] ked nahravas excel musia sa zakliknut v poradi tie stlpceky to opravit !
-- [ ] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
+- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
+
+- [ ] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
+
+- [x] ked je vela dat za sebou tak tiez na vypocet dat
 
 ##
 
@@ -28,6 +24,7 @@ Session
 
 Do db
 Session
+ASI OK
 
 - [ ] Prazdne data na konci
 - [ ] Prazdne data v strede
@@ -55,6 +52,9 @@ Session
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+- [x] povolit nahravanie rovnakych priecinkov s tym ze sa prida ciselko bcs inak sa zle ulozia
+- [x] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
+- [x] ked nahravas excel musia sa zakliknut v poradi tie stlpceky to opravit
 - [x] pridat databanku na hlavnu stranku
 - [x] skupiny databanky
 - [x] Aj tak by som asi pozrela iny chart asi je tento neefektivny

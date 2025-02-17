@@ -49,6 +49,7 @@ import { NunuButton } from "../../shared/components/NunuButton";
 import { UserMenu } from "./Components/UserMenu";
 import CalculateData from "../CalculateData/CalculateDataButtonDialog";
 import { AddFolderMenu } from "./Components/AddFolderMenu";
+import GraphDialog from "../GraphDialog/GraphDialog";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -60,6 +61,8 @@ const CreateProfile: React.FC = () => {
   const [projectFolders, setProjectFolders] = useState<AllFolderData[]>([]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [graphDialogOpen, setGraphDialogOpen] = useState(false);
+
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
   );
@@ -329,14 +332,19 @@ const CreateProfile: React.FC = () => {
         file.name.endsWith(".sp")
       );
       const folderName = filesArray[0].webkitRelativePath.split("/")[0];
-      if (
+      let newFolderName = folderName;
+      let counter = 1;
+
+      while (
         projectData?.folders.some(
-          (element) => element.foldername === folderName
+          (element) => element.foldername === newFolderName
         )
       ) {
-        toast.info("Priečinok s rovnakým názvom už bol do projektu nahraný.");
-        return;
+        newFolderName = `${folderName} (${counter})`;
+        counter++;
+        console.log(counter);
       }
+
       const loadedFiles: FileContent[] = [];
 
       const readFileAsync = (file: File): Promise<string> => {
@@ -359,7 +367,7 @@ const CreateProfile: React.FC = () => {
           const loadedFile: FileContent = {
             IDPROJECT: projectData?.idproject ? projectData?.idproject : -1,
             FILENAME: file.name,
-            FOLDERNAME: folderName,
+            FOLDERNAME: newFolderName,
             CONTENT: result,
           };
 
@@ -398,11 +406,25 @@ const CreateProfile: React.FC = () => {
         }
       }
     }
+    e.target.value = "";
   };
 
   const loadNewExcelFolder = async (
     excelContent: ExcelContent
   ): Promise<boolean> => {
+    let newFolderName = excelContent.name;
+    let counter = 1;
+
+    while (
+      projectData?.folders.some(
+        (element) => element.foldername === newFolderName
+      )
+    ) {
+      newFolderName = `${excelContent.name} (${counter})`;
+      counter++;
+      console.log(counter);
+    }
+    excelContent.name = newFolderName;
     if (loadedProjectId) {
       try {
         excelContent.idproject = projectData?.idproject;
@@ -440,6 +462,7 @@ const CreateProfile: React.FC = () => {
         console.error("Chyba pri načítavaní dát:", error);
       }
     }
+
     return false;
   };
 
@@ -1138,7 +1161,7 @@ const CreateProfile: React.FC = () => {
                       multiplied={!projectFolders[selectedFolder].multiplied}
                       tableData={projectFolders[selectedFolder].tableData!}
                       profile={projectFolders[selectedFolder].profileData}
-                      chartRef={chartRef}
+                      setGraphDialogOpen={setGraphDialogOpen}
                     />
                     <SaveToDbButton
                       loadedProjectId={loadedProjectId}
@@ -1224,12 +1247,14 @@ const CreateProfile: React.FC = () => {
                       />
 
                       <NunuButton
-                        onClick={() => {}}
+                        onClick={() => {
+                          setGraphDialogOpen(true);
+                        }}
                         bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
                         hoverBgColour="#1f1e2c"
-                        label="Exportovať graf"
+                        label="Zväčšiť graf"
                         sx={{
                           maxWidth: "150px",
                           height: "40px",
@@ -1374,6 +1399,12 @@ const CreateProfile: React.FC = () => {
               </Grid>
             </Grid>
           </Grid>
+          <GraphDialog
+            open={graphDialogOpen}
+            setOpen={setGraphDialogOpen}
+            options={options}
+            selectedFolder={selectedFolder}
+          />
         </>
       )}
     </>

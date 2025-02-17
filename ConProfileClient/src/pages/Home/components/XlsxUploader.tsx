@@ -108,8 +108,9 @@ const ExcelUploader: React.FC<ExcelUploaderProps> = ({
     if (selectedColumns.length === 0)
       return alert("Vyberte aspoň jeden stĺpec!");
 
+    const selected = selectedColumns.sort((a, b) => a - b);
     const header = tableData[headerRow].map((col, i) =>
-      selectedColumns.includes(i) ? col : null
+      selected.includes(i) ? col : null
     );
 
     const headers = header.filter((col) => col !== null);
