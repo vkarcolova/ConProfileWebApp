@@ -39,7 +39,7 @@ namespace WebApiServer.Controllers
                 var userEmail = Request.Headers["UserEmail"].ToString();
 
                 if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                    return Unauthorized("Neplatné prihlásenie");
+                    return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                 var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
                               && p.IdProject == loadedFiles[0].IDPROJECT);
@@ -50,12 +50,12 @@ namespace WebApiServer.Controllers
                 }
                 else
                 {
-                    return BadRequest("Chybný formát dát.");
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -73,7 +73,7 @@ namespace WebApiServer.Controllers
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -87,7 +87,7 @@ namespace WebApiServer.Controllers
                 var userEmail = Request.Headers["UserEmail"].ToString();
 
                 if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                    return Unauthorized("Neplatné prihlásenie");
+                    return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                 var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
                               && p.IdProject == excelFile.IDPROJECT);
@@ -98,12 +98,12 @@ namespace WebApiServer.Controllers
                 }
                 else
                 {
-                    return BadRequest("Chybný formát dát.");
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -120,7 +120,7 @@ namespace WebApiServer.Controllers
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveï 400 Bad Request
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -134,7 +134,7 @@ namespace WebApiServer.Controllers
             }
             else
             {
-                return BadRequest("Chybný formát dát."); // Odpoveď 400 Bad Request
+                return BadRequest(new { message = "Chybný formát dát." }); 
             }
         }
 
@@ -159,7 +159,7 @@ namespace WebApiServer.Controllers
                     return BadRequest();
             }
 
-            return BadRequest("No files uploaded.");
+            return BadRequest(new { message = "Žiadne dáta neboli načítané." });
         }
         //result bude list column s tymi nazvami a tiez list neuspesnych column pre error
 
@@ -174,7 +174,7 @@ namespace WebApiServer.Controllers
         {
             if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
             {
-                return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
+                return BadRequest(new { message = "Nesprávne dáta." });
             }
 
             var validExcitacions = new List<double>();
@@ -194,7 +194,7 @@ namespace WebApiServer.Controllers
 
             if (validExcitacions.Count < 2)
             {
-                return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
+                return BadRequest(new { message = $"Stĺpec '{column.Name}' nemá dostatočne veľa dát na dopočítanie ďalších dát."});
             }
 
             // Vytvorenie spline interpolácie
@@ -302,7 +302,7 @@ namespace WebApiServer.Controllers
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
                     if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                        return Unauthorized("Neplatné prihlásenie");
+                        return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
 
@@ -361,7 +361,7 @@ namespace WebApiServer.Controllers
                 }
                 else
                 {
-                    return BadRequest("Chybný formát dát.");
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
             catch (System.Exception e)
@@ -387,7 +387,7 @@ namespace WebApiServer.Controllers
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
                     if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                        return Unauthorized("Neplatné prihlásenie");
+                        return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                     //zobrat podla excitacie dane dato 
 
@@ -419,7 +419,7 @@ namespace WebApiServer.Controllers
                 }
                 else
                 {
-                    return BadRequest("Chybný formát dát.");
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
             catch (System.Exception e)
@@ -431,60 +431,6 @@ namespace WebApiServer.Controllers
             }
 
         }
-
-
-
-        //if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
-        //{
-        //    return BadRequest("Invalid data: Intensity and Excitacion lists must have the same number of elements.");
-        //}
-
-        //var validExcitacions = new List<double>();
-        //var validIntensities = new List<double>();
-        //var onlyCalculated = new double?[column.Excitations.Count];
-
-        // Získanie platných dát (bez medzier)
-        //for (int i = 0; i < column.Intensities.Count; i++)
-        //{
-        //    if (column.Intensities[i].HasValue)
-        //    {
-        //        validExcitacions.Add(column.Excitations[i]);
-        //        validIntensities.Add(column.Intensities[i].Value);
-        //    }
-        //}
-
-        //if (validExcitacions.Count < 2)
-        //{
-        //    return BadRequest($"Column '{column.Name}' does not have enough valid data points for interpolation.");
-        //}
-
-        // Prevod platných dát do matíc (Accord.NET používa matice ako vstupy)
-        //double[][] inputs = validExcitacions.Select(x => new double[] { x }).ToArray();
-        //double[] outputs = validIntensities.ToArray();
-
-        // Inicializácia Gaussovského procesu s exponenciálnym jadrom
-        //var kernel = new Gaussian(1.0);
-        //var machine = new SupportVectorMachine<Gaussian>(1, kernel);
-
-        // Tréning modelu
-        //var teacher = new SequentialMinimalOptimization<Gaussian>()
-        //{
-        //    Complexity = 100 // Parameter C pre SVM
-        //};
-        //teacher.Learn(machine, inputs, outputs);
-
-        // Predikcia
-        //for (int i = 0; i < column.Excitations.Count; i++)
-        //{
-        //    if (!column.Intensities[i].HasValue)
-        //    {
-        //        double x = column.Excitations[i];
-        //        column.Intensities[i] = machine.Score(new double[] { x });
-        //        onlyCalculated[i] = column.Intensities[i].Value;
-        //    }
-        //}
-
-        //return Ok(new { Message = "Calculation completed with Gaussian Process", Column = column, OnlyValues = onlyCalculated });
 
     }
 }

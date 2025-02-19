@@ -23,6 +23,7 @@ import { NunuButton } from "../../../shared/components/NunuButton";
 import CustomInputAutocomplete from "../../../shared/components/CustomAutocomplete";
 import { toast } from "react-toastify";
 import ExcelUploader from "./XlsxUploader";
+import { useUserContext } from "../../../shared/context/useContext";
 
 interface BatchDataLoadButtonModalProps {}
 
@@ -38,6 +39,8 @@ const BatchDataLoadButtonModal: React.FC<
   const [spectrums, setSpectrums] = useState<string[]>([]);
   const [allFactors, setAllFactors] = React.useState<Factors[]>([]);
   const [inputFactors, setInputFactors] = React.useState<(number | null)[]>([]);
+
+  const { user } = useUserContext();
 
   useEffect(() => {
     if (openModal) return;
@@ -300,14 +303,19 @@ const BatchDataLoadButtonModal: React.FC<
             • Do tohto projektu je možné následne pridávať ďalšie priečinky,
             odoberať ich, meniť faktory, porovnávať koncentračné profily a
             exportovať výsledky. <br />
-            <b>2. Vytvoriť projektov pomocou súborov z databanky:</b> <br />
-            • Môžete vybrať vopred nahraté priečinky alebo XLSX súbory a pomocou
-            nich vytvoriť nový projekt. <br />
-            • Môžete nahrať svoje súbory pre všetkých alebo iba konkrétnych
-            užívateľov. <br />
-            <b>
-              3. Načítanie viacerých priečinkov naraz (zrýchlený režim):
-            </b>{" "}
+            {user !== null ? (
+              <>
+                <b>2. Vytvoriť projektov pomocou súborov z databanky:</b> <br />
+                • Môžete vybrať vopred nahraté priečinky alebo XLSX súbory a
+                pomocou nich vytvoriť nový projekt. <br />
+                • Môžete nahrať svoje súbory pre všetkých alebo iba konkrétnych
+                užívateľov. <br />
+                <b> 3.</b>
+              </>
+            ) : (
+              <b> 2.</b>
+            )}
+            <b>Načítanie viacerých priečinkov naraz (zrýchlený režim):</b>{" "}
             <br />• Priečinky sa automaticky načítajú a extrahujú sa z nich
             spektrá. <br />
             • Pre každé spektrum si užívateľ môže vybrať vhodný faktor. <br />•
@@ -387,34 +395,35 @@ const BatchDataLoadButtonModal: React.FC<
               multiple
               style={{ display: "none" }}
             />
-
-            <Button
-              variant="outlined"
-              sx={{
-                borderRadius: "30px",
-                backgroundColor: "#E4EBFD",
-
-                border: "2px solid #514986",
-                "&:hover": {
-                  border: "2px solid #dcdbe7",
-                },
-                width: "60%",
-              }}
-              onClick={() => navigate("/databanka/")}
-            >
-              <Typography
+            {user !== null && (
+              <Button
+                variant="outlined"
                 sx={{
-                  fontFamily: "Poppins",
-                  fontWeight: 500,
-                  fontSize: "15px",
-                  padding: "2px",
-                  color: "#514986",
+                  borderRadius: "30px",
+                  backgroundColor: "#E4EBFD",
+
+                  border: "2px solid #514986",
+                  "&:hover": {
+                    border: "2px solid #dcdbe7",
+                  },
+                  width: "60%",
                 }}
-                textTransform={"none"}
+                onClick={() => navigate("/databanka/")}
               >
-                Vybrať súbory v databanke
-              </Typography>
-            </Button>
+                <Typography
+                  sx={{
+                    fontFamily: "Poppins",
+                    fontWeight: 500,
+                    fontSize: "15px",
+                    padding: "2px",
+                    color: "#514986",
+                  }}
+                  textTransform={"none"}
+                >
+                  Vybrať súbory v databanke
+                </Typography>
+              </Button>
+            )}
 
             <Button
               variant="outlined"

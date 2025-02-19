@@ -207,7 +207,7 @@ const CreateProfile: React.FC = () => {
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
 
-      const threshold = 20;
+      const threshold = column.intensities.length * 0.05;
       let count = 1;
       let lastValue = column.intensities[0];
       let hasTooManyRepeats = false;

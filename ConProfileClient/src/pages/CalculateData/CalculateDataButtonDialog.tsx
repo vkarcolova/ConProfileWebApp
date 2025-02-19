@@ -133,7 +133,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   }, [open, columns]);
 
   const hasTooManyRepeats = (numbers: (number | undefined)[]): boolean => {
-    const threshold = 20;
+    const threshold = numbers.length * 0.05;
     let count = 1;
     let lastValue = numbers[0];
     let hasTooManyRepeats = false;
@@ -615,7 +615,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                     <CalculatedTable
                       excitacion={columns[selectedTab].excitations}
                       intensities={columns[selectedTab].intensities}
-                      calculatedIntensities={calculatedEmptyIntensities}
+                      emptyCalculatedIntensities={calculatedEmptyIntensities}
+                      sameCalculatedIntensities={calculatedSameIntensities}
                     />
                   </Box>
                 </Box>

@@ -181,7 +181,7 @@ namespace WebAPI.Controllers
             }
             else
             {
-                return BadRequest("Chybný formát dát.");
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -203,7 +203,8 @@ namespace WebAPI.Controllers
             List<FolderDTO> folders = new List<FolderDTO>();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized("Neplatné prihlásenie"); return Unauthorized(new { message = "Neplatné prihlásenie" });
+
             if (data.ids != null && data.ids.Count > 0)
             {
 
@@ -269,7 +270,7 @@ namespace WebAPI.Controllers
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
                     if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                        return Unauthorized("Neplatné prihlásenie");
+                        return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
                     int idproject = (_context.Projects.OrderByDescending(obj => obj.IdProject).FirstOrDefault()?.IdProject ?? 0) + 1;
@@ -357,7 +358,7 @@ namespace WebAPI.Controllers
                 }
                 else
                 {
-                    return BadRequest("Chybný formát dát.");
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
             catch (System.Exception e)
@@ -379,7 +380,7 @@ namespace WebAPI.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
 
@@ -479,7 +480,7 @@ namespace WebAPI.Controllers
 
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Project project = _context.Projects.Where(project =>
                                 project.IdProject == idproject && (project.Token == userToken || project.CreatedBy == userEmail)).FirstOrDefault();
@@ -502,7 +503,7 @@ namespace WebAPI.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Project projectToRemove = _context.Projects.Where(project =>
                                 project.IdProject == id && (project.Token == userToken || project.CreatedBy == userEmail)).FirstOrDefault();
@@ -538,7 +539,7 @@ namespace WebAPI.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
             var projectId = request.PROJECTID;
@@ -583,7 +584,7 @@ namespace WebAPI.Controllers
             _context.SaveChanges();
             if (failedToDelete.Count == 0) return Ok();
             else
-                return NotFound("Nasledujúce priečinky sa nepodarilo vymazať: " + string.Join(", ", failedToDelete));
+                return NotFound(new { message = "Nasledujúce priečinky sa nepodarilo vymazať: " + string.Join(", ", failedToDelete) });
 
         }
     }

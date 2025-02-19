@@ -18,25 +18,39 @@ import { clientApi } from "../../shared/apis";
 import { useUserContext } from "../../shared/context/useContext";
 import config from "../../../config";
 
-
 const LoginPage: React.FC = () => {
   const { loginUser } = useUserContext();
-  const [email, setEmail] = React.useState(config.apiUrl.includes("localhost") ? "admin@gmail.com" : "");
-  const [password, setPassword] = React.useState(config.apiUrl.includes("localhost") ? "admin" : "");
+  const [email, setEmail] = React.useState(
+    config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
+  );
+  const [password, setPassword] = React.useState(
+    config.apiUrl.includes("localhost") ? "admin" : ""
+  );
 
   const handleSubmit = async () => {
-    await clientApi.login(email, password).then((response) => { 
-      if (response.status === 200) {
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        const useremail = response.data.email;
-        localStorage.setItem("useremail", useremail);
-        toast.success("Užívateľ prihlásený");
-        loginUser(token, useremail);
-      }
-    }).catch((error) => {
-        toast.error('Chyba pri prihlásení: ' +  error.response.data);
-    });
+    await clientApi
+      .login(email, password)
+      .then((response) => {
+        if (response.status === 200) {
+          const token = response.data.token;
+          localStorage.setItem("token", token);
+          const useremail = response.data.email;
+          localStorage.setItem("useremail", useremail);
+          toast.success("Užívateľ prihlásený");
+          loginUser(token, useremail);
+        }
+      })
+      .catch((error) => {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Chyba pri prihlásení");
+        }
+      });
   };
   const defaultTheme = createTheme();
 
@@ -74,7 +88,7 @@ const LoginPage: React.FC = () => {
               autoComplete="email"
               autoFocus
               onChange={(e) => setEmail(e.target.value)}
-            value={email}
+              value={email}
             />
             <TextField
               margin="normal"
@@ -109,7 +123,7 @@ const LoginPage: React.FC = () => {
               }}
               onClick={handleSubmit}
             >
-              <Typography  variant="button" fontWeight={500} fontSize={"14px"}>
+              <Typography variant="button" fontWeight={500} fontSize={"14px"}>
                 Prihlásiť sa
               </Typography>
             </Button>

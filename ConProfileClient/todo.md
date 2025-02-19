@@ -2,9 +2,13 @@
 
 NAJSKOR
 
-- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
+- [x] aaaasi pridat error messages do toastov
+- [x] tabulka dopocitanych dat pridaj aj tie druhe
+- [ ] faktory ak nie su najdene k tomu nech su vzdy vsetky tie z db
+- [x] zmenit treshold na nejake percenta
 
-- [ ] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
+- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
+- [x] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
 
 - [x] ked je vela dat za sebou tak tiez na vypocet dat
 
@@ -42,9 +46,8 @@ ASI OK
 - [ ] Zda sa ze autocomplete spomaluje
 - [ ] Mazanie priecinku dat loading
 - [ ] 2222 cosi robi
-- [ ] Kliknem na graf zvacsi sa v modali
+- [x] Kliknem na graf zvacsi sa v modali
 - [ ] 15-92 ????
-- [ ] Ak rovnaky chart zmenit velkosti tych bodov tam a profil nejaku speci farbu a hrubsi
 - [ ] Skusit ci sa neda prerobit aby rychlejsie sa tie tabulky scrollovali
 - [ ] Loadingy - najprv na undefined a potom nedefined
 - [ ] Nech sa nedostane na neznamu stranku ale na /

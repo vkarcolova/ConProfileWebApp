@@ -32,12 +32,12 @@ namespace WebApiServer.Controllers
         {
 
             if (registerForm == null || registerForm.EMAIL == "" || registerForm.PASSWORD2 == "" || registerForm.PASSWORD == "") return BadRequest("Registračný formulár nebol vyplnený");
-            if (registerForm.PASSWORD != registerForm.PASSWORD2) return BadRequest("Heslá sa nezhodujú");
+            if (registerForm.PASSWORD != registerForm.PASSWORD2) return BadRequest(new { message = "Heslá sa nezhodujú" });
             
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == registerForm.EMAIL);
             if (existingUser != null)
             {
-                return BadRequest("Emailová adresa je už registrovaná.");
+                return BadRequest(new { message = "Emailová adresa je už registrovaná." });
             }
             var oldToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
@@ -67,12 +67,12 @@ namespace WebApiServer.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == loginUser.EMAIL);
             if (user == null)
             {
-                return Unauthorized("Nesprávne údaje.");
+                return Unauthorized(new { message = "Nesprávne údaje." });
             }
 
             if (!BCrypt.Net.BCrypt.EnhancedVerify(loginUser.PASSWORD, user.PasswordHash))
             {
-                return Unauthorized("Nesprávne údaje.");
+                return Unauthorized(new { message = "Nesprávne údaje." });
             }
 
             var oldToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -94,7 +94,7 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
             var allLoadedData = await _context.Users.Select(x => x.UserEmail).ToListAsync();
 
             return Ok(allLoadedData);

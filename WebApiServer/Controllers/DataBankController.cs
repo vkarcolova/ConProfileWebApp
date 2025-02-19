@@ -36,13 +36,13 @@ namespace WebApiServer.Controllers
         public async Task<IActionResult> UploadExcelToDatabank([FromBody] DatabankFileDTO excelFile)
         {
             if (excelFile == null || excelFile.Content == null)
-                return BadRequest("Neplatné dáta súboru.");
+                return BadRequest(new { message = "Neplatné dáta súboru." });
 
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie.");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             try
             {
@@ -79,7 +79,7 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie.");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             try
             {
@@ -135,7 +135,7 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             var folders = _context.DataBankFolders
                 .Where(folder =>
@@ -235,7 +235,7 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
             List<int> excelFileIds = ids
@@ -271,7 +271,7 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Regex regex = new Regex(@"^(?<prefix>[a-zA-Z]+)(?<number>\d+)$");
             Match match = regex.Match(id);
@@ -315,16 +315,13 @@ namespace WebApiServer.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
             if (shareData == null || string.IsNullOrEmpty(shareData.Id)) return BadRequest();
 
 
             Regex regex = new Regex(@"^(?<prefix>[a-zA-Z]+)(?<number>\d+)$");
             Match match = regex.Match(shareData.Id);
 
-            // prejst vsetkymi pouzivatelmi a najst ci je toto sharovanie v db ak nie pridat 
-            // ak je nejaky uzivatel na vyse odobrat
-            // skontrolvoat ci je public to iste ak nie zmenit
 
             if (match.Success)
             {
@@ -343,20 +340,21 @@ namespace WebApiServer.Controllers
 
                     var missingInNewUsers = oldUsers.Except(shareData.Users).ToList(); //pridat tychto do db
 
-                    foreach (var userToRemove in missingInOldUsers)
+                    foreach (var userToRemove in missingInNewUsers)
                     {
                         DatabankShareUsers share = _context.DatabankShareUsers.Where(x => x.UserId == userToRemove && x.ShareableId == idnumber && x.ShareableType == ShareableType.Folder).FirstOrDefault();
                         _context.DatabankShareUsers.Remove(share);
                     }
 
                     int idShare = 1;
-                    foreach(var userToAdd in missingInNewUsers)
+                    if (_context.DatabankShareUsers.Count() >= 1)
                     {
-                        if (_context.DatabankShareUsers.Count() >= 1)
-                        {
-                            idShare = _context.DatabankShareUsers.OrderByDescending(obj => obj.Id)
-                             .FirstOrDefault().Id + 1;
-                        }
+                        idShare = _context.DatabankShareUsers.OrderByDescending(obj => obj.Id)
+                         .FirstOrDefault().Id + 1;
+                    }
+                    foreach (var userToAdd in missingInOldUsers)
+                    {
+                  
                         var newShare = new DatabankShareUsers
                         {
                             CreatedBy = userEmail,
@@ -434,50 +432,5 @@ namespace WebApiServer.Controllers
 
         }
 
-        //[HttpPost("DeleteShareDatabankObjectWithUser")]
-        //public ActionResult DeleteShareDatabankObjectWithUser(ShareDatabankObjectDTO shareData)
-        //{
-        //    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-        //    var userEmail = Request.Headers["UserEmail"].ToString();
-
-        //    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-        //        return Unauthorized("Neplatné prihlásenie");
-        //    if (shareData == null || string.IsNullOrEmpty(shareData.Id) || string.IsNullOrEmpty(shareData.User)
-        //        || !_context.Users.Any(x => x.UserEmail == shareData.User)) return BadRequest();
-
-
-        //    Regex regex = new Regex(@"^(?<prefix>[a-zA-Z]+)(?<number>\d+)$");
-        //    Match match = regex.Match(shareData.Id);
-
-        //    if (match.Success)
-        //    {
-        //        string prefix = match.Groups["prefix"].Value;
-        //        int idnumber = int.Parse(match.Groups["number"].Value);
-
-        //        if (prefix == "folder")
-        //        {
-        //            DataBankFolder dataBankFolder = _context.DataBankFolders.Where(folder => folder.Id == idnumber).FirstOrDefault();
-        //            DatabankShareUsers share = _context.DatabankShareUsers.Where(x => x.UserId == shareData.User && x.ShareableId == idnumber && x.ShareableType == ShareableType.Folder ).FirstOrDefault();
-        //            if (dataBankFolder == null || share == null) return BadRequest();
-        //            _context.DatabankShareUsers.Remove(share);
-        //            _context.SaveChanges();
-        //            return Ok();
-
-        //        }
-        //        else if (prefix == "file")
-        //        {
-        //            DataBankFile file = _context.DataBankFiles.Where(x => x.Id == idnumber).FirstOrDefault();
-        //            DatabankShareUsers share = _context.DatabankShareUsers.Where(x => x.UserId == shareData.User && x.ShareableId == idnumber && x.ShareableType == ShareableType.File).FirstOrDefault();
-        //            if (file == null || share == null) return BadRequest();
-        //            _context.DatabankShareUsers.Remove(share);
-        //            _context.SaveChanges();
-        //            return Ok();
-        //        }
-
-        //    }
-
-        //    return BadRequest();
-
-        //}
     }
 }

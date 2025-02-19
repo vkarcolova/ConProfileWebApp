@@ -15,7 +15,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { DatabankObject } from "../DataBank";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { toast } from "react-toastify";
+import { Bounce, toast, ToastContainer } from "react-toastify";
 import { clientApi } from "../../../shared/apis";
 
 interface ObjectDrawerProps {
@@ -64,6 +64,7 @@ const ObjectDrawer: React.FC<ObjectDrawerProps> = ({
     if (usernameToShare.trim() === "") return;
     console.log(allUsers);
     if (!allUsers.includes(usernameToShare.trim())) {
+      alert("");
       toast.info("Používateľ neexistuje");
       return;
     }
@@ -129,6 +130,8 @@ const ObjectDrawer: React.FC<ObjectDrawerProps> = ({
     >
       {selectedFile && (
         <Box sx={{ width: 280, p: 2 }}>
+          <ToastContainer transition={Bounce} />
+
           <Typography variant="h6">ℹ️ Info o súbore</Typography>
           <Typography variant="body1">
             <strong>Názov:</strong> {selectedFile.name}

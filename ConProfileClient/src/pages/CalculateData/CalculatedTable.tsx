@@ -15,17 +15,20 @@ import { TableComponents, TableVirtuoso } from "react-virtuoso";
 interface CalculatedTableProps {
   excitacion: number[];
   intensities: (number | undefined)[];
-  calculatedIntensities?: (number | undefined)[];
+  emptyCalculatedIntensities: (number | undefined)[];
+  sameCalculatedIntensities: (number | undefined)[];
 }
 export const CalculatedTable: React.FC<CalculatedTableProps> = ({
   excitacion,
   intensities,
-  calculatedIntensities,
+  emptyCalculatedIntensities,
+  sameCalculatedIntensities,
 }) => {
   interface RowData {
     excitation: number;
     intensity: number | undefined;
-    calculatedIntensity: number | undefined;
+    emptyCalculatedIntensity?: number | undefined;
+    sameCalculatedIntensity?: number | undefined;
   }
 
   useEffect(() => {
@@ -36,15 +39,23 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
       const row: RowData = {
         excitation: excitacion[i],
         intensity: intensities[i],
-        calculatedIntensity: calculatedIntensities
-          ? calculatedIntensities[i]
+        emptyCalculatedIntensity: emptyCalculatedIntensities
+          ? emptyCalculatedIntensities[i]
+          : undefined,
+        sameCalculatedIntensity: sameCalculatedIntensities
+          ? sameCalculatedIntensities[i]
           : undefined,
       };
       rows.push(row);
     }
 
     setTableRows(rows);
-  }, [calculatedIntensities, excitacion, intensities]);
+  }, [
+    emptyCalculatedIntensities,
+    excitacion,
+    intensities,
+    sameCalculatedIntensities,
+  ]);
 
   const VirtuosoTableComponents: TableComponents<RowData> = {
     Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
@@ -63,6 +74,16 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
     TableBody: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
       <TableBody {...props} ref={ref} />
     )),
+  };
+
+  const returnRowNumber = (rowContent: RowData) => {
+    let result = rowContent.intensity?.toFixed(5);
+    if (rowContent.emptyCalculatedIntensity !== undefined) {
+      result = rowContent.emptyCalculatedIntensity.toFixed(5);
+    } else if (rowContent.sameCalculatedIntensity !== undefined) {
+      result = rowContent.sameCalculatedIntensity.toFixed(5);
+    }
+    return result;
   };
 
   function fixedHeaderContent() {
@@ -167,13 +188,19 @@ export const CalculatedTable: React.FC<CalculatedTableProps> = ({
             <Typography
               fontSize={"12px"}
               sx={{
-                color: rows.intensity === undefined ? "red" : "black",
-                fontWeight: rows.intensity === undefined ? "bold" : "normal",
+                color:
+                  rows.sameCalculatedIntensity !== undefined ||
+                  rows.emptyCalculatedIntensity !== undefined
+                    ? "red"
+                    : "black",
+                fontWeight:
+                  rows.sameCalculatedIntensity !== undefined ||
+                  rows.emptyCalculatedIntensity !== undefined
+                    ? "bold"
+                    : "normal",
               }}
             >
-              {rows.calculatedIntensity !== null && rows.calculatedIntensity !== undefined
-                ? rows.calculatedIntensity.toFixed(5)
-                : rows.intensity?.toFixed(5)}
+              {returnRowNumber(rows)}
             </Typography>
           </TableCell>
         </React.Fragment>

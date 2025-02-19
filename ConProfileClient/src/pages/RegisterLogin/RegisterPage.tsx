@@ -51,7 +51,15 @@ const RegisterPage: React.FC = () => {
         }
       })
       .catch((error) => {
-        toast.error("Chyba pri registrácii: " + error);
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Nepodarilo sa registrovať.");
+        }
       });
   };
 
