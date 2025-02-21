@@ -60,9 +60,6 @@ const GraphDialog: React.FC<GraphDialogProps> = ({
       maxWidth="lg"
       sx={{ height: "100vh" }}
     >
-      <DialogTitle sx={{ m: 0, paddingBottom: 0 }} id="customized-dialog-title">
-        Dopočítanie hodnôt pre súbor:
-      </DialogTitle>
       <IconButton
         aria-label="close"
         onClick={() => {
@@ -80,7 +77,7 @@ const GraphDialog: React.FC<GraphDialogProps> = ({
 
       <DialogContent
         sx={{
-          marginTop: "none",
+          marginTop: "32px",
           paddingBlock: "0px",
           height: "80vh", // Nastavíme výšku grafu
           display: "flex",
@@ -145,7 +142,7 @@ const GraphDialog: React.FC<GraphDialogProps> = ({
             }}
             textTransform={"none"}
           >
-            Exportovať graph
+            Exportovať graf
           </Typography>
         </Button>
       </DialogContent>

@@ -2,15 +2,10 @@
 
 NAJSKOR
 
-- [x] aaaasi pridat error messages do toastov
-- [x] tabulka dopocitanych dat pridaj aj tie druhe
+- [ ] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
 - [ ] faktory ak nie su najdene k tomu nech su vzdy vsetky tie z db
-- [x] zmenit treshold na nejake percenta
 
 - [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
-- [x] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
-
-- [x] ked je vela dat za sebou tak tiez na vypocet dat
 
 ##
 
@@ -55,6 +50,10 @@ ASI OK
 - [ ] Mazanie foldername neexistuje pri mazani projektu docasneho, skusit zas nahrat
 - [ ] Mam tam aj folderdata project data a vsetko mozne urcite sa to da zjednodusit
 
+- [x] zmenit treshold na nejake percenta
+- [x] aaaasi pridat error messages do toastov
+- [x] tabulka dopocitanych dat pridaj aj tie druhe
+- [x] z nejakeho dovodu ked nahravas do ulozeneho projektu a vsetko to ma prve miesta tak sa excitacia neulozi ako keby (mozno kaslat, feature?)
 - [x] povolit nahravanie rovnakych priecinkov s tym ze sa prida ciselko bcs inak sa zle ulozia
 - [x] Export obrazka inak asi nejako to s tym zvacsenym chartom ze pri exporte sa zobrazi v modali vacsi a daco take? alebo modal a tam bude export !
 - [x] ked nahravas excel musia sa zakliknut v poradi tie stlpceky to opravit

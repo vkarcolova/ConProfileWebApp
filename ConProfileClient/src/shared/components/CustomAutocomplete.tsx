@@ -23,9 +23,13 @@ const CustomInputAutocomplete: React.FC<CustomInputAutocompleteProps> = ({
   const [factors, setFactors] = React.useState<Factors[]>([]);
 
   useEffect(() => {
-    const filtered = allFactors.filter(
+    let filtered = allFactors.filter(
       (factor) => factor.spectrum === columnSpectrum
     );
+
+    if (filtered.length === 0) {
+      filtered = allFactors;
+    }
 
     setFactors(filtered);
     let factorValue = filtered.length > 0 ? filtered[0].factor.toString() : "";
