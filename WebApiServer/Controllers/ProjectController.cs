@@ -203,7 +203,7 @@ namespace WebAPI.Controllers
             List<FolderDTO> folders = new List<FolderDTO>();
 
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie"); return Unauthorized(new { message = "Neplatné prihlásenie" });
+               return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             if (data.ids != null && data.ids.Count > 0)
             {
