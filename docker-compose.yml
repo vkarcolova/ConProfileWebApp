@@ -10,8 +10,9 @@ services:
       context: ./WebApiServer
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-      - "3001:3001"
+      - "3002:3000"
+      - "3003:3001"
+    restart: always
     depends_on:
       - db
     command:
@@ -23,6 +24,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
+    restart: always
   db:
     image: postgres:13
     environment:
@@ -31,8 +33,10 @@ services:
       POSTGRES_DB: ConcentrationDataDb
     ports:
       - "5432:5432"
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:
+    external: true
