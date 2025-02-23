@@ -1,0 +1,11 @@
+/* Predvolené nastavenie - skrytý pre desktop verziu */
+.mobile-warning {
+  display: none;
+}
+
+/* Zobraziť iba na mobilných zariadeniach */
+@media (max-width: 768px) {
+  .mobile-warning {
+    display: flex; /* Zobrazí komponentu ako flexbox */
+  }
+}

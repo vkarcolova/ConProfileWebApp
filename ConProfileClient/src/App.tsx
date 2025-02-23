@@ -8,6 +8,7 @@ import TabsLoginRegister from "./pages/RegisterLogin/TabsLoginRegister";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataBank from "./pages/DataBank/DataBank";
+import MobileWarning from "./pages/MobileWarning/MobileWarning";
 
 const theme = createTheme({
   palette: {
@@ -28,6 +29,8 @@ function App() {
             padding: "0px",
           }}
         >
+          {" "}
+          <MobileWarning />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/uprava-profilu/" element={<CreateProfile />} />
