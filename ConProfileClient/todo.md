@@ -3,7 +3,6 @@
 NAJSKOR
 
 - [ ] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
-- [ ] faktory ak nie su najdene k tomu nech su vzdy vsetky tie z db
 
 - [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
 

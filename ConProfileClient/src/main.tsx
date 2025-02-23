@@ -10,13 +10,10 @@ import { UserProvider } from "./shared/context/UserContext.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <>
-    <React.StrictMode>
-      <BrowserRouter>
+    <BrowserRouter>
       <UserProvider>
-
         <App />
-        </UserProvider>
-      </BrowserRouter>
-    </React.StrictMode>
+      </UserProvider>
+    </BrowserRouter>
   </>
 );

@@ -289,10 +289,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     setChartData(chartData);
   };
 
-  useEffect(() => {
-    console.log("Su tu prazdne hodnoty " + isEmptyValues);
-    console.log("Su tu rovnake hodnoty " + isSameValues);
-  }, [isEmptyValues, isSameValues]);
   const changeTab = (newValue: number) => {
     setSelectedTab(newValue); // Zmena aktívneho tabu
     setCalculatedEmptyIntensities([]);
@@ -338,31 +334,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         }
         setCalculatedSameIntensities(onlySame);
       }
-      // console.log(columnToSend.intensities);
-      // console.log(all);
-      // console.log(onlyEmpty);
-      // console.log(onlySame);
-      // console.log(response.data.onlyValues);
-      // console.log(
-      //   "pocet povodnych hodnot: " +
-      //     columns[selectedTab].intensities.filter((x) => x !== undefined).length
-      // );
-      // console.log(
-      //   "pocet vsetkych hodnot bez prazdnych: " +
-      //     valuesToCalculate.filter((x) => x !== undefined).length
-      // );
-      // console.log(
-      //   "pocet vsetkych dopocitanych hodnot: " +
-      //     all.filter((x) => x !== null).length
-      // );
-      // console.log(
-      //   "pocet chybajucich hodnot: " +
-      //     onlyEmpty.filter((x) => x !== undefined).length
-      // );
-      // console.log(
-      //   "pocet rovnakych hodnot: " +
-      //     onlySame.filter((x) => x !== undefined).length
-      // );
+
       const newChartData = chartData!;
       const newSeries: any[] = [];
       if (isSameValues) {
@@ -404,18 +376,15 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 
   const handleApplyDataWithEmptyData = async () => {
     if (!isEmptyValues) return;
-    console.log(calculatedEmptyIntensities);
     const intensities = calculatedEmptyIntensities.filter(
       (x) => x !== undefined
     );
-    console.log(intensities);
     const onlyExcitations = [];
     for (let i = 0; i < columns[selectedTab].excitations.length; i++) {
       if (columns[selectedTab].intensities[i] === undefined) {
         onlyExcitations.push(columns[selectedTab].excitations[i]);
       }
     }
-    console.log(onlyExcitations);
     const result = await saveColumnWithEmptyData(
       columns[selectedTab],
       intensities,
@@ -423,7 +392,6 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     );
     if (result === true && !isSameValues) {
       //ak este nie su rovnake hodnoty
-      console.log("tu");
       const columnName = columns[selectedTab].name;
       const filteredColumns = columns.filter(
         (column) => column.name !== columnName
@@ -457,14 +425,12 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     const intensities = calculatedSameIntensities.filter(
       (x) => x !== undefined
     );
-    console.log(intensities);
     const onlyExcitations = [];
     for (let i = 0; i < columns[selectedTab].excitations.length; i++) {
       if (calculatedSameIntensities[i] !== undefined) {
         onlyExcitations.push(columns[selectedTab].excitations[i]);
       }
     }
-    console.log(onlyExcitations);
     const result = await saveColumnWithSameData(
       columns[selectedTab],
       intensities,

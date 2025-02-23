@@ -47,19 +47,9 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
   const [chartData, setChartData] = useState<ChartData[] | null>(null);
   const [statData, setStatData] = useState<StatData[]>([]);
 
-  // useEffect(() => {
-  //   console.log('folders, statdata,chartdata,cheked');
-  // console.log(folders);
-  // console.log(statData);
-  // console.log(chartData);
-  // console.log( checked);}
-  // ), [statData, chartData, checked];
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [options, setOptions] = useState<any>(null);
-  
 
-  
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string
@@ -82,7 +72,6 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
             label: data?.foldername || "Unknown",
           })) || [];
       setChartData(filteredFolders);
-
 
       const statList: StatData[] = [];
       filteredFolders.forEach((element) => {
@@ -109,27 +98,24 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         statList.push(statistics);
       });
 
-      
       setStatData(statList);
-  
+
       if (!folders) return;
-    
-    
+
       // Zjednotenie všetkých excitation hodnôt (unikátne a zoradené)
       const allExcitations = [
-        ...new Set(folders.flatMap(folder => folder.excitation))
+        ...new Set(folders.flatMap((folder) => folder.excitation)),
       ].sort((a, b) => a - b);
-    
+
       // Generovanie dátových sérií s mapovaním podľa excitation
       const series = filteredFolders.map(({ data, label }, index) => {
-
         const folderExcitation = folders[index].excitation; // Zodpovedajúce excitation
 
-        const mappedData = allExcitations.map(ex => {
+        const mappedData = allExcitations.map((ex) => {
           const dataIndex = folderExcitation.indexOf(ex);
           return dataIndex !== -1 ? data[dataIndex] : null; // Ak excitation existuje, použijeme hodnotu, inak null
         });
-        
+
         return {
           name: label,
           type: "line",
@@ -138,13 +124,13 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
           connectNulls: true,
         };
       });
-    
+
       setOptions({
         xAxis: { type: "category", data: allExcitations },
         yAxis: {
           type: "value",
-          min: Math.min(...statList.map(obj => obj.min)),
-          max: Math.max(...statList.map(obj => obj.max)),
+          min: Math.min(...statList.map((obj) => obj.min)),
+          max: Math.max(...statList.map((obj) => obj.max)),
           axisLabel: {
             formatter: (value: number) => value.toFixed(2), // Zaokrúhlenie na 2 desatinné miesta
           },
@@ -152,7 +138,6 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         series,
         tooltip: { trigger: "axis" },
         legend: { show: true },
-
       });
     } else {
       setChartData([]);
@@ -183,7 +168,8 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
           setChartData(null);
           setChecked([]);
           onClose();
-        }}        sx={{
+        }}
+        sx={{
           position: "absolute",
           right: 8,
           top: 8,

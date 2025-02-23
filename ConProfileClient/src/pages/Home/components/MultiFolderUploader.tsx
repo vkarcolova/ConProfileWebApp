@@ -146,7 +146,8 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
       await clientApi.batchProcessFolders(loadedFiles).then((response) => {
         setLoading(false);
         setFolders(response.data.folders);
-        setStep(3);
+        console.log(response.data.folders);
+        setStep(2);
       });
     } catch (error) {
       toast.error("Chyba pri načítavaní dát.");
@@ -161,13 +162,20 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
 
   return (
     <section className="container">
+      <Typography variant="body1">
+        <b>Načítanie viacerých priečinkov naraz (zrýchlený režim):</b> <br />
+        Priečinky sa automaticky načítajú a extrahujú sa z nich spektrá. Pre
+        každé spektrum si užívateľ môže v ďalšom kroku vybrať vhodný faktor. Po
+        spracovaní bude pripravený CSV súbor, ktorý si užívateľ môže okamžite
+        stiahnuť.
+      </Typography>
+      <br />
       <Box {...getRootProps({ className: "dropzone", style: style })}>
         <input {...getInputProps()} />
         <Typography variant="body1" textAlign="center">
           Presuňte sem priečinky na načítanie
         </Typography>
       </Box>
-
       <Box
         mt={2}
         display="flex"
@@ -183,7 +191,6 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
           <DeleteIcon />
         </IconButton>
       </Box>
-
       {loading && (
         <Backdrop
           sx={{
@@ -243,7 +250,6 @@ const MultiFolderUploader: React.FC<MultiFolderUploaderProps> = ({
           </Typography>
         )}
       </Box>
-
       <Box mt={2} display="flex" justifyContent="center">
         <NunuButton
           onClick={uploadFolders}

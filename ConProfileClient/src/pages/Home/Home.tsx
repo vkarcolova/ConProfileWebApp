@@ -6,6 +6,10 @@ import "./index.css";
 import {
   Box,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Grid,
   IconButton,
   Paper,
   Table,
@@ -14,6 +18,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
+  tooltipClasses,
   Typography,
 } from "@mui/material";
 import moment from "moment";
@@ -23,7 +29,12 @@ import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useUserContext } from "../../shared/context/useContext";
-import BatchDataLoadButtonModal from "./components/BatchDataLoadButtonModal";
+import BatchDataLoadModal from "./components/BatchDataLoadModal";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import StorageIcon from "@mui/icons-material/Storage";
+import UploadModal from "./components/UploadModal";
 
 const Home: React.FC = () => {
   const inputRefProject = useRef<HTMLInputElement>(null);
@@ -31,14 +42,18 @@ const Home: React.FC = () => {
   const [projectsData, setProjecsData] = useState<ProjectDTO[] | null>(null);
   const navigate = useNavigate();
   const { user, logoutUser } = useUserContext();
+  const [dataUploadDialogOpen, setDataUploadDialogOpen] =
+    useState<boolean>(false);
 
+  const [batchProcessFoldersDialogOpen, setBatchProcessFoldersDialogOpen] =
+    useState<boolean>(false);
   useEffect(() => {
-    console.log("user", user);
-    getProjectsByUser();
+    if (user != undefined) {
+      getProjectsByUser();
+    } else {
+      setProjecsData([]);
+    }
   }, [user]);
-  useEffect(() => {
-    console.log("projectsdata", projectsData);
-  }, [projectsData]);
 
   const handleSelectProject = () => {
     try {
@@ -115,6 +130,60 @@ const Home: React.FC = () => {
   const handleEditProject = async (id: number) => {
     navigate("/uprava-profilu/" + id);
   };
+  const options = [
+    {
+      label: "Načítať dáta a vytvoriť projekt",
+      icon: <CloudUploadIcon sx={{ fontSize: 48, color: "#625b92" }} />,
+      value: "loadData",
+      function: () => {
+        setDataUploadDialogOpen(true);
+      },
+      disabled: false,
+      tooltip: "",
+    },
+    {
+      label: "Načítať projekt",
+      icon: <AssignmentIcon sx={{ fontSize: 48, color: "#625b92" }} />,
+      value: "loadProject",
+      function: () => {
+        handleSelectProject();
+      },
+      disabled: false,
+      tooltip: "Načítanie projektu z exportovaného súboru.",
+    },
+    {
+      label: "Spracovať viac priečinkov",
+      icon: <FolderOpenIcon sx={{ fontSize: 48, color: "#625b92" }} />,
+      value: "processFolders",
+      function: () => {
+        setBatchProcessFoldersDialogOpen(true);
+      },
+      disabled: false,
+      tooltip: "Načítanie viacerých priečinkov naraz (zrýchlený režim).",
+    },
+    {
+      label: "Databanka",
+      icon: (
+        <StorageIcon
+          sx={{
+            fontSize: 48,
+            color: user !== null ? "#625b92" : "gray",
+          }}
+        />
+      ),
+      value: "databank",
+      function: () => {
+        if (user != null && user != undefined) {
+          navigate("/databanka/");
+        }
+      },
+      disabled: user == null || user == undefined ? true : false,
+      tooltip:
+        user != undefined || user != null
+          ? "Prezeranie a správa databanky."
+          : "Prezeranie a správa databanky. Prihláste sa pre prístup k databanke.",
+    },
+  ];
 
   return (
     <Box style={{ width: "100%", height: "100%" }}>
@@ -216,39 +285,78 @@ const Home: React.FC = () => {
             </>
           }
         />
-        <Box
-          className="emptydiv"
-          sx={{
-            minWidth: "100%",
-            minHeight: "20%",
-          }}
-        ></Box>
+
         <Box className="button-container">
-          <BatchDataLoadButtonModal />
-
-          <Button
-            onClick={handleSelectProject}
+          <UploadModal
+            openModal={dataUploadDialogOpen}
+            setOpenModal={setDataUploadDialogOpen}
+          />
+          <BatchDataLoadModal
+            openModal={batchProcessFoldersDialogOpen}
+            setOpenModal={setBatchProcessFoldersDialogOpen}
+          />
+          <Grid
+            container
+            spacing={3}
+            justifyContent="center"
             sx={{
-              backgroundColor: "rgba(59, 49, 119, 0.87)",
-              width: "300px",
-              borderRadius: "30px",
-              color: "white",
-              padding: "10px",
-              marginBlock: "5px",
-              textTransform: "none",
-              height: "70px",
-
-              "&:hover": {
-                backgroundColor: "#625b92",
-                color: "white",
-              },
-              boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+              padding: 3,
+              width: "45%",
+              height: "50%",
+              paddingTop: { lg: 13, xl: 20 },
             }}
           >
-            <Typography fontWeight={500} fontSize={"20px"}>
-              Načítať projekt
-            </Typography>
-          </Button>
+            {options.map((option) => (
+              <Tooltip
+                enterDelay={500}
+                slotProps={{
+                  popper: {
+                    sx: {
+                      [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                        {
+                          marginTop: "2px",
+                          fontSize: "12px",
+                        },
+                    },
+                  },
+                }}
+                title={option.tooltip}
+              >
+                <Grid item key={option.value} xs={12} sm={6}>
+                  <Card
+                    sx={{
+                      height: { lg: 140, xl: 200 },
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 5,
+                      backgroundColor: "#f6f5f5",
+                    }}
+                  >
+                    <CardActionArea
+                      onClick={option.function}
+                      sx={{ height: "100%" }}
+                      disabled={option.disabled}
+                    >
+                      <CardContent sx={{ textAlign: "center" }}>
+                        {option.icon}
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            marginTop: 1,
+                            color: option.disabled ? "gray" : "black",
+                          }}
+                        >
+                          {option.label}
+                        </Typography>
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                </Grid>
+              </Tooltip>
+            ))}
+          </Grid>
+
           <input
             type="file"
             id="fileInput"
@@ -262,7 +370,6 @@ const Home: React.FC = () => {
         <Box
           className="welcomebar"
           sx={{
-            position: "absolute",
             bottom: { xl: "100px", md: "50px", xs: "30px" },
           }}
         >
@@ -295,6 +402,7 @@ const Home: React.FC = () => {
                       maxHeight: "200px",
                       bottom: 10,
                       boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
+                      borderRadius: "10px",
                     }}
                     component={Paper}
                   >

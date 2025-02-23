@@ -128,10 +128,6 @@ const CreateProfile: React.FC = () => {
   ]);
 
   useEffect(() => {
-    //console.log(projectData);
-  }, [projectData]);
-
-  useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
@@ -342,7 +338,6 @@ const CreateProfile: React.FC = () => {
       ) {
         newFolderName = `${folderName} (${counter})`;
         counter++;
-        console.log(counter);
       }
 
       const loadedFiles: FileContent[] = [];
@@ -422,7 +417,6 @@ const CreateProfile: React.FC = () => {
     ) {
       newFolderName = `${excelContent.name} (${counter})`;
       counter++;
-      console.log(counter);
     }
     excelContent.name = newFolderName;
     if (loadedProjectId) {
@@ -880,10 +874,6 @@ const CreateProfile: React.FC = () => {
     calculatedIntensities: number[],
     excitation: number[]
   ): Promise<boolean> => {
-    console.log(column);
-    console.log(calculatedIntensities);
-    console.log(excitation);
-
     const columnToRewrite = projectFolders[selectedFolder].folderData.data.find(
       (x) => x.filename === column.name
     );
@@ -922,7 +912,6 @@ const CreateProfile: React.FC = () => {
       for (let i = 0; i < calculatedIntensities.length; i++) {
         const index = allExcitations.findIndex((x) => x === excitation[i]); //index kde sa nahradia calculated
         if (index !== i) {
-          console.log("nerovna sa ");
           columnToRewrite.intensity[index].intensity = calculatedIntensities[i];
         }
       }

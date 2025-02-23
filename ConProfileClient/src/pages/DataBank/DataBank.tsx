@@ -120,7 +120,6 @@ export default function DataBank() {
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setObjects(data);
-      console.log(data);
     });
   };
 
@@ -178,7 +177,6 @@ export default function DataBank() {
     for (const file of filesArray) {
       try {
         const fileContent = await fileToBase64(file);
-        console.log("Base64 obsah súboru:", fileContent);
 
         const loadedFile: DataBankFileDTO = {
           folderId: null,

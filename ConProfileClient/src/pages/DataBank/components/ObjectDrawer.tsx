@@ -49,7 +49,6 @@ const ObjectDrawer: React.FC<ObjectDrawerProps> = ({
 
   useEffect(() => {
     if (selectedFile) {
-      console.log(selectedFile);
       setShareType(selectedFile.public ? "public" : "private");
       setSharedUsers(selectedFile.shares);
       setPreviousSharedUsers(selectedFile.shares);
@@ -62,7 +61,6 @@ const ObjectDrawer: React.FC<ObjectDrawerProps> = ({
 
   const handleAddUser = () => {
     if (usernameToShare.trim() === "") return;
-    console.log(allUsers);
     if (!allUsers.includes(usernameToShare.trim())) {
       alert("");
       toast.info("Používateľ neexistuje");
@@ -99,7 +97,6 @@ const ObjectDrawer: React.FC<ObjectDrawerProps> = ({
         users: sharedUsers,
       })
       .then((res) => {
-        console.log(res);
         if (res.status === 200) {
           setPreviousShareType(shareType);
           setPreviousSharedUsers(sharedUsers);
