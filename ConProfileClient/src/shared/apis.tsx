@@ -279,6 +279,24 @@ export const clientApi = {
     );
   },
 
+  calculateAjustedData: async (column: ColumnDTO, exampleData: number[]) => {
+    const AdjustedDataRequest = {
+      Column: column,
+      ReferenceSeries: exampleData,
+    };
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/CalculateAdjustedData`,
+      JSON.stringify(AdjustedDataRequest),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   saveCalculatedData: async (calculatedData: CalculatedDataDTO) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/AddCalculatedData`,

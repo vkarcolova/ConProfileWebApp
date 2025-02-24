@@ -12,7 +12,7 @@ import {
   Alert,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { ChartData, ColumnDTO } from "../../shared/types";
+import { AllFolderData, ChartData, ColumnDTO } from "../../shared/types";
 import { CalculatedTable } from "./CalculatedTable";
 import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../shared/apis";
@@ -32,6 +32,7 @@ interface CalculateDataProps {
     calculatedIntensities: number[],
     excitations: number[]
   ) => Promise<boolean>;
+  projectFolder: AllFolderData;
 }
 
 const CalculateData: React.FC<CalculateDataProps> = ({
@@ -39,6 +40,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   setColumns,
   saveColumnWithEmptyData,
   saveColumnWithSameData,
+  projectFolder,
 }) => {
   const [open, setOpen] = useState(false); // Stav pre modálne okno
   const [selectedTab, setSelectedTab] = useState(0); // Stav pre aktuálne vybraný tab
@@ -308,6 +310,9 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 
     await clientApi.calculateEmptyData(columnToSend).then(async (response) => {
       const all: (number | undefined)[] = response.data.onlyValues;
+      console.log(response);
+
+      console.log(all);
       const onlyEmpty = [];
       const onlySame = [];
       if (isEmptyValues) {
@@ -372,6 +377,123 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         series: [...(prevOptions?.series || []), ...newSeries], // pridáme novú sériu
       }));
     });
+  };
+
+  const handleCalculateAdjustData = async () => {
+    let valuesToCalculate = [...columns[selectedTab].intensities];
+    if (isSameValues) {
+      valuesToCalculate = replaceLongRepeatingNumbers(valuesToCalculate);
+    }
+
+    const columnToSend = {
+      ...columns[selectedTab], // Plytká kópia objektu
+      intensities: [...valuesToCalculate], // Hlboká kópia intenzít
+    };
+
+    const spectres = [0, 2, 8, 32, 128, 512];
+
+    const currentColSpectrum: number | undefined =
+      projectFolder.folderData.data.find(
+        (col) => col.filename === columnToSend.name
+      )?.spectrum;
+
+    if (
+      currentColSpectrum === undefined ||
+      currentColSpectrum === 0 ||
+      !spectres.includes(currentColSpectrum)
+    ) {
+      toast.error("Nepodarilo sa získať spektrum stĺpca");
+      return;
+    }
+    const currentIndex = spectres.indexOf(currentColSpectrum!);
+    const exampleColumnSpectre =
+      currentIndex > 0 ? spectres[currentIndex - 1] : currentColSpectrum;
+
+    const exampleData: number[] | undefined = projectFolder.folderData.data
+      .find((col) => col.spectrum === exampleColumnSpectre)
+      ?.intensity.map((value) => {
+        return value.intensity;
+      });
+
+    if (
+      currentColSpectrum === exampleColumnSpectre ||
+      exampleData === undefined
+    ) {
+      toast.error("Nepodarilo sa získať stlpec na porovnanie");
+      return;
+    }
+
+    await clientApi
+      .calculateAjustedData(columnToSend, exampleData)
+      .then(async (response) => {
+        const all: (number | undefined)[] = response.data.adjustedValues;
+        console.log(response);
+
+        console.log(all);
+        const onlyEmpty = [];
+        const onlySame = [];
+        if (isEmptyValues) {
+          for (let i = 0; i < all.length; i++) {
+            if (columns[selectedTab].intensities[i] == undefined) {
+              onlyEmpty[i] = all[i];
+            } else {
+              onlyEmpty[i] = undefined;
+            }
+          }
+          setCalculatedEmptyIntensities(onlyEmpty);
+        }
+
+        if (isSameValues) {
+          for (let i = 0; i < all.length; i++) {
+            if (
+              columns[selectedTab].intensities[i] != undefined &&
+              all[i] != null
+            ) {
+              onlySame[i] = all[i];
+            } else {
+              onlySame[i] = undefined;
+            }
+          }
+          setCalculatedSameIntensities(onlySame);
+        }
+
+        const newChartData = chartData!;
+        const newSeries: any[] = [];
+        if (isSameValues) {
+          newChartData.push({
+            data: onlySame,
+            label: "Dopočítané z rovnakých dát",
+          });
+          newSeries.push({
+            name: "Dopočítané z rovnakých dát",
+            type: "line",
+            data: onlySame,
+            smooth: true,
+            connectNulls: false,
+            color: "#ff0000",
+          });
+        }
+        if (isEmptyValues) {
+          newChartData.push({
+            data: onlyEmpty,
+            label: "Dopočítané z prázdnych dát",
+          });
+          newSeries.push({
+            name: "Dopočítané z prázdnych dát",
+            type: "line",
+            data: onlyEmpty,
+            smooth: true,
+            connectNulls: false,
+            color: "green",
+          });
+        }
+
+        setChartData(newChartData);
+        setOptions((prevOptions: any) => ({
+          ...prevOptions, // zachovávame všetky predchádzajúce vlastnosti options
+          series: [...(prevOptions?.series || []), ...newSeries], // pridáme novú sériu
+        }));
+      });
   };
 
   const handleApplyDataWithEmptyData = async () => {
@@ -676,7 +798,51 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                       >
                         Dopočítať chýbajúce hodnoty
                       </Typography>
-                    </Button>
+                    </Button>{" "}
+                    {/* <Button
+                      variant="outlined"
+                      sx={{
+                        borderRadius: "30px",
+                        border: "2px solid #514986",
+                        "&:hover": {
+                          border: "2px solid #dcdbe7",
+                        },
+                        backgroundColor:
+                          calculatedEmptyIntensities.length > 0
+                            ? "#f6fafd"
+                            : "#d5e1fb",
+
+                        width: "60%",
+                        marginBottom: "10px",
+                      }}
+                      disabled={
+                        !(
+                          (isEmptyValues &&
+                            calculatedEmptyIntensities.length == 0) ||
+                          (isSameValues &&
+                            calculatedSameIntensities.length == 0)
+                        )
+                      }
+                      onClick={() => {
+                        handleCalculateAdjustData();
+                      }}
+                    > 
+                      <Typography
+                        sx={{
+                          fontFamily: "Poppins",
+                          fontWeight: 500,
+                          fontSize: "15px",
+                          padding: "2px",
+                          color:
+                            calculatedEmptyIntensities.length > 0
+                              ? "#84809c"
+                              : "#514986",
+                        }}
+                        textTransform={"none"}
+                      >
+                        Dopočítať hodnoty podľa iného stĺpca
+                      </Typography>
+                    </Button>*/}
                     {isEmptyValues && (
                       <Button
                         variant="outlined"

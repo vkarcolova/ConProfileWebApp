@@ -139,4 +139,10 @@ namespace WebApiServer.DTOs
         public List<string> Users { get; set; }
         public bool Public { get; set; }
     }
+
+    public class AdjustedDataRequest
+    {
+        public ColumnDTO Column { get; set; }
+        public List<double> ReferenceSeries { get; set; }
+    }
 }

@@ -245,50 +245,97 @@ namespace WebApiServer.Controllers
           
 
         }
-        public static List<double?> RemoveLongRepeatingValues(List<double?> data, int minRepeatCount = 20)
+
+        [HttpPost("CalculateAdjustedData")]
+        public async Task<IActionResult> CalculateAdjustedData([FromBody] AdjustedDataRequest request)
         {
-            if (data == null || data.Count == 0) return data;
 
-            List<double?> result = new List<double?>(data);
-            int count = 1;
-            double? lastValue = data[0];
-            int startIndex = 0;
-
-            for (int i = 1; i < data.Count; i++)
-            {
-                if (data[i] == lastValue && lastValue != 0)
+                if (request == null || request.Column == null || request.ReferenceSeries == null)
                 {
-                    count++;
+                    return BadRequest(new { message = "Nesprávne dáta." });
                 }
-                else
+
+                if (request.Column.Intensities == null ||
+                    request.Column.Excitations == null ||
+                    request.Column.Intensities.Count != request.Column.Excitations.Count ||
+                    request.Column.Intensities.Count != request.ReferenceSeries.Count)
                 {
-                    if (count >= minRepeatCount && lastValue != 0)
+                    return BadRequest(new { message = "Nesprávne dáta stĺpca alebo referenčná séria." });
+                }
+
+                // Získame platné hodnoty z pôvodných dát, aby sme vypočítali škálovací faktor.
+                var validIntensities = request.Column.Intensities
+                    .Where(x => x.HasValue)
+                    .Select(x => x.Value)
+                    .ToList();
+
+                if (validIntensities.Count == 0)
+                {
+                    return BadRequest(new { message = "Stĺpec neobsahuje žiadne platné dáta na dopočítanie." });
+                }
+
+                double meanColumn = validIntensities.Average();
+                double meanReference = request.ReferenceSeries.Average();
+
+                if (meanReference == 0)
+                {
+                    return BadRequest(new { message = "Referenčná séria obsahuje len nulové hodnoty." });
+                }
+
+                double scaleFactor = meanColumn / meanReference;
+
+                // Vytvoríme nové pole computedIntensities rovnakej dĺžky, kde budú dopočítané len tie hodnoty, kde pôvodne chýbali.
+                var computedIntensities = new double?[request.Column.Intensities.Count];
+                int lastValidIndex = -1;
+                double gapOffset = 0; // offset, ktorý použijeme pre aktuálny gap
+
+                for (int i = 0; i < request.Column.Intensities.Count; i++)
+                {
+                    if (request.Column.Intensities[i].HasValue)
                     {
-                        for (int j = startIndex; j < startIndex + count; j++)
+                        // Ak je hodnota platná, ponecháme computedIntensities[i] ako null,
+                        // pretože chceme len dopočítať tie miesta, kde pôvodne chýbali dáta.
+                        lastValidIndex = i;
+                        computedIntensities[i] = null;
+                    }
+                    else
+                    {
+                        // Vypočítame kandidátsku hodnotu z referenčnej série.
+                        double candidate = request.ReferenceSeries[i] * scaleFactor;
+
+                        if (lastValidIndex >= 0)
                         {
-                            result[j] = null;
+                            // Ak je to prvý chýbajúci bod po platnej hodnote, vypočítame offset
+                            if (i == lastValidIndex + 1)
+                            {
+                                double lastValid = request.Column.Intensities[lastValidIndex].Value;
+                                gapOffset = lastValid - candidate;
+                            }
+                            // Nakonvertujeme candidate pridaním offsetu, aby prvý dopočítaný bod bol presne lastValid.
+                            computedIntensities[i] = candidate + gapOffset;
+                        }
+                        else
+                        {
+                            // Ak zatiaľ nebola žiadna platná hodnota, jednoducho použijeme candidate.
+                            computedIntensities[i] = candidate;
                         }
                     }
-                    count = 1;
-                    lastValue = data[i];
-                    startIndex = i;
                 }
-            }
 
-            if (count >= minRepeatCount && lastValue != 0)
-            {
-                for (int j = startIndex; j < startIndex + count; j++)
+                return Ok(new
                 {
-                    result[j] = null;
-                }
+                    Message = "Calculation completed",
+                    Column = request.Column,
+                    AdjustedValues = computedIntensities
+                });
             }
 
-            return result;
-        }
 
 
 
-        [HttpPost("AddCalculatedData")]
+
+
+            [HttpPost("AddCalculatedData")]
         public async Task<IActionResult> AddCalculatedData([FromBody] CalculatedDataDTO calculatedData)
         {
             try

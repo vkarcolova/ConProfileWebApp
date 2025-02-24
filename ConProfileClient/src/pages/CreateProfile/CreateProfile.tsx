@@ -1381,6 +1381,7 @@ const CreateProfile: React.FC = () => {
                         saveColumnWithSameData={
                           saveCalculatedColumnWithSameData
                         }
+                        projectFolder={projectFolders[selectedFolder]}
                       />
                     </Box>
                   </Box>

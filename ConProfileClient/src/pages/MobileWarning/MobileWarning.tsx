@@ -20,7 +20,6 @@ const MobileWarning: React.FC = () => {
         border: "2px solid #e5a900",
         borderRadius: "8px",
         margin: "0",
-        display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
