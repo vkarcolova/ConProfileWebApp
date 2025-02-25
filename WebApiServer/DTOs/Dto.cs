@@ -145,4 +145,18 @@ namespace WebApiServer.DTOs
         public ColumnDTO Column { get; set; }
         public List<double> ReferenceSeries { get; set; }
     }
+
+    public class DeleteUserDTO
+    {
+        public string Password { get; set;}
+        public bool DeleteDatabankData { get; set; }
+    }
+
+    public class ChangePasswordDTO
+    {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set;}
+        public string ConfirmPassword { get; set; }
+
+    }
 }

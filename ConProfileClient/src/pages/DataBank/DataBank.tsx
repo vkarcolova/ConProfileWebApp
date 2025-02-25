@@ -18,6 +18,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DownloadIcon from "@mui/icons-material/Download";
 import InfoIcon from "@mui/icons-material/Info";
+import SettingsIcon from "@mui/icons-material/Settings";
 import UploadFileIcon from "@mui/icons-material/Upload";
 import { AppBarLogin } from "../../shared/components/AppBarLogin";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ import {
 } from "../../shared/types";
 import DatabankExcelUploader from "./components/DatabankExcelDialog";
 import ObjectDrawer from "./components/ObjectDrawer";
+import SettingsDialog from "../Home/components/SettingsDialog";
 
 export interface DatabankObject {
   id: string;
@@ -57,6 +59,8 @@ export default function DataBank() {
   const [selectedExcelContents, setSelectedExcelContents] = useState<
     DatabankExcelContentDTO[]
   >([]);
+  const [userSettingsDialogOpen, setUserSettingsDialogOpen] =
+    useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logoutUser } = useUserContext();
@@ -319,6 +323,11 @@ export default function DataBank() {
     >
       {user && (
         <>
+          {" "}
+          <SettingsDialog
+            open={userSettingsDialogOpen}
+            onClose={() => setUserSettingsDialogOpen(false)}
+          />
           <AppBarLogin
             content={
               <>
@@ -336,6 +345,16 @@ export default function DataBank() {
                       {user.email}
                     </span>
                   </Typography>
+                  <IconButton
+                    color="primary"
+                    sx={{
+                      marginLeft: "8px",
+                      color: "rgba(59, 49, 119, 0.87)",
+                    }}
+                    onClick={() => setUserSettingsDialogOpen(true)}
+                  >
+                    <SettingsIcon />
+                  </IconButton>
                   <Button
                     onClick={() => {
                       logoutUser();
@@ -438,7 +457,6 @@ export default function DataBank() {
               </Button>
             </div>
           </Paper>
-
           <Box
             sx={{
               flex: 1,
@@ -528,13 +546,11 @@ export default function DataBank() {
               Použiť vybrané súbory v novom projekte ({selectedFiles.length})
             </Button>
           </Box>
-
           <ObjectDrawer
             selectedFile={selectedFile}
             setSelectedFile={setSelectedFile}
             refreshData={refreshData}
           />
-
           {selectedExcelContents.length > 0 && (
             <DatabankExcelUploader
               excelContentsFromDb={selectedExcelContents}

@@ -44,6 +44,38 @@ namespace WebApiServer.Services
         }
 
 
+        public static int ExtractSpectrum(string fileName)
+        {
+            int spectrum = -1;
+
+            // Prvý regex: číslo pred ".sp" alebo "sp.sp"
+            string pattern1 = @"\d+(?=(\.sp|sp\.sp))";
+            Match match1 = Regex.Match(fileName, pattern1);
+            if (match1.Success && int.TryParse(match1.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result1))
+            {
+                return result1;
+            }
+
+            // Druhý regex: číslo po "_"
+            string pattern2 = @"_(\d+)";
+            Match match2 = Regex.Match(fileName, pattern2);
+            if (match2.Success && int.TryParse(match2.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result2))
+            {
+                return result2;
+            }
+
+            int[] validNumbers = { 0, 2, 8, 32, 128, 512 };
+            foreach (int num in validNumbers)
+            {
+                if (fileName.Contains(num.ToString()))
+                {
+                    return num;
+                }
+            }
+
+            return spectrum;
+        }
+
         //POTREBUJEM BEZ ULOZENIA DO DB
         public FolderDTO ProcessUploadedFolder(FileContent[] loadedFiles)
         {
@@ -91,13 +123,7 @@ namespace WebApiServer.Services
                     {
                         FileContent file = loadedFiles[i];
                         List<IntensityDTO> intensityList = new List<IntensityDTO>();
-                        int spectrum = -1;
-                        string pattern = @"\d+(?=(\.sp|sp\.sp))";     //cisla co su po m a pred . 
-                        Match typeOfData = Regex.Match(file.FILENAME, pattern);
-                        if (int.TryParse(typeOfData.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out int resultType))
-                        {
-                            spectrum = resultType;
-                        }
+                        int spectrum = ExtractSpectrum(file.FILENAME);
 
                         string[] lines = file.CONTENT.Split('\n');
                         bool startReading = false;
@@ -326,13 +352,8 @@ namespace WebApiServer.Services
                     for (int i = 0; i < loadedFiles.Length; i++)
                     {
                         FileContent file = loadedFiles[i];
-                        int spectrum = -1;
-                        string pattern = @"\d+(?=(\.sp|sp\.sp))"; //cisla co su po m a pred . 
-                        Match typeOfData = Regex.Match(file.FILENAME, pattern);
-                        if (int.TryParse(typeOfData.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out int resultType))
-                        {
-                            spectrum = resultType;
-                        }
+                         int spectrum = ExtractSpectrum(file.FILENAME);
+
 
                         LoadedFile newFile = new LoadedFile
                         {
@@ -450,14 +471,8 @@ namespace WebApiServer.Services
 
                     for (int i = 1; i < content.DATA.Length; i++) //kazdy stlpcek
                     {
-                        string pattern = @"_(\d+)";
-                        int spectrum = -1;
-                        Match typeOfData = Regex.Match(content.HEADER[i], pattern);
+                        int spectrum = ExtractSpectrum(content.HEADER[i]);
 
-                        if (typeOfData.Success && int.TryParse(typeOfData.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultType))
-                        {
-                            spectrum = resultType;
-                        }
                         LoadedFile newFile = new LoadedFile
                         {
                             FileName = content.HEADER[i],
@@ -521,14 +536,8 @@ namespace WebApiServer.Services
                 for (int i = 1; i < content.DATA.Length; i++) //kazdy stlpcek
                 {
                     List<IntensityDTO> intensityList = new List<IntensityDTO>();
-                    string pattern = @"_(\d+)";
-                    int spectrum = -1;
-                    Match typeOfData = Regex.Match(content.HEADER[i], pattern);
+                    int spectrum = ExtractSpectrum(content.HEADER[i]);
 
-                    if (typeOfData.Success && int.TryParse(typeOfData.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultType))
-                    {
-                        spectrum = resultType;
-                    }
                     for (int j = 0; j < content.DATA[0].Length; j++)
                     {
                         string value = content.DATA[i][j];

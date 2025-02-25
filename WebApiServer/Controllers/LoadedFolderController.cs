@@ -109,7 +109,8 @@ namespace WebApiServer.Controllers
 
 
         [HttpPost("PostNewExcelToSession")] //pridavanie priecinku bez noveho projektu
-        public async Task<IActionResult> PostNewExcelToSession([FromBody] ExcelFileContent excelFile) { 
+        public async Task<IActionResult> PostNewExcelToSession([FromBody] ExcelFileContent excelFile)
+        {
             // Spracovanie prijatých súborov
             if (excelFile != null)
             {
@@ -134,7 +135,7 @@ namespace WebApiServer.Controllers
             }
             else
             {
-                return BadRequest(new { message = "Chybný formát dát." }); 
+                return BadRequest(new { message = "Chybný formát dát." });
             }
         }
 
@@ -194,7 +195,7 @@ namespace WebApiServer.Controllers
 
             if (validExcitacions.Count < 2)
             {
-                return BadRequest(new { message = $"Stĺpec '{column.Name}' nemá dostatočne veľa dát na dopočítanie ďalších dát."});
+                return BadRequest(new { message = $"Stĺpec '{column.Name}' nemá dostatočne veľa dát na dopočítanie ďalších dát." });
             }
 
             // Vytvorenie spline interpolácie
@@ -242,100 +243,145 @@ namespace WebApiServer.Controllers
             }
 
             return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated, OnlyExcitations = onlyCalculatedExct });
-          
+
 
         }
 
         [HttpPost("CalculateAdjustedData")]
         public async Task<IActionResult> CalculateAdjustedData([FromBody] AdjustedDataRequest request)
         {
-
-                if (request == null || request.Column == null || request.ReferenceSeries == null)
-                {
-                    return BadRequest(new { message = "Nesprávne dáta." });
-                }
-
-                if (request.Column.Intensities == null ||
-                    request.Column.Excitations == null ||
-                    request.Column.Intensities.Count != request.Column.Excitations.Count ||
-                    request.Column.Intensities.Count != request.ReferenceSeries.Count)
-                {
-                    return BadRequest(new { message = "Nesprávne dáta stĺpca alebo referenčná séria." });
-                }
-
-                // Získame platné hodnoty z pôvodných dát, aby sme vypočítali škálovací faktor.
-                var validIntensities = request.Column.Intensities
-                    .Where(x => x.HasValue)
-                    .Select(x => x.Value)
-                    .ToList();
-
-                if (validIntensities.Count == 0)
-                {
-                    return BadRequest(new { message = "Stĺpec neobsahuje žiadne platné dáta na dopočítanie." });
-                }
-
-                double meanColumn = validIntensities.Average();
-                double meanReference = request.ReferenceSeries.Average();
-
-                if (meanReference == 0)
-                {
-                    return BadRequest(new { message = "Referenčná séria obsahuje len nulové hodnoty." });
-                }
-
-                double scaleFactor = meanColumn / meanReference;
-
-                // Vytvoríme nové pole computedIntensities rovnakej dĺžky, kde budú dopočítané len tie hodnoty, kde pôvodne chýbali.
-                var computedIntensities = new double?[request.Column.Intensities.Count];
-                int lastValidIndex = -1;
-                double gapOffset = 0; // offset, ktorý použijeme pre aktuálny gap
-
-                for (int i = 0; i < request.Column.Intensities.Count; i++)
-                {
-                    if (request.Column.Intensities[i].HasValue)
-                    {
-                        // Ak je hodnota platná, ponecháme computedIntensities[i] ako null,
-                        // pretože chceme len dopočítať tie miesta, kde pôvodne chýbali dáta.
-                        lastValidIndex = i;
-                        computedIntensities[i] = null;
-                    }
-                    else
-                    {
-                        // Vypočítame kandidátsku hodnotu z referenčnej série.
-                        double candidate = request.ReferenceSeries[i] * scaleFactor;
-
-                        if (lastValidIndex >= 0)
-                        {
-                            // Ak je to prvý chýbajúci bod po platnej hodnote, vypočítame offset
-                            if (i == lastValidIndex + 1)
-                            {
-                                double lastValid = request.Column.Intensities[lastValidIndex].Value;
-                                gapOffset = lastValid - candidate;
-                            }
-                            // Nakonvertujeme candidate pridaním offsetu, aby prvý dopočítaný bod bol presne lastValid.
-                            computedIntensities[i] = candidate + gapOffset;
-                        }
-                        else
-                        {
-                            // Ak zatiaľ nebola žiadna platná hodnota, jednoducho použijeme candidate.
-                            computedIntensities[i] = candidate;
-                        }
-                    }
-                }
-
-                return Ok(new
-                {
-                    Message = "Calculation completed",
-                    Column = request.Column,
-                    AdjustedValues = computedIntensities
-                });
+            if (request == null || request.Column == null || request.ReferenceSeries == null)
+            {
+                return BadRequest(new { message = "Nesprávne dáta." });
             }
 
+            // Overíme, či majú všetky zoznamy rovnakú dĺžku.
+            if (request.Column.Intensities == null ||
+                request.Column.Excitations == null ||
+                request.Column.Intensities.Count != request.Column.Excitations.Count ||
+                request.Column.Intensities.Count != request.ReferenceSeries.Count)
+            {
+                return BadRequest(new { message = "Nesprávne dáta stĺpca alebo referenčná séria." });
+            }
+
+            int n = request.Column.Intensities.Count;
+
+            // Získame platné hodnoty pre výpočet škálovacieho faktora.
+            var validIntensities = request.Column.Intensities
+                .Where(x => x.HasValue)
+                .Select(x => x.Value)
+                .ToList();
+
+            if (validIntensities.Count == 0)
+            {
+                return BadRequest(new { message = "Stĺpec neobsahuje žiadne platné dáta na dopočítanie." });
+            }
+
+            double meanColumn = validIntensities.Average();
+            double meanReference = request.ReferenceSeries.Average();
+
+            if (meanReference == 0)
+            {
+                return BadRequest(new { message = "Referenčná séria obsahuje len nulové hodnoty." });
+            }
+
+            double scaleFactor = meanColumn / meanReference;
+
+            // Výstupné pole – dopočítané hodnoty pre gap-y, inak null (čo znamená, že existujúca hodnota zostáva)
+            var computedIntensities = new double?[n];
+
+            // Pomocná funkcia pre lineárnu extrapoláciu (na začiatku alebo na konci)
+            double LinearExtrapolate(double x1, double y1, double x2, double y2, double x)
+            {
+                double slope = (y2 - y1) / (x2 - x1);
+                return y1 + slope * (x - x1);
+            }
+
+            int i = 0;
+            while (i < n)
+            {
+                // Ak je hodnota platná, necháme computedIntensities[i] ako null (t.j. už existujúce dáta sa nemenia)
+                if (request.Column.Intensities[i].HasValue)
+                {
+                    computedIntensities[i] = null;
+                    i++;
+                }
+                else
+                {
+                    // Detekujeme gap – súvislý úsek chýbajúcich hodnôt.
+                    int gapStart = i;
+                    while (i < n && !request.Column.Intensities[i].HasValue)
+                    {
+                        i++;
+                    }
+                    int gapEnd = i; // gapEnd je prvý index po gap-e, kde je hodnota platná (alebo n, ak gap pokračuje až do konca)
+
+                    // Ak je gap na začiatku, použijeme lineárnu extrapoláciu z prvej platnej hodnoty.
+                    if (gapStart == 0)
+                    {
+                        double x2 = request.Column.Excitations[gapEnd];
+                        double y2 = request.Column.Intensities[gapEnd].Value;
+                        for (int j = gapStart; j < gapEnd; j++)
+                        {
+                            double x = request.Column.Excitations[j];
+                            computedIntensities[j] = LinearExtrapolate(x2, y2, x2 + 1, y2, x); // Jednoduchá extrapolácia
+                        }
+                    }
+                    // Ak je gap na konci, extrapolujeme z poslednej platnej hodnoty.
+                    else if (gapEnd == n)
+                    {
+                        double x1 = request.Column.Excitations[gapStart - 1];
+                        double y1 = request.Column.Intensities[gapStart - 1].Value;
+                        for (int j = gapStart; j < gapEnd; j++)
+                        {
+                            double x = request.Column.Excitations[j];
+                            computedIntensities[j] = LinearExtrapolate(x1 - 1, y1, x1, y1, x); // Jednoduchá extrapolácia
+                        }
+                    }
+                    // Gap je uprostred, máme platný bod pred gapom aj po gapu.
+                    else
+                    {
+                        // Posledný platný bod pred gapom
+                        double x0 = request.Column.Excitations[gapStart - 1];
+                        double y0 = request.Column.Intensities[gapStart - 1].Value;
+                        // Prvý platný bod po gapu
+                        double x1 = request.Column.Excitations[gapEnd];
+                        double y1 = request.Column.Intensities[gapEnd].Value;
+
+                        // Kandidátske hodnoty z referenčnej série pre hranice gapu
+                        double candidateStart = request.ReferenceSeries[gapStart] * scaleFactor;
+                        double candidateEnd = request.ReferenceSeries[gapEnd] * scaleFactor;
+
+                        // Vypočítame lineárnu transformáciu, ktorá zabezpečí, že:
+                        // pri x = request.Column.Excitations[gapStart] bude computed = y0,
+                        // pri x = request.Column.Excitations[gapEnd] bude computed = y1.
+                        // Predpokladáme lineárnu mapovaciu funkciu: computed = a + b * (reference[i] * scaleFactor).
+                        // Určíme a a b:
+                        double b = (y1 - y0) / (candidateEnd - candidateStart + 1e-9);
+                        double a = y0 - b * candidateStart;
+
+                        // Pre každý index v gap-e dopočítať hodnotu:
+                        for (int j = gapStart; j < gapEnd; j++)
+                        {
+                            double candidate = request.ReferenceSeries[j] * scaleFactor;
+                            computedIntensities[j] = a + b * candidate;
+                        }
+                    }
+                }
+            }
+
+            return Ok(new
+            {
+                Message = "Calculation completed",
+                Column = request.Column,
+                AdjustedValues = computedIntensities
+            });
+        }
 
 
 
 
-
-            [HttpPost("AddCalculatedData")]
+        [HttpPost("AddCalculatedData")]
         public async Task<IActionResult> AddCalculatedData([FromBody] CalculatedDataDTO calculatedData)
         {
             try
@@ -361,7 +407,7 @@ namespace WebApiServer.Controllers
                         factor = file.Factor.Value;
                     }
 
-                        for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
                     {
                         LoadedData newData = new LoadedData
                         {
@@ -371,35 +417,36 @@ namespace WebApiServer.Controllers
                             IdFile = calculatedData.IDFILE
                         };
                         if (factor.HasValue)
-                            newData.MultipliedIntensity =  calculatedData.CALCULATEDINTENSITIES[i] * factor;
+                            newData.MultipliedIntensity = calculatedData.CALCULATEDINTENSITIES[i] * factor;
 
                         nextDataId++;
                         _context.LoadedDatas.Add(newData);
 
                     };
-                   await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
 
-                    if (file.Factor.HasValue) {
+                    if (file.Factor.HasValue)
+                    {
                         bool success = true;
                         List<LoadedData> loadedDatas = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE).ToList();
                         var ordered = loadedDatas.OrderBy(x => x.Excitation).ToList();
                         List<ProfileData> profileDatas = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder).ToList();
                         profileDatas.OrderBy(x => x.Excitation).ToList();
-                        for(int i = 0;i < ordered.Count; i++)
+                        for (int i = 0; i < ordered.Count; i++)
                         {
                             if (ordered[i].Excitation != profileDatas[i].Excitation)
-                            { 
+                            {
                                 success = false; break;
                             }
 
                             if (ordered[i].MultipliedIntensity.HasValue && profileDatas[i].MaxIntensity < ordered[i].MultipliedIntensity.Value)
                             {
                                 profileDatas[i].MaxIntensity = ordered[i].MultipliedIntensity.Value;
-                            }    
+                            }
 
                         }
 
-                        if(success) await _context.SaveChangesAsync();
+                        if (success) await _context.SaveChangesAsync();
                     }
 
 
@@ -447,14 +494,14 @@ namespace WebApiServer.Controllers
 
                     for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
                     {
-                        LoadedData dataToReplace = _context.LoadedDatas.Where(x => x.IdFile ==  calculatedData.IDFILE &&  x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
+                        LoadedData dataToReplace = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
                         dataToReplace.Intensity = calculatedData.CALCULATEDINTENSITIES[i];
-                        if (file.Factor.HasValue && factor.HasValue && factor != null )
+                        if (file.Factor.HasValue && factor.HasValue && factor != null)
                         {
                             double multiplied = dataToReplace.Intensity * factor.Value;
                             dataToReplace.MultipliedIntensity = multiplied;
                             ProfileData profile = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
-                            if(profile.MaxIntensity < multiplied)
+                            if (profile.MaxIntensity < multiplied)
                             {
                                 profile.MaxIntensity = multiplied;
                             }
@@ -462,7 +509,7 @@ namespace WebApiServer.Controllers
                     };
                     await _context.SaveChangesAsync();
 
-                     return Ok();
+                    return Ok();
                 }
                 else
                 {

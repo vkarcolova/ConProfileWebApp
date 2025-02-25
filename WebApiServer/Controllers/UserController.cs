@@ -87,6 +87,82 @@ namespace WebApiServer.Controllers
             return Ok(new { TOKEN = userToken, EMAIL = loginUser.EMAIL });
         }
 
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO request)
+        {
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Nesprávne údaje." });
+            }
+
+            if (!BCrypt.Net.BCrypt.EnhancedVerify(request.OldPassword, user.PasswordHash)) return Unauthorized(new { message = "Zadané heslo bolo nesprávne." });
+        
+            if(request.OldPassword == request.NewPassword) return BadRequest(new { message = "Nové heslo nemôže byť rovnaké ako vaše pôvodné." });
+            
+            if (request.ConfirmPassword != request.NewPassword) return BadRequest(new { message = "Heslá sa nezhodujú." });
+
+            var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
+
+            user.PasswordHash = passwordHash;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpPost("DeleteUser")]
+        public async Task<IActionResult> ChangePassword([FromBody] DeleteUserDTO request)
+        {
+            var userEmail = Request.Headers["UserEmail"].ToString();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Nesprávne údaje." });
+            }
+
+            if (!BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.PasswordHash)) return Unauthorized(new { message = "Zadané heslo bolo nesprávne." });
+            List<Project> projects = _context.Projects.Where(x => x.CreatedBy == userEmail).ToList();
+            foreach (var project in projects)
+            {
+                List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
+                foreach (LoadedFolder folder in folders)
+                {
+                    List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).ToList();
+                    foreach (LoadedFile file in files)
+                    {
+                        List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
+
+                        _context.LoadedDatas.RemoveRange(data);
+                    }
+                    _context.LoadedFiles.RemoveRange(files);
+
+                    List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
+                    _context.ProfileDatas.RemoveRange(profile);
+                }
+
+                _context.LoadedFolders.RemoveRange(folders);
+
+
+            }                
+            _context.Projects.RemoveRange(projects);
+
+            if (request.DeleteDatabankData)
+            {
+                List<DataBankFolder> dataBankFolders = _context.DataBankFolders.Where(x => x.UploadedBy == userEmail).ToList();
+                List<DataBankFile> dataBankFiles = _context.DataBankFiles.Where(x => x.UploadedBy == userEmail).ToList();
+                _context.DataBankFiles.RemoveRange(dataBankFiles);
+                _context.DataBankFolders.RemoveRange(dataBankFolders);
+            }
+            _context.Users.Remove(user);
+            _context.SaveChanges(); 
+
+            return Ok();
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {

@@ -826,7 +826,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                       onClick={() => {
                         handleCalculateAdjustData();
                       }}
-                    > 
+                    >
                       <Typography
                         sx={{
                           fontFamily: "Poppins",
@@ -842,7 +842,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                       >
                         Dopočítať hodnoty podľa iného stĺpca
                       </Typography>
-                    </Button>*/}
+                    </Button> */}
                     {isEmptyValues && (
                       <Button
                         variant="outlined"

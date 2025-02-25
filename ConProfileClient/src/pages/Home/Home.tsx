@@ -23,6 +23,8 @@ import {
   Typography,
 } from "@mui/material";
 import moment from "moment";
+import SettingsIcon from "@mui/icons-material/Settings";
+
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import { clientApi } from "../../shared/apis";
@@ -35,6 +37,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import StorageIcon from "@mui/icons-material/Storage";
 import UploadModal from "./components/UploadModal";
+import SettingsDialog from "./components/SettingsDialog";
 
 const Home: React.FC = () => {
   const inputRefProject = useRef<HTMLInputElement>(null);
@@ -44,8 +47,9 @@ const Home: React.FC = () => {
   const { user, logoutUser } = useUserContext();
   const [dataUploadDialogOpen, setDataUploadDialogOpen] =
     useState<boolean>(false);
-
   const [batchProcessFoldersDialogOpen, setBatchProcessFoldersDialogOpen] =
+    useState<boolean>(false);
+  const [userSettingsDialogOpen, setUserSettingsDialogOpen] =
     useState<boolean>(false);
   useEffect(() => {
     if (user != undefined) {
@@ -256,6 +260,17 @@ const Home: React.FC = () => {
                       {user.email}
                     </span>
                   </Typography>
+                  <IconButton
+                    color="primary"
+                    sx={{
+                      marginLeft: "8px",
+                      color: "rgba(59, 49, 119, 0.87)",
+                    }}
+                    onClick={() => setUserSettingsDialogOpen(true)}
+                  >
+                    <SettingsIcon />
+                  </IconButton>
+
                   <Button
                     onClick={() => {
                       logoutUser();
@@ -526,6 +541,10 @@ const Home: React.FC = () => {
             )}
         </Box>
       </Box>
+      <SettingsDialog
+        open={userSettingsDialogOpen}
+        onClose={() => setUserSettingsDialogOpen(false)}
+      />
     </Box>
   );
 };

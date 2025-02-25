@@ -1,13 +1,21 @@
 import React from "react";
-import { AppBar, Box, Container, Toolbar, Typography } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Container,
+  IconButton,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import AddchartIcon from "@mui/icons-material/Addchart";
+import { useNavigate } from "react-router-dom";
 
 type AppBarProps = {
   content?: JSX.Element;
 };
 
 export const AppBarLogin: React.FC<AppBarProps> = ({ content }) => {
-
+  const navigate = useNavigate();
   return (
     <div>
       <AppBar
@@ -50,10 +58,19 @@ export const AppBarLogin: React.FC<AppBarProps> = ({ content }) => {
                 px: 0,
               }}
             >
-              <AddchartIcon
-                fontSize="large"
-                sx={{ color: "black" }}
-              ></AddchartIcon>
+              <IconButton
+                color="primary"
+                sx={{
+                  marginLeft: "8px",
+                  color: "rgba(59, 49, 119, 0.87)",
+                }}
+                onClick={() => navigate("/")}
+              >
+                <AddchartIcon
+                  fontSize="large"
+                  sx={{ color: "black" }}
+                ></AddchartIcon>
+              </IconButton>
               <Typography
                 variant="h4"
                 sx={{ ml: 1, color: "black", fontSize: "15px" }}

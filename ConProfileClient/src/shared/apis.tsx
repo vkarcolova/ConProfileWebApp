@@ -461,4 +461,37 @@ export const clientApi = {
       },
     });
   },
+
+  deleteUser: async (password: string, DeleteDatabankData: boolean) => {
+    const request = {
+      Password: password,
+      DeleteDatabankData: DeleteDatabankData,
+    };
+    return await axios.post(`${config.apiUrl}/User/DeleteUser`, request, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        UserEmail: localStorage.getItem("useremail"),
+        "Content-Type": "application/json",
+      },
+    });
+  },
+
+  changePassword: async (
+    oldPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ) => {
+    const request = {
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword,
+    };
+    return await axios.post(`${config.apiUrl}/User/ChangePassword`, request, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        UserEmail: localStorage.getItem("useremail"),
+        "Content-Type": "application/json",
+      },
+    });
+  },
 };
