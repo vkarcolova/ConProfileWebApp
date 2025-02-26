@@ -131,7 +131,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
               onClick={(e) => handleNodeSelect(e, node.id)}
               sx={{
                 fontWeight: index === selectedFolder ? "bold" : "normal",
-                fontSize: { lg: "10px", xl: "14px" },
+                fontSize: { lg: "11px", xxl: "14px" },
                 marginLeft: "8px",
                 textAlign: "center",
                 display: "flex",
@@ -168,7 +168,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                         <Typography
                           sx={{
                             fontWeight: "normal",
-                            fontSize: { lg: "10px", xl: "14px" },
+                            fontSize: { lg: "10px", xxl: "14px" },
                             marginLeft: "8px",
                           }}
                         >

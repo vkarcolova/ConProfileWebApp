@@ -55,18 +55,17 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   const [options, setOptions] = useState<any>(null);
   const [isSameValues, setIsSameValues] = useState(false);
   const [isEmptyValues, setIsEmptyValues] = useState(false);
-  // const [sameValuesRemoved, setSameValuesRemoved] = useState<
-  //   (number | undefined)[]
-  // >([]);
-
-  //ak ma vela hodnot za sebou da sa to ako usestate ze boolean a iba s undefined
-  //dopocitat sa poslu tie
-  //pri ulozeni sa poslu povodne a zas sa odstrania predtym v backende
+  const [columnSpectrum, setColumnSpectrum] = useState<number | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     if (columns.length === 0 || open === false) return;
     const issamevalues = hasTooManyRepeats(columns[selectedTab].intensities);
 
+    if (columns[selectedTab].spectrum !== undefined) {
+      setColumnSpectrum(columns[selectedTab].spectrum);
+    }
     setIsSameValues(issamevalues);
     setIsEmptyValues(columns[selectedTab].intensities.includes(undefined));
     const chartData: ChartData[] = [];
@@ -289,6 +288,9 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       legend: { show: true },
     });
     setChartData(chartData);
+    if (columns[newValue].spectrum !== undefined) {
+      setColumnSpectrum(columns[newValue].spectrum);
+    }
   };
 
   const changeTab = (newValue: number) => {
@@ -340,8 +342,21 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         setCalculatedSameIntensities(onlySame);
       }
 
-      const newChartData = chartData!;
+      const newChartData = chartData!.filter(
+        (item) =>
+          item.label !== "Dopočítané z rovnakých dát" &&
+          item.label !== "Dopočítané z prázdnych dát" &&
+          item.label !== "Referenčný stĺpec"
+      );
+
       const newSeries: any[] = [];
+      const filteredSeries = (options?.series || []).filter(
+        (item: any) =>
+          item.name !== "Dopočítané z rovnakých dát" &&
+          item.name !== "Dopočítané z prázdnych dát" &&
+          item.name !== "Referenčný stĺpec"
+      );
+
       if (isSameValues) {
         newChartData.push({
           data: onlySame,
@@ -356,6 +371,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           color: "#ff0000",
         });
       }
+
       if (isEmptyValues) {
         newChartData.push({
           data: onlyEmpty,
@@ -373,8 +389,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 
       setChartData(newChartData);
       setOptions((prevOptions: any) => ({
-        ...prevOptions, // zachovávame všetky predchádzajúce vlastnosti options
-        series: [...(prevOptions?.series || []), ...newSeries], // pridáme novú sériu
+        ...prevOptions,
+        series: [...filteredSeries, ...newSeries], // Odstránené staré série, pridané nové
       }));
     });
   };
@@ -392,33 +408,39 @@ const CalculateData: React.FC<CalculateDataProps> = ({
 
     const spectres = [0, 2, 8, 32, 128, 512];
 
-    const currentColSpectrum: number | undefined =
-      projectFolder.folderData.data.find(
-        (col) => col.filename === columnToSend.name
-      )?.spectrum;
-
     if (
-      currentColSpectrum === undefined ||
-      currentColSpectrum === 0 ||
-      !spectres.includes(currentColSpectrum)
+      columnSpectrum === undefined ||
+      columnSpectrum === 0 ||
+      !spectres.includes(columnSpectrum)
     ) {
       toast.error("Nepodarilo sa získať spektrum stĺpca");
       return;
     }
-    const currentIndex = spectres.indexOf(currentColSpectrum!);
+    const currentIndex = spectres.indexOf(columnSpectrum!);
     const exampleColumnSpectre =
-      currentIndex > 0 ? spectres[currentIndex - 1] : currentColSpectrum;
+      currentIndex > 0 ? spectres[currentIndex - 1] : columnSpectrum;
 
-    const exampleData: number[] | undefined = projectFolder.folderData.data
-      .find((col) => col.spectrum === exampleColumnSpectre)
-      ?.intensity.map((value) => {
-        return value.intensity;
-      });
+    const foundColumn = projectFolder.folderData.data.find(
+      (col) => col.spectrum === exampleColumnSpectre
+    );
 
-    if (
-      currentColSpectrum === exampleColumnSpectre ||
-      exampleData === undefined
-    ) {
+    const exampleData: number[] | undefined = foundColumn?.intensity.map(
+      (value) => value.intensity
+    );
+
+    const exampleColumnName = foundColumn?.filename;
+
+    if (columns.find((col) => col.name === exampleColumnName) !== undefined) {
+      toast.error(
+        "Referenčný stĺpec sa nachádza v zozname stĺpcov na dopočítanie dát, a teda nie je možné podľa neho dopočítať dáta pre tieto hodnoty. Buď najprv dopočítajte dáta pre referečný stĺpec " +
+          exampleColumnName +
+          " alebo použite na dopočítanie prvú metódu.",
+        { autoClose: 10000 }
+      );
+      return;
+    }
+
+    if (columnSpectrum === exampleColumnSpectre || exampleData === undefined) {
       toast.error("Nepodarilo sa získať stlpec na porovnanie");
       return;
     }
@@ -457,8 +479,21 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           setCalculatedSameIntensities(onlySame);
         }
 
-        const newChartData = chartData!;
+        const newChartData = chartData!.filter(
+          (item) =>
+            item.label !== "Dopočítané z rovnakých dát" &&
+            item.label !== "Dopočítané z prázdnych dát" &&
+            item.label !== "Referenčný stĺpec"
+        );
+
         const newSeries: any[] = [];
+        const filteredSeries = (options?.series || []).filter(
+          (item: any) =>
+            item.name !== "Dopočítané z rovnakých dát" &&
+            item.name !== "Dopočítané z prázdnych dát" &&
+            item.name !== "Referenčný stĺpec"
+        );
+
         if (isSameValues) {
           newChartData.push({
             data: onlySame,
@@ -473,6 +508,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
             color: "#ff0000",
           });
         }
+
         if (isEmptyValues) {
           newChartData.push({
             data: onlyEmpty,
@@ -488,11 +524,35 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           });
         }
 
+        newChartData.push({
+          data: onlyEmpty,
+          label: "Referenčný stĺpec",
+        });
+        newSeries.push({
+          name: "Referenčný stĺpec",
+          type: "line",
+          data: exampleData,
+          smooth: true,
+          connectNulls: false,
+          color: "yellow",
+        });
+
         setChartData(newChartData);
         setOptions((prevOptions: any) => ({
-          ...prevOptions, // zachovávame všetky predchádzajúce vlastnosti options
-          series: [...(prevOptions?.series || []), ...newSeries], // pridáme novú sériu
+          ...prevOptions,
+          series: [...filteredSeries, ...newSeries], // Odstránené staré série, pridané nové
         }));
+      })
+      .catch((error) => {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Nepodarilo sa dopočítať hodnoty");
+        }
       });
   };
 
@@ -744,6 +804,15 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                       kubickej <b>spline interpolácie</b>, ktorá prepája susedné
                       body.
                       <br />
+                      {columnSpectrum !== undefined && columnSpectrum !== 0 && (
+                        <>
+                          "Druhá metóda pre výpočet dát je{" "}
+                          <b>podľa referenčného stĺpca</b>. Pre stĺpec so
+                          spektrom 2 je to stĺpec so spektrom 0, pre stĺpec so
+                          spektrom 8 - 2, pre stĺpec 32 - 8, pre 128 - 32 a pre
+                          stĺpec so spektrom 512 je to stĺpec so spektrom 128."
+                        </>
+                      )}
                     </Typography>
                   </Box>
 
@@ -771,14 +840,14 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                         width: "60%",
                         marginBottom: "10px",
                       }}
-                      disabled={
-                        !(
-                          (isEmptyValues &&
-                            calculatedEmptyIntensities.length == 0) ||
-                          (isSameValues &&
-                            calculatedSameIntensities.length == 0)
-                        )
-                      }
+                      // disabled={
+                      //   !(
+                      //     (isEmptyValues &&
+                      //       calculatedEmptyIntensities.length == 0) ||
+                      //     (isSameValues &&
+                      //       calculatedSameIntensities.length == 0)
+                      //   )
+                      // }
                       onClick={() => {
                         handleCalculateData();
                       }}
@@ -799,50 +868,44 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                         Dopočítať chýbajúce hodnoty
                       </Typography>
                     </Button>{" "}
-                    {/* <Button
-                      variant="outlined"
-                      sx={{
-                        borderRadius: "30px",
-                        border: "2px solid #514986",
-                        "&:hover": {
-                          border: "2px solid #dcdbe7",
-                        },
-                        backgroundColor:
-                          calculatedEmptyIntensities.length > 0
-                            ? "#f6fafd"
-                            : "#d5e1fb",
-
-                        width: "60%",
-                        marginBottom: "10px",
-                      }}
-                      disabled={
-                        !(
-                          (isEmptyValues &&
-                            calculatedEmptyIntensities.length == 0) ||
-                          (isSameValues &&
-                            calculatedSameIntensities.length == 0)
-                        )
-                      }
-                      onClick={() => {
-                        handleCalculateAdjustData();
-                      }}
-                    >
-                      <Typography
+                    {columnSpectrum !== undefined && columnSpectrum !== 0 && (
+                      <Button
+                        variant="outlined"
                         sx={{
-                          fontFamily: "Poppins",
-                          fontWeight: 500,
-                          fontSize: "15px",
-                          padding: "2px",
-                          color:
+                          borderRadius: "30px",
+                          border: "2px solid #514986",
+                          "&:hover": {
+                            border: "2px solid #dcdbe7",
+                          },
+                          backgroundColor:
                             calculatedEmptyIntensities.length > 0
-                              ? "#84809c"
-                              : "#514986",
+                              ? "#f6fafd"
+                              : "#d5e1fb",
+
+                          width: "60%",
+                          marginBottom: "10px",
                         }}
-                        textTransform={"none"}
+                        onClick={() => {
+                          handleCalculateAdjustData();
+                        }}
                       >
-                        Dopočítať hodnoty podľa iného stĺpca
-                      </Typography>
-                    </Button> */}
+                        <Typography
+                          sx={{
+                            fontFamily: "Poppins",
+                            fontWeight: 500,
+                            fontSize: "15px",
+                            padding: "2px",
+                            color:
+                              calculatedEmptyIntensities.length > 0
+                                ? "#84809c"
+                                : "#514986",
+                          }}
+                          textTransform={"none"}
+                        >
+                          Dopočítať hodnoty podľa iného stĺpca
+                        </Typography>
+                      </Button>
+                    )}
                     {isEmptyValues && (
                       <Button
                         variant="outlined"

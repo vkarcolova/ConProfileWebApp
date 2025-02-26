@@ -9,6 +9,16 @@ import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataBank from "./pages/DataBank/DataBank";
 import MobileWarning from "./pages/MobileWarning/MobileWarning";
+declare module "@mui/material/styles" {
+  interface BreakpointOverrides {
+    xs: true; // removes the `xs` breakpoint
+    sm: true;
+    md: true;
+    lg: true;
+    xl: true;
+    xxl: true;
+  }
+}
 
 const theme = createTheme({
   palette: {
@@ -16,6 +26,16 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: "Poppins, Arial, sans-serif",
+  },
+  breakpoints: {
+    values: {
+      xs: 0, // Mobile
+      sm: 600, // Small
+      md: 900, // Medium
+      lg: 1200, // Large
+      xl: 1536, // Extra Large
+      xxl: 1600, // Tvoj nový breakpoint
+    },
   },
 });
 function App() {

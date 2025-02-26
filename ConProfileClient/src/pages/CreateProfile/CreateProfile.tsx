@@ -231,6 +231,7 @@ const CreateProfile: React.FC = () => {
           intensities: column.intensities,
           name: column.name,
           excitations: allFolderData.tableData!.excitation,
+          spectrum: column.spectrum,
         });
       }
     });
@@ -1322,8 +1323,8 @@ const CreateProfile: React.FC = () => {
                     )}
                   </Box>
                   <Box
-                    style={{
-                      width: "45%",
+                    sx={{
+                      width: "45.01%",
                       flexDirection: "row",
                       display: "flex",
                       backgroundColor: "#bebdbd",

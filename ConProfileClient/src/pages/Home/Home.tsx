@@ -190,7 +190,7 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <Box style={{ width: "100%", height: "100%" }}>
+    <Box sx={{ width: "100%", maxHeight: "100%", overflowY: "auto" }}>
       <Box className="home-page">
         <AppBarLogin
           content={
@@ -312,13 +312,13 @@ const Home: React.FC = () => {
           />
           <Grid
             container
-            spacing={3}
+            spacing={2}
             justifyContent="center"
             sx={{
               padding: 3,
               width: "45%",
-              height: "50%",
-              paddingTop: { lg: 13, xl: 20 },
+              maxHeight: "50%",
+              paddingTop: { lg: 14, xxl: 20 },
             }}
           >
             {options.map((option) => (
@@ -340,7 +340,7 @@ const Home: React.FC = () => {
                 <Grid item key={option.value} xs={12} sm={6}>
                   <Card
                     sx={{
-                      height: { lg: 140, xl: 200 },
+                      height: { lg: 150, xxl: 200 },
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -409,7 +409,7 @@ const Home: React.FC = () => {
                 <Box
                   sx={{
                     width: "60%",
-                    paddingTop: "10px",
+                    paddingTop: { lg: 1, xl: 2 },
                   }}
                 >
                   <TableContainer

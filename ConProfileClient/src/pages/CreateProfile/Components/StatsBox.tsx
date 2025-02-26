@@ -15,7 +15,7 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
       variant="outlined"
       className="stats"
       sx={{
-        maxHeight: { xl: "40%", lg: "50%" },
+        maxHeight: { xl: "50%", lg: "50%" },
         borderRadius: "30px",
         boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
         width: "100%",

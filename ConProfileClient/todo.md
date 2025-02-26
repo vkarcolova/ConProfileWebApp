@@ -2,8 +2,15 @@
 
 NAJSKOR
 
-- [ ] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
+pridat linku toho referencneho grafu a zmazat ho ak sa pouzije prva metoda
+nejako pridat popisok od chata
+otestovat na viacerych pikoch
+ulozit si to vysvletlenie nech to nestratim
 
+- [ ] hesla komplikovanejsie aspon 8 znakov a cislo
+- [ ] zabudnute heslo?
+
+- [x] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
 - [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
 
 ##
@@ -34,7 +41,7 @@ ASI OK
 
 ##
 
-- [ ] preco ked niekedy nacitas stranku zmiznu projekty?
+- [x] preco ked niekedy nacitas stranku zmiznu projekty?
 - [ ] Google ucet
 - [ ] mozno zabudnute heslo alebo zmazat ucet
 - [ ] Zda sa ze autocomplete spomaluje

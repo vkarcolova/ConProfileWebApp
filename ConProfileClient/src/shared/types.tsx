@@ -88,6 +88,7 @@ export interface ColumnDTO {
   name: string;
   intensities: (number | undefined)[];
   excitations: number[];
+  spectrum?: number;
 }
 
 export interface AllFolderData {
