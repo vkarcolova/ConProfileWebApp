@@ -14,7 +14,7 @@ import "../../index.css";
 import React from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { clientApi } from "../../shared/apis";
-import { Bounce, toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useUserContext } from "../../shared/context/useContext";
 import { useNavigate } from "react-router-dom";
@@ -166,9 +166,7 @@ const RegisterPage: React.FC = () => {
             </Button>
           </Box>
         </Box>
-        <ToastContainer transition={Bounce} />
       </Container>
-      <ToastContainer transition={Bounce} />
     </ThemeProvider>
   );
 };

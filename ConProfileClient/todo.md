@@ -2,13 +2,16 @@
 
 NAJSKOR
 
-pridat linku toho referencneho grafu a zmazat ho ak sa pouzije prva metoda
-nejako pridat popisok od chata
-otestovat na viacerych pikoch
-ulozit si to vysvletlenie nech to nestratim
-
+- [x] ten bug v databanke aaasi done
+- [x] are u sure na tvorbe profilu
+- [ ] admin
+  - rola do db
+  - jeden email je admin to budem ja
+  - pridelovanie administratorskej role
+  - mazanie uctu
 - [ ] hesla komplikovanejsie aspon 8 znakov a cislo
 - [ ] zabudnute heslo?
+- [ ] poslanie mailu pri registracii
 
 - [x] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
 - [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?

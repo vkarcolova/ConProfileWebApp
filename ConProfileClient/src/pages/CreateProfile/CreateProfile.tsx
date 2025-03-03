@@ -26,12 +26,17 @@ import DataTable from "../../shared/components/DataTable";
 import "./index.css";
 import {
   Box,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Grid,
   IconButton,
   Skeleton,
   Tooltip,
   tooltipClasses,
+  Typography,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Comparison from "../Comparison/Comparison";
@@ -68,7 +73,8 @@ const CreateProfile: React.FC = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [deletingFolders, setDeletingFolders] = useState(false);
-
+  const [openCreateProfileDialogue, setOpenCreateProfileDialogue] =
+    useState(false);
   const chartRef = useRef(null);
 
   //const foldersExpand: string[] = [];
@@ -1221,7 +1227,16 @@ const CreateProfile: React.FC = () => {
                   >
                     <Box className="buttonCreateProfil">
                       <NunuButton
-                        onClick={multiplyButtonClick}
+                        onClick={() => {
+                          if (
+                            projectFolders[selectedFolder].emptyDataColums
+                              .length > 0
+                          ) {
+                            setOpenCreateProfileDialogue(true);
+                          } else {
+                            multiplyButtonClick();
+                          }
+                        }}
                         bgColour="#4e4b6f"
                         textColour="white"
                         hoverTextColour="white"
@@ -1398,6 +1413,35 @@ const CreateProfile: React.FC = () => {
           />
         </>
       )}
+      <Dialog
+        open={openCreateProfileDialogue}
+        onClose={() => setOpenCreateProfileDialogue(false)}
+      >
+        <DialogContent>
+          <Typography>
+            Ste si istý, že chcete vytvoriť profil s neuplnými dátami? Môžete
+            ich pred vytvorením koncentračného profilu dopočítať.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenCreateProfileDialogue(false)}
+            color="secondary"
+          >
+            Zrušiť
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenCreateProfileDialogue(false);
+              multiplyButtonClick();
+            }}
+            color="secondary"
+            variant="contained"
+          >
+            Áno, vytvoriť profil
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

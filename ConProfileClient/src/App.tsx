@@ -42,6 +42,8 @@ function App() {
   return (
     <>
       <ThemeProvider theme={theme}>
+        <ToastContainer transition={Bounce} />
+
         <div
           style={{
             backgroundColor: "#E6E5E5",
@@ -58,7 +60,6 @@ function App() {
             <Route path="/auth/:type" element={<TabsLoginRegister />} />
             <Route path="/databanka" element={<DataBank />} />
           </Routes>
-          <ToastContainer transition={Bounce} />
         </div>
       </ThemeProvider>
     </>
