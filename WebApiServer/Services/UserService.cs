@@ -25,7 +25,7 @@ namespace WebApiServer.Services
 {
     public interface IUserService
     {
-        public string GenerateJwtToken(string userEmail = null);
+        public string GenerateJwtToken( string userEmail = null);
         public bool IsAuthorized(string userEmail, string userToken);
 
         public  Task<IActionResult> MoveHostProjectsToUser(string oldToken, string newToken, string userEmail);
@@ -54,9 +54,11 @@ namespace WebApiServer.Services
 
             if (userEmail != null)
             {
+                var role = _context.Users.Where(x => x.UserEmail == userEmail).FirstOrDefault();
                 tokenDescriptor.Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Email, userEmail)
+                    new Claim(ClaimTypes.Email, userEmail),
+                    new Claim(ClaimTypes.Role, role.Role) 
                 });
             }
             var token = tokenHandler.CreateToken(tokenDescriptor);

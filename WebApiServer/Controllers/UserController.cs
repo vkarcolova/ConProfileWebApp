@@ -33,7 +33,7 @@ namespace WebApiServer.Controllers
 
             if (registerForm == null || registerForm.EMAIL == "" || registerForm.PASSWORD2 == "" || registerForm.PASSWORD == "") return BadRequest("Registračný formulár nebol vyplnený");
             if (registerForm.PASSWORD != registerForm.PASSWORD2) return BadRequest(new { message = "Heslá sa nezhodujú" });
-            
+
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == registerForm.EMAIL);
             if (existingUser != null)
             {
@@ -53,12 +53,13 @@ namespace WebApiServer.Controllers
             var newUser = new User
             {
                 UserEmail = registerForm.EMAIL,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                Role = "user"
             };
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
-            return Ok(new {TOKEN = userToken, EMAIL = newUser.UserEmail});
+            return Ok(new { TOKEN = userToken, EMAIL = newUser.UserEmail });
         }
 
         [HttpPost("Login")]
@@ -99,9 +100,9 @@ namespace WebApiServer.Controllers
             }
 
             if (!BCrypt.Net.BCrypt.EnhancedVerify(request.OldPassword, user.PasswordHash)) return Unauthorized(new { message = "Zadané heslo bolo nesprávne." });
-        
-            if(request.OldPassword == request.NewPassword) return BadRequest(new { message = "Nové heslo nemôže byť rovnaké ako vaše pôvodné." });
-            
+
+            if (request.OldPassword == request.NewPassword) return BadRequest(new { message = "Nové heslo nemôže byť rovnaké ako vaše pôvodné." });
+
             if (request.ConfirmPassword != request.NewPassword) return BadRequest(new { message = "Heslá sa nezhodujú." });
 
             var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
@@ -113,7 +114,7 @@ namespace WebApiServer.Controllers
         }
 
         [HttpPost("DeleteUser")]
-        public async Task<IActionResult> ChangePassword([FromBody] DeleteUserDTO request)
+        public async Task<IActionResult> DeleteUser([FromBody] DeleteUserDTO request)
         {
             var userEmail = Request.Headers["UserEmail"].ToString();
 
@@ -146,7 +147,7 @@ namespace WebApiServer.Controllers
                 _context.LoadedFolders.RemoveRange(folders);
 
 
-            }                
+            }
             _context.Projects.RemoveRange(projects);
 
             if (request.DeleteDatabankData)
@@ -157,11 +158,109 @@ namespace WebApiServer.Controllers
                 _context.DataBankFolders.RemoveRange(dataBankFolders);
             }
             _context.Users.Remove(user);
-            _context.SaveChanges(); 
+            _context.SaveChanges();
 
             return Ok();
         }
 
+        [HttpPost("DeleteUserByAdmin")]
+        public async Task<IActionResult> DeleteUserByAdmin([FromBody] string userEmail)
+        {
+            var adminEmail = Request.Headers["UserEmail"].ToString();
+            var admin = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == adminEmail);
+            if (admin == null || admin.Role != "admin")
+            {
+                return Unauthorized(new { message = "Nemáte na túto akciu oprávnenie." });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Nesprávne údaje." });
+            }
+
+            List<Project> projects = _context.Projects.Where(x => x.CreatedBy == userEmail).ToList();
+            foreach (var project in projects)
+            {
+                List<LoadedFolder> folders = _context.LoadedFolders.Where(folder => folder.IdProject == project.IdProject).ToList();
+                foreach (LoadedFolder folder in folders)
+                {
+                    List<LoadedFile> files = _context.LoadedFiles.Where(file => file.IdFolder == folder.IdFolder).ToList();
+                    foreach (LoadedFile file in files)
+                    {
+                        List<LoadedData> data = _context.LoadedDatas.Where(datas => datas.IdFile == file.IdFile).ToList();
+
+                        _context.LoadedDatas.RemoveRange(data);
+                    }
+                    _context.LoadedFiles.RemoveRange(files);
+
+                    List<ProfileData> profile = _context.ProfileDatas.Where(data => data.IdFolder == folder.IdFolder).ToList();
+                    _context.ProfileDatas.RemoveRange(profile);
+                }
+
+                _context.LoadedFolders.RemoveRange(folders);
+
+
+            }
+            _context.Projects.RemoveRange(projects);
+
+
+            List<DataBankFolder> dataBankFolders = _context.DataBankFolders.Where(x => x.UploadedBy == userEmail).ToList();
+            List<DataBankFile> dataBankFiles = _context.DataBankFiles.Where(x => x.UploadedBy == userEmail).ToList();
+            _context.DataBankFiles.RemoveRange(dataBankFiles);
+            _context.DataBankFolders.RemoveRange(dataBankFolders);
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        //[HttpPost("ChangeUsersRoleByAdmin")]
+        //public async Task<IActionResult> ChangeUsersRoleByAdmin([FromBody] UserDTO[] users)
+        //{
+        //    var adminEmail = Request.Headers["UserEmail"].ToString();
+        //    var admin = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == adminEmail);
+        //    if (admin == null || admin.Role != "admin")
+        //    {
+        //        return Unauthorized(new { message = "Nemáte na túto akciu oprávnenie." });
+        //    }
+
+        //    foreach (var user in users)
+        //    {
+        //        var tmp = _context.Users.Where(u => u.UserEmail == user.Email).FirstOrDefault();
+        //        if (tmp != null || tmp.Role != user.Role)
+        //        {
+        //            tmp.Role = user.Role;
+        //        }
+        //    }
+        //    _context.SaveChanges();
+
+        //    return Ok();
+        //}
+
+        [HttpPost("ChangeUsersRoleByAdmin")]
+        public async Task<IActionResult> ChangeUsersRoleByAdmin([FromBody] UserDTO user)
+        {
+            var adminEmail = Request.Headers["UserEmail"].ToString();
+            var admin = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == adminEmail);
+            if (admin == null || admin.Role != "admin")
+            {
+                return Unauthorized(new { message = "Nemáte na túto akciu oprávnenie." });
+            }
+
+
+            var tmp = _context.Users.Where(u => u.UserEmail == user.Email).FirstOrDefault();
+            if (tmp != null || tmp.Role != user.Role)
+            {
+                tmp.Role = user.Role;
+            }
+
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -172,6 +271,27 @@ namespace WebApiServer.Controllers
             if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
             var allLoadedData = await _context.Users.Select(x => x.UserEmail).ToListAsync();
+
+            return Ok(allLoadedData);
+        }
+
+        [HttpGet("GetAllUsersForAdmin")]
+        public async Task<IActionResult> GetAllUsersForAdmin()
+        {
+            var adminEmail = Request.Headers["UserEmail"].ToString();
+            var admin = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == adminEmail);
+            if (admin == null || admin.Role != "admin")
+            {
+                return Unauthorized(new { message = "Nemáte na túto akciu oprávnenie." });
+            }
+
+            List<UserDTO> allLoadedData = await _context.Users
+                .Select(x => new UserDTO
+                {
+                    Email = x.UserEmail,
+                    Role = x.Role
+                })
+                .ToListAsync();
 
             return Ok(allLoadedData);
         }

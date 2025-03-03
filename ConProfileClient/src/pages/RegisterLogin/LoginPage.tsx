@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { clientApi } from "../../shared/apis";
 import { useUserContext } from "../../shared/context/useContext";
 import config from "../../../config";
+import { jwtDecode } from "jwt-decode";
 
 const LoginPage: React.FC = () => {
   const { loginUser } = useUserContext();
@@ -36,8 +37,13 @@ const LoginPage: React.FC = () => {
           localStorage.setItem("token", token);
           const useremail = response.data.email;
           localStorage.setItem("useremail", useremail);
+
+          const decodedToken = jwtDecode<{ email: string; role: string }>(
+            token
+          );
+          localStorage.setItem("role", decodedToken.role);
           toast.success("Užívateľ prihlásený");
-          loginUser(token, useremail);
+          loginUser(token, useremail, decodedToken.role);
         }
       })
       .catch((error) => {

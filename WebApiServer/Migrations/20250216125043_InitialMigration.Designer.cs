@@ -25,7 +25,7 @@ namespace WebApiServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("User", b =>
+            modelBuilder.Entity("Email", b =>
                 {
                     b.Property<string>("UserEmail")
                         .HasColumnType("text");

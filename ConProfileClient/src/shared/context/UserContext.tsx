@@ -3,11 +3,12 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 interface User {
   token: string;
   email: string;
+  role: string;
 }
 
 interface UserContextProps {
   user: User | null | undefined;
-  loginUser: (token: string, email: string) => void;
+  loginUser: (token: string, email: string, role: string) => void;
   logoutUser: () => void;
 }
 
@@ -25,18 +26,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const email = localStorage.getItem("useremail");
+    const role = localStorage.getItem("role");
 
-    if (token && email) {
-      setUser({ token, email }); // Používateľ je prihlásený
+    if (token && email && role) {
+      setUser({ token, email, role }); // Používateľ je prihlásený
     } else {
       setUser(null); // Používateľ nie je prihlásený
     }
   }, []);
 
-  const loginUser = (token: string, email: string) => {
-    setUser({ token, email });
+  const loginUser = (token: string, email: string, role: string) => {
+    setUser({ token, email, role });
     localStorage.setItem("token", token);
     localStorage.setItem("useremail", email);
+    localStorage.setItem("role", role);
   };
 
   const logoutUser = () => {
@@ -51,4 +54,3 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     </UserContext.Provider>
   );
 };
-

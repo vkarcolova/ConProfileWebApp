@@ -155,3 +155,8 @@ export interface ShareDatabankObjectDTO {
   users: string[];
   public: boolean;
 }
+
+export interface UserDTO {
+  email: string;
+  role: string;
+}
