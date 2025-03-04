@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.NetworkInformation;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
 using WebApiServer.Models;
@@ -30,9 +31,21 @@ namespace WebApiServer.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterFormDTO registerForm)
         {
+            if (registerForm == null || string.IsNullOrWhiteSpace(registerForm.EMAIL) ||
+                string.IsNullOrWhiteSpace(registerForm.PASSWORD2) || string.IsNullOrWhiteSpace(registerForm.PASSWORD))
+            {
+                return BadRequest("Registračný formulár nebol vyplnený");
+            }
 
-            if (registerForm == null || registerForm.EMAIL == "" || registerForm.PASSWORD2 == "" || registerForm.PASSWORD == "") return BadRequest("Registračný formulár nebol vyplnený");
-            if (registerForm.PASSWORD != registerForm.PASSWORD2) return BadRequest(new { message = "Heslá sa nezhodujú" });
+            if (registerForm.PASSWORD != registerForm.PASSWORD2)
+            {
+                return BadRequest(new { message = "Heslá sa nezhodujú" });
+            }
+
+            if (!Regex.IsMatch(registerForm.PASSWORD, @"^(?=.*\d).{8,}$"))
+            {
+                return BadRequest(new { message = "Heslo musí mať aspoň 8 znakov a obsahovať aspoň jedno číslo." });
+            }
 
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == registerForm.EMAIL);
             if (existingUser != null)
@@ -105,6 +118,10 @@ namespace WebApiServer.Controllers
 
             if (request.ConfirmPassword != request.NewPassword) return BadRequest(new { message = "Heslá sa nezhodujú." });
 
+            if (!Regex.IsMatch(request.NewPassword, @"^(?=.*\d).{8,}$"))
+            {
+                return BadRequest(new { message = "Heslo musí mať aspoň 8 znakov a obsahovať aspoň jedno číslo." });
+            }
             var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
 
             user.PasswordHash = passwordHash;

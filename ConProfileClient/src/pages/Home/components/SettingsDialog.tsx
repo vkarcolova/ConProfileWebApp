@@ -31,9 +31,22 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
   const [showProjectDeleteDialog, setShowProjectDeleteDialog] = useState(false);
   const { logoutUser } = useUserContext();
 
+  const isValidPassword = (password: string) => {
+    return password.length >= 8 && /\d/.test(password);
+  };
+
+  const [passwordError, setPasswordError] = useState(false);
+
   const handlePasswordChange = async () => {
     if (password !== confirmPassword) {
-      alert("Heslá sa nezhodujú!");
+      toast.error("Heslá sa nezhodujú!");
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      toast.error(
+        "Heslo musí mať aspoň 8 znakov a obsahovať aspoň jedno číslo."
+      );
       return;
     }
 
@@ -113,7 +126,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
           </Typography>
 
           <TextField
-            label="Aktuálne heslo" // ✨ Nové pole na potvrdenie hesla
+            label="Aktuálne heslo"
             type="password"
             fullWidth
             variant="outlined"
@@ -128,7 +141,17 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
             variant="outlined"
             margin="dense"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              if (!isValidPassword(e.target.value)) setPasswordError(true);
+              else setPasswordError(false);
+              setPassword(e.target.value);
+            }}
+            error={passwordError}
+            helperText={
+              passwordError
+                ? "Heslo musí mať aspoň 8 znakov a obsahovať číslo."
+                : ""
+            }
           />
           <TextField
             label="Potvrďte heslo"
@@ -138,6 +161,10 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
             margin="dense"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            error={password !== confirmPassword}
+            helperText={
+              password !== confirmPassword ? "Heslá sa nezhodujú." : ""
+            }
           />
           <Button
             variant="contained"

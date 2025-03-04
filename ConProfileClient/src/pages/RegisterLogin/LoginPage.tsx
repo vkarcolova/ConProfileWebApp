@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
     config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
   );
   const [password, setPassword] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin" : ""
+    config.apiUrl.includes("localhost") ? "admin123" : ""
   );
 
   const handleSubmit = async () => {

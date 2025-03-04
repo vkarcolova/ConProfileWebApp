@@ -1,5 +1,6 @@
-import { ThemeProvider } from "@emotion/react";
+import { useState } from "react";
 import {
+  ThemeProvider,
   createTheme,
   Container,
   CssBaseline,
@@ -10,33 +11,43 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import "../../index.css";
-import React from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useUserContext } from "../../shared/context/useContext";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import React from "react";
 import config from "../../../config";
+
 const defaultTheme = createTheme();
+
+const isValidPassword = (password: string) => {
+  return password.length >= 8 && /\d/.test(password);
+};
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = React.useState(
     config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
   );
   const [password, setPassword] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin" : ""
+    config.apiUrl.includes("localhost") ? "admin123" : ""
   );
   const [password2, setPassword2] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin" : ""
+    config.apiUrl.includes("localhost") ? "admin123" : ""
   );
+  const [passwordError, setPasswordError] = useState(false);
 
   const { loginUser } = useUserContext();
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    //TODO skontrolvoat ci su rovnake s form ak by usestate bol pomaly
+    if (!isValidPassword(password)) {
+      setPasswordError(true);
+      return;
+    }
+    setPasswordError(false);
+
     await clientApi
       .register(email, password, password2)
       .then((response) => {
@@ -45,8 +56,12 @@ const RegisterPage: React.FC = () => {
           localStorage.setItem("token", token);
           const useremail = response.data.email;
           localStorage.setItem("useremail", useremail);
+          const decodedToken = jwtDecode<{ email: string; role: string }>(
+            token
+          );
+          localStorage.setItem("role", decodedToken.role);
+          loginUser(token, useremail, decodedToken.role);
           toast.success("Registrácia prebehla úspešne.");
-          loginUser(token, useremail);
           navigate("/");
         }
       })
@@ -81,12 +96,7 @@ const RegisterPage: React.FC = () => {
           <Typography component="h1" variant="h5">
             Registrácia
           </Typography>
-          <Box
-            component="form"
-            noValidate
-            onSubmit={handleSubmit}
-            sx={{ mt: 3 }}
-          >
+          <Box component="form" noValidate sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -111,7 +121,18 @@ const RegisterPage: React.FC = () => {
                   type="password"
                   id="password"
                   autoComplete="new-password"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    if (!isValidPassword(e.target.value))
+                      setPasswordError(true);
+                    else setPasswordError(false);
+                    setPassword(e.target.value);
+                  }}
+                  error={passwordError}
+                  helperText={
+                    passwordError
+                      ? "Heslo musí mať aspoň 8 znakov a obsahovať číslo."
+                      : ""
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -119,15 +140,18 @@ const RegisterPage: React.FC = () => {
                   required
                   fullWidth
                   value={password2}
-                  name="password"
+                  name="password2"
                   label="Zopakujte heslo"
                   type="password"
-                  id="password"
+                  id="password2"
                   autoComplete="new-password"
                   onChange={(e) => setPassword2(e.target.value)}
+                  error={password !== password2}
+                  helperText={
+                    password !== password2 ? "Heslá sa nezhodujú." : ""
+                  }
                 />
               </Grid>
-              <Grid item xs={12}></Grid>
             </Grid>
             <Button
               color="primary"
@@ -136,10 +160,11 @@ const RegisterPage: React.FC = () => {
               component="a"
               target="_blank"
               disabled={
-                email == "" ||
-                password == "" ||
-                password2 == "" ||
-                password != password2
+                !email ||
+                !password ||
+                !password2 ||
+                password !== password2 ||
+                !isValidPassword(password)
               }
               sx={{
                 backgroundColor: "rgba(59, 49, 119, 0.87)",
