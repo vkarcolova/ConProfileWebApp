@@ -4,7 +4,7 @@ NAJSKOR
 
 - [x] ten bug v databanke aaasi done
 - [x] are u sure na tvorbe profilu
-- [ ] admin
+- [x] admin
   - rola do db
   - jeden email je admin to budem ja
   - pridelovanie administratorskej role

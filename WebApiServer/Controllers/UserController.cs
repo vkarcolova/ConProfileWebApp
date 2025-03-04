@@ -285,13 +285,23 @@ namespace WebApiServer.Controllers
                 return Unauthorized(new { message = "Nemáte na túto akciu oprávnenie." });
             }
 
-            List<UserDTO> allLoadedData = await _context.Users
-                .Select(x => new UserDTO
+            List<UserAllDTO> allLoadedData = await _context.Users
+                .Select(x => new UserAllDTO
                 {
                     Email = x.UserEmail,
                     Role = x.Role
                 })
                 .ToListAsync();
+            foreach (var user in allLoadedData)
+            {
+                string[] projects = _context.Projects.Where(x => x.CreatedBy == user.Email).Select(x => x.ProjectName).ToArray();
+                List<string> databankUploads = [];
+                databankUploads.AddRange(_context.DataBankFolders.Where(x => x.UploadedBy == user.Email).Select(x => x.FolderName).ToArray());
+                databankUploads.AddRange(_context.DataBankFiles.Where(x => x.UploadedBy == user.Email && x.Type == "Excel").Select(x => x.FileName).ToArray());
+
+                user.Projects = projects;
+                user.DatabankUploads = databankUploads.ToArray();
+            }
 
             return Ok(allLoadedData);
         }

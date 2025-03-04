@@ -15,6 +15,7 @@ import {
   MultiplyFolderDTO,
   ProjectDTO,
   ShareDatabankObjectDTO,
+  UserAllDTO,
 } from "./types";
 
 export const clientApi = {
@@ -539,7 +540,7 @@ export const clientApi = {
   },
 
   getAllUsersForAdmin: async () => {
-    return await axios.get<UserDTO[]>(
+    return await axios.get<UserAllDTO[]>(
       `${config.apiUrl}/User/GetAllUsersForAdmin`,
       {
         headers: {

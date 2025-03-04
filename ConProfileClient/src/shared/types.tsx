@@ -160,3 +160,10 @@ export interface UserDTO {
   email: string;
   role: string;
 }
+
+export interface UserAllDTO {
+  email: string;
+  role: string;
+  databankUploads: string[];
+  projects: string[];
+}
