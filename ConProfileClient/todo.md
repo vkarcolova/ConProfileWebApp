@@ -4,12 +4,12 @@ NAJSKOR
 
 - [x] ten bug v databanke aaasi done
 - [x] are u sure na tvorbe profilu
-- [ ] admin
+- [x] admin
   - rola do db
   - jeden email je admin to budem ja
   - pridelovanie administratorskej role
   - mazanie uctu
-- [ ] hesla komplikovanejsie aspon 8 znakov a cislo
+- [x] hesla komplikovanejsie aspon 8 znakov a cislo
 - [ ] zabudnute heslo?
 - [ ] poslanie mailu pri registracii
 

@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import moment from "moment";
 import SettingsIcon from "@mui/icons-material/Settings";
-
+import GroupIcon from "@mui/icons-material/Group";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import { clientApi } from "../../shared/apis";
@@ -255,11 +255,22 @@ const Home: React.FC = () => {
                       marginTop: "10px",
                     }}
                   >
-                    Prihlásený používateľ{" "}
+                    Prihlásený {user.role == "admin" ? "admin " : "používateľ "}
                     <span style={{ color: "rgba(59, 49, 119, 0.87)" }}>
                       {user.email}
                     </span>
                   </Typography>
+                  {user.role == "admin" && (
+                    <IconButton
+                      color="primary"
+                      sx={{
+                        color: "rgba(59, 49, 119, 0.87)",
+                      }}
+                      onClick={() => navigate("/pouzivatelia")}
+                    >
+                      <GroupIcon />
+                    </IconButton>
+                  )}
                   <IconButton
                     color="primary"
                     sx={{

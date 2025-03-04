@@ -9,6 +9,7 @@ import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataBank from "./pages/DataBank/DataBank";
 import MobileWarning from "./pages/MobileWarning/MobileWarning";
+import AdminSettings from "./pages/AdminSettings/AdminSettings";
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
     xs: true; // removes the `xs` breakpoint
@@ -59,6 +60,7 @@ function App() {
             <Route path="/uprava-profilu/:id" element={<CreateProfile />} />
             <Route path="/auth/:type" element={<TabsLoginRegister />} />
             <Route path="/databanka" element={<DataBank />} />
+            <Route path="/pouzivatelia" element={<AdminSettings />} />
           </Routes>
         </div>
       </ThemeProvider>

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import config from "../../config";
 import {
   CalculatedDataDTO,
+  UserDTO,
   ColumnDTO,
   DatabankDataToSend,
   DatabankExcelContentDTO,
@@ -14,6 +15,7 @@ import {
   MultiplyFolderDTO,
   ProjectDTO,
   ShareDatabankObjectDTO,
+  UserAllDTO,
 } from "./types";
 
 export const clientApi = {
@@ -493,5 +495,59 @@ export const clientApi = {
         "Content-Type": "application/json",
       },
     });
+  },
+
+  deleteUserByAdmin: async (userToDelete: string) => {
+    return await axios.post(
+      `${config.apiUrl}/User/DeleteUserByAdmin`,
+      userToDelete,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  // changeUsersRoleByAdmin: async (users: ChangeUserRoleByAdminDTO[]) => {
+  //   return await axios.post(
+  //     `${config.apiUrl}/User/ChangeUsersRoleByAdmin`,
+  //     users,
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //         UserEmail: localStorage.getItem("useremail"),
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //   );
+  // },
+
+  changeUsersRoleByAdmin: async (user: UserDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/User/ChangeUsersRoleByAdmin`,
+      user,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  getAllUsersForAdmin: async () => {
+    return await axios.get<UserAllDTO[]>(
+      `${config.apiUrl}/User/GetAllUsersForAdmin`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
   },
 };

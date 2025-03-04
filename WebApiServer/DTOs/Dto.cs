@@ -1,4 +1,5 @@
 ﻿using Accord;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace WebApiServer.DTOs
 {
@@ -158,5 +159,19 @@ namespace WebApiServer.DTOs
         public string NewPassword { get; set;}
         public string ConfirmPassword { get; set; }
 
+    }
+
+    public class UserDTO
+    {
+        public string Email { get; set; }
+        public string Role { get; set; }
+    }
+
+    public class UserAllDTO
+    {
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public string[] Projects {  get; set; }
+        public string[] DatabankUploads {  get; set; }  
     }
 }

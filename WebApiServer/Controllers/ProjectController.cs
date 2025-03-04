@@ -120,7 +120,7 @@ namespace WebAPI.Controllers
                 if (userToken == "")
                 {
                     if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
-                    else token = _userService.GenerateJwtToken(userEmail!);
+                    else token = _userService.GenerateJwtToken(userEmail! );
 
                 }
                 else token = userToken;
