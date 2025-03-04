@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
   ThemeProvider,
@@ -14,9 +15,7 @@ import {
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { clientApi } from "../../shared/apis";
 import { toast } from "react-toastify";
-import { useUserContext } from "../../shared/context/useContext";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import React from "react";
 import config from "../../../config";
 
@@ -38,44 +37,33 @@ const RegisterPage: React.FC = () => {
   );
   const [passwordError, setPasswordError] = useState(false);
 
-  const { loginUser } = useUserContext();
   const navigate = useNavigate();
-
   const handleSubmit = async () => {
+    console.log("🟢 Odosielam formulár:", { email, password, password2 });
+
     if (!isValidPassword(password)) {
       setPasswordError(true);
+      console.log("🔴 Heslo nevyhovuje podmienkam.");
       return;
     }
+
     setPasswordError(false);
 
-    await clientApi
-      .register(email, password, password2)
-      .then((response) => {
-        if (response.status === 200) {
-          const token = response.data.token;
-          localStorage.setItem("token", token);
-          const useremail = response.data.email;
-          localStorage.setItem("useremail", useremail);
-          const decodedToken = jwtDecode<{ email: string; role: string }>(
-            token
-          );
-          localStorage.setItem("role", decodedToken.role);
-          loginUser(token, useremail, decodedToken.role);
-          toast.success("Registrácia prebehla úspešne.");
-          navigate("/");
-        }
-      })
-      .catch((error) => {
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.message
-        ) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Nepodarilo sa registrovať.");
-        }
-      });
+    try {
+      console.log("uz posielam");
+      const response = await clientApi.register(email, password, password2);
+      console.log("✅ Odpoveď z API:", response);
+
+      toast.success(
+        "Registrácia prebehla úspešne. Skontrolujte svoj e-mail a kliknite na overovací odkaz."
+      );
+      navigate("/");
+    } catch (error) {
+      console.error("❌ Chyba pri registrácii:", error as any);
+      toast.error(
+        (error as any).response?.data?.message || "Nepodarilo sa registrovať."
+      );
+    }
   };
 
   return (

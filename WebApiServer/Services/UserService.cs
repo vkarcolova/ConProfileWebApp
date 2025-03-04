@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit;
 using Newtonsoft.Json.Linq;
 using WebApiServer.Data;
 using WebApiServer.DTOs;
@@ -29,11 +30,15 @@ namespace WebApiServer.Services
         public bool IsAuthorized(string userEmail, string userToken);
 
         public  Task<IActionResult> MoveHostProjectsToUser(string oldToken, string newToken, string userEmail);
+        public void SendVerificationEmail(string email, string verificationToken);
+        public string GenerateVerificationToken(string email, string password);
+
     }
 
     public class UserService : IUserService
     {
         private readonly ApiDbContext _context;
+        private readonly string secretKey = "eEAn4BSCzj5N0YMTmiPJfh6AMndC8XZp";
 
         public UserService(ApiDbContext context)
         {
@@ -94,5 +99,51 @@ namespace WebApiServer.Services
             return new OkResult();
         }
 
+    
+
+        public string GenerateVerificationToken(string email, string password)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKey);
+            var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                new Claim(ClaimTypes.Email, email),
+                new Claim("PasswordHash", passwordHash)
+            }),
+                Expires = DateTime.UtcNow.AddMinutes(15), // Token platí 15 minút
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        public void SendVerificationEmail(string email, string verificationToken)
+        {
+            //var verificationLink = $"http://localhost:5000/verify?token={verificationToken}";
+            var verificationLink = $"https://conprofile.fri.uniza.sk/verify?token={verificationToken}";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("ConProfileAdmin", "conprofileverify@gmail.com"));
+            message.To.Add(new MailboxAddress("", email));
+            message.Subject = "Overenie e-mailu";
+            message.Body = new TextPart("plain")
+            {
+                Text = $"Kliknite na nasledujúci odkaz pre overenie vášho účtu: {verificationLink}"
+            };
+
+            using (var client = new MailKit.Net.Smtp.SmtpClient())
+            {
+
+                client.Connect("smtp.gmail.com", 587, false);
+                client.Authenticate("conprofileverify@gmail.com", "ujhe dkjn fpap jejt");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+        }
     }
 }

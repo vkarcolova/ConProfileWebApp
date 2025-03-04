@@ -34,12 +34,12 @@ namespace WebApiServer.Controllers
             if (registerForm == null || string.IsNullOrWhiteSpace(registerForm.EMAIL) ||
                 string.IsNullOrWhiteSpace(registerForm.PASSWORD2) || string.IsNullOrWhiteSpace(registerForm.PASSWORD))
             {
-                return BadRequest("Registračný formulár nebol vyplnený");
+                return BadRequest("Registračný formulár nebol vyplnený.");
             }
 
             if (registerForm.PASSWORD != registerForm.PASSWORD2)
             {
-                return BadRequest(new { message = "Heslá sa nezhodujú" });
+                return BadRequest(new { message = "Heslá sa nezhodujú." });
             }
 
             if (!Regex.IsMatch(registerForm.PASSWORD, @"^(?=.*\d).{8,}$"))
@@ -52,27 +52,12 @@ namespace WebApiServer.Controllers
             {
                 return BadRequest(new { message = "Emailová adresa je už registrovaná." });
             }
-            var oldToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-            var userToken = _userService.GenerateJwtToken(registerForm.EMAIL);
+            string verificationToken = _userService.GenerateVerificationToken(registerForm.EMAIL, registerForm.PASSWORD);
 
-            if (!string.IsNullOrEmpty(oldToken))
-            {
-                await _userService.MoveHostProjectsToUser(oldToken, userToken, registerForm.EMAIL);
-            }
+            _userService.SendVerificationEmail(registerForm.EMAIL, verificationToken);
 
-            var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(registerForm.PASSWORD);
-
-            var newUser = new User
-            {
-                UserEmail = registerForm.EMAIL,
-                PasswordHash = passwordHash,
-                Role = "user"
-            };
-
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-            return Ok(new { TOKEN = userToken, EMAIL = newUser.UserEmail });
+            return Ok(new { message = "Overovací e-mail bol odoslaný." });
         }
 
         [HttpPost("Login")]
@@ -321,6 +306,51 @@ namespace WebApiServer.Controllers
             }
 
             return Ok(allLoadedData);
+        }
+
+        [HttpGet("VerifyEmail")]
+        public async Task<IActionResult> VerifyEmail(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("eEAn4BSCzj5N0YMTmiPJfh6AMndC8XZp");
+
+            try
+            {
+                var claimsPrincipal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true
+                }, out SecurityToken validatedToken);
+
+                var email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+                var passwordHash = claimsPrincipal.FindFirst("PasswordHash")?.Value;
+
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(passwordHash))
+                    return BadRequest("Token neobsahuje platné údaje.");
+
+                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+                if (existingUser != null)
+                    return BadRequest("Účet už existuje.");
+
+                var newUser = new User
+                {
+                    UserEmail = email,
+                    PasswordHash = passwordHash,
+                    Role = "user"
+                };
+
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+
+                return Ok("Účet bol úspešne vytvorený. Teraz sa môžete prihlásiť.");
+            }
+            catch
+            {
+                return BadRequest("Neplatný alebo expirovaný token.");
+            }
         }
     }
 }

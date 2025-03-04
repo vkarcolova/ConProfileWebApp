@@ -329,7 +329,7 @@ const Home: React.FC = () => {
               padding: 3,
               width: "45%",
               maxHeight: "50%",
-              paddingTop: { lg: 14, xxl: 20 },
+              paddingTop: { md: 14, lg: 14, xxl: 20 },
             }}
           >
             {options.map((option) => (
@@ -351,7 +351,7 @@ const Home: React.FC = () => {
                 <Grid item key={option.value} xs={12} sm={6}>
                   <Card
                     sx={{
-                      height: { lg: 150, xxl: 200 },
+                      height: { md: 150, lg: 150, xxl: 200 },
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

@@ -10,6 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 import DataBank from "./pages/DataBank/DataBank";
 import MobileWarning from "./pages/MobileWarning/MobileWarning";
 import AdminSettings from "./pages/AdminSettings/AdminSettings";
+import VerifyEmail from "./pages/Verify/Verify";
+
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
     xs: true; // removes the `xs` breakpoint
@@ -61,6 +63,7 @@ function App() {
             <Route path="/auth/:type" element={<TabsLoginRegister />} />
             <Route path="/databanka" element={<DataBank />} />
             <Route path="/pouzivatelia" element={<AdminSettings />} />
+            <Route path="/verify" element={<VerifyEmail />} />
           </Routes>
         </div>
       </ThemeProvider>
