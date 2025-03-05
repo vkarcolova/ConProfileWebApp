@@ -53,9 +53,9 @@ namespace WebApiServer.Controllers
                 return BadRequest(new { message = "Emailová adresa je už registrovaná." });
             }
 
-            string verificationToken = _userService.GenerateVerificationToken(registerForm.EMAIL, registerForm.PASSWORD);
+            string verificationToken = _userService.GenerateVerificationTokenForRegistration(registerForm.EMAIL, registerForm.PASSWORD);
 
-            _userService.SendVerificationEmail(registerForm.EMAIL, verificationToken);
+            _userService.SendVerificationEmail(registerForm.EMAIL, verificationToken, true);
 
             return Ok(new { message = "Overovací e-mail bol odoslaný." });
         }
@@ -352,5 +352,68 @@ namespace WebApiServer.Controllers
                 return BadRequest("Neplatný alebo expirovaný token.");
             }
         }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+            if (user == null)
+            {
+                return BadRequest("Používateľ s týmto e-mailom neexistuje.");
+            }
+
+            string resetToken = _userService.GenerateResetToken(email);
+            _userService.SendVerificationEmail(email, resetToken, false);
+
+            return Ok("Resetovací e-mail bol odoslaný.");
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO request)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("jvmpbwDZzYUJEMwrSNp55TIK3w8iiYQQ");
+
+            try
+            {
+                var claimsPrincipal = tokenHandler.ValidateToken(request.Token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true
+                }, out SecurityToken validatedToken);
+
+                var email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+
+                if (string.IsNullOrEmpty(email))
+                    return BadRequest("Token neobsahuje platné údaje.");
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+                if (user == null)
+                    return BadRequest("Používateľ neexistuje.");
+                if (request.ConfirmPassword != request.NewPassword) return BadRequest(new { message = "Heslá sa nezhodujú." });
+
+                if (!Regex.IsMatch(request.NewPassword, @"^(?=.*\d).{8,}$"))
+                {
+                    return BadRequest(new { message = "Heslo musí mať aspoň 8 znakov a obsahovať aspoň jedno číslo." });
+                }
+                var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
+
+                user.PasswordHash = passwordHash;
+
+                user.PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
+                await _context.SaveChangesAsync();
+
+                return Ok("Heslo bolo úspešne zmenené.");
+            }
+            catch
+            {
+                return BadRequest("Neplatný alebo expirovaný token.");
+            }
+        }
     }
+
+
 }

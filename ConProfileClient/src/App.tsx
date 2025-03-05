@@ -4,13 +4,14 @@ import Home from "./pages/Home";
 import CreateProfile from "./pages/CreateProfile/CreateProfile";
 import "react-widgets/styles.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import TabsLoginRegister from "./pages/RegisterLogin/TabsLoginRegister";
+import TabsLoginRegister from "./pages/RegisterLoginForgot/TabsLoginRegister";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataBank from "./pages/DataBank/DataBank";
 import MobileWarning from "./pages/MobileWarning/MobileWarning";
 import AdminSettings from "./pages/AdminSettings/AdminSettings";
 import VerifyEmail from "./pages/Verify/Verify";
+import ResetPassword from "./pages/Verify/NewPassword";
 
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
@@ -64,6 +65,7 @@ function App() {
             <Route path="/databanka" element={<DataBank />} />
             <Route path="/pouzivatelia" element={<AdminSettings />} />
             <Route path="/verify" element={<VerifyEmail />} />
+            <Route path="/obnovenie-hesla" element={<ResetPassword />} />
           </Routes>
         </div>
       </ThemeProvider>

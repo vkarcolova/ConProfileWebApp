@@ -571,7 +571,31 @@ export const clientApi = {
 
   verifyEmail: async (token: string) => {
     return await axios.get(`${config.apiUrl}/User/VerifyEmail`, {
-      params: { token }, // Token ide ako query parameter
+      params: { token },
+    });
+  },
+
+  forgotPassword: async (email: string) => {
+    return await axios.post(
+      `${config.apiUrl}/User/ForgotPassword`,
+      JSON.stringify(email),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  resetPassword: async (
+    token: string | null,
+    newPassword: string,
+    confirmPassword: string
+  ) => {
+    return await axios.post(`${config.apiUrl}/User/ResetPassword`, {
+      Token: token,
+      NewPassword: newPassword,
+      confirmPassword: confirmPassword,
     });
   },
 };

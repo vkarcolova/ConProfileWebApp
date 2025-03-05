@@ -2,7 +2,7 @@
 
 NAJSKOR
 
-- [ ] zabudnute heslo?
+- [x] zabudnute heslo?
 - [ ] profil problem
 - [ ] tabulka virtuoso
 

@@ -9,6 +9,7 @@ import {
   Button,
   Grid,
   createTheme,
+  Link,
 } from "@mui/material";
 import "../../index.css";
 import React from "react";
@@ -133,12 +134,12 @@ const LoginPage: React.FC = () => {
                 Prihlásiť sa
               </Typography>
             </Button>
-            <Grid container>
-              {/* <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
+            <Grid container sx={{ marginTop: 2 }}>
+              <Grid item xs>
+                <Link href="/auth/zabudnute-heslo" variant="body2">
+                  Zabudli ste heslo?
                 </Link>
-              </Grid> */}
+              </Grid>
             </Grid>
           </Box>
         </Box>

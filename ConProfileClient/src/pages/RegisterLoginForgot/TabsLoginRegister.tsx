@@ -8,6 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import RegisterPage from "./RegisterPage";
 import Info from "@mui/icons-material/InfoOutlined";
 import { useUserContext } from "../../shared/context/useContext";
+import ForgotPassword from "./ForgotPassword";
 interface TabPanelProps {
   children?: React.ReactNode;
   tabValue: string;
@@ -97,6 +98,20 @@ const TabsLoginRegister: React.FC = () => {
                     }}
                     {...a11yProps("registracia")}
                   />
+                  {/* <Tab
+                    label="Zabudnuté heslo"
+                    value="zabudnute-heslo"
+                    sx={{
+                      color: "rgba(59, 49, 119, 0.87)",
+
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "#E2E3E8",
+                      },
+                      fontWeight: 600,
+                    }}
+                    {...a11yProps("zabudnute-heslo")}
+                  /> */}
                 </Tabs>
               </Box>
             }
@@ -106,6 +121,9 @@ const TabsLoginRegister: React.FC = () => {
           </CustomTabPanel>
           <CustomTabPanel tabValue={"registracia"} givenValue={value}>
             <RegisterPage />
+          </CustomTabPanel>
+          <CustomTabPanel tabValue={"zabudnute-heslo"} givenValue={value}>
+            <ForgotPassword />
           </CustomTabPanel>
           <Container
             sx={{

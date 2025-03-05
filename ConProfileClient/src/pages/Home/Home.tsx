@@ -329,7 +329,7 @@ const Home: React.FC = () => {
               padding: 3,
               width: "45%",
               maxHeight: "50%",
-              paddingTop: { md: 14, lg: 14, xxl: 20 },
+              paddingTop: { sm: 14, lg: 14, xxl: 20 },
             }}
           >
             {options.map((option) => (

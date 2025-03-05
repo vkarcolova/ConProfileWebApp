@@ -161,6 +161,14 @@ namespace WebApiServer.DTOs
 
     }
 
+    public class ResetPasswordDTO
+    {
+        public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
+
+        public string Token { get; set; }
+    }
+
     public class UserDTO
     {
         public string Email { get; set; }

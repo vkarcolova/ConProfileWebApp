@@ -30,15 +30,17 @@ namespace WebApiServer.Services
         public bool IsAuthorized(string userEmail, string userToken);
 
         public  Task<IActionResult> MoveHostProjectsToUser(string oldToken, string newToken, string userEmail);
-        public void SendVerificationEmail(string email, string verificationToken);
-        public string GenerateVerificationToken(string email, string password);
+        public void SendVerificationEmail(string email, string verificationToken, bool reg);
+        public string GenerateVerificationTokenForRegistration(string email, string password);
+        public string GenerateResetToken(string email);
 
     }
 
     public class UserService : IUserService
     {
         private readonly ApiDbContext _context;
-        private readonly string secretKey = "eEAn4BSCzj5N0YMTmiPJfh6AMndC8XZp";
+        private readonly string secretKeyForReg = "eEAn4BSCzj5N0YMTmiPJfh6AMndC8XZp";
+        private readonly string secretKeyForNewPass = "jvmpbwDZzYUJEMwrSNp55TIK3w8iiYQQ";
 
         public UserService(ApiDbContext context)
         {
@@ -101,10 +103,10 @@ namespace WebApiServer.Services
 
     
 
-        public string GenerateVerificationToken(string email, string password)
+        public string GenerateVerificationTokenForRegistration(string email, string password)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secretKey);
+            var key = Encoding.ASCII.GetBytes(secretKeyForReg);
             var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password);
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -122,19 +124,53 @@ namespace WebApiServer.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public void SendVerificationEmail(string email, string verificationToken)
+
+        public string GenerateResetToken(string email)
         {
-            //var verificationLink = $"http://localhost:5000/verify?token={verificationToken}";
-            var verificationLink = $"https://conprofile.fri.uniza.sk/verify?token={verificationToken}";
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKeyForNewPass);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, email) }),
+                Expires = DateTime.UtcNow.AddMinutes(15), // Token platí 15 minút
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        public void SendVerificationEmail(string email, string verificationToken, bool reg)
+        {
+
+            var link = reg ? "verify" : "obnovenie-hesla";
+            //var verificationLink = $"http://localhost:5000/{link}?token={verificationToken}";
+
+            var verificationLink = $"https://conprofile.fri.uniza.sk/{link}?token={verificationToken}";
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("ConProfileAdmin", "conprofileverify@gmail.com"));
-            message.To.Add(new MailboxAddress("", email));
-            message.Subject = "Overenie e-mailu";
-            message.Body = new TextPart("plain")
+
+            if (reg)
             {
-                Text = $"Kliknite na nasledujúci odkaz pre overenie vášho účtu: {verificationLink}"
-            };
+                message.To.Add(new MailboxAddress("", email));
+                message.Subject = "Overenie e-mailu";
+                message.Body = new TextPart("plain")
+                {
+                    Text = $"Kliknite na nasledujúci odkaz pre overenie vášho účtu: {verificationLink}"
+                };
+
+            } else
+            {
+                message.To.Add(new MailboxAddress("", email));
+                message.Subject = "Overenie e-mailu pre obnovenie hesla";
+                message.Body = new TextPart("plain")
+                {
+                    Text = $"Kliknite na nasledujúci odkaz pre vytvorenie nového hesla: {verificationLink}"
+                };
+
+            }
 
             using (var client = new MailKit.Net.Smtp.SmtpClient())
             {
