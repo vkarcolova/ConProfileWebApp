@@ -30,29 +30,47 @@ export const clientApi = {
       PASSWORD: password,
       PASSWORD2: password2,
     };
-
-    const token = localStorage.getItem("token");
-
-    let customHeaders:
-      | { "Content-Type": string }
-      | { "Content-Type": string; Authorization: string } = {
-      "Content-Type": "application/json",
-    };
-
-    if (token != undefined || token != null) {
-      customHeaders = {
-        "Content-Type": "application/json",
+    return await axios.post(`${config.apiUrl}/User/Register`, registerForm, {
+      headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
-      };
-    }
-    return await axios.post(
-      `${config.apiUrl}/User/Register`,
-      JSON.stringify(registerForm),
-      {
-        headers: customHeaders,
-      }
-    );
+        UserEmail: localStorage.getItem("useremail"),
+      },
+    });
   },
+  // register: async (email: string, password: string, password2: string) => {
+  //   type RegisterFormDTO = {
+  //     EMAIL: string;
+  //     PASSWORD: string;
+  //     PASSWORD2: string;
+  //   };
+  //   const registerForm: RegisterFormDTO = {
+  //     EMAIL: email,
+  //     PASSWORD: password,
+  //     PASSWORD2: password2,
+  //   };
+
+  //   const token = localStorage.getItem("token");
+
+  //   let customHeaders:
+  //     | { "Content-Type": string }
+  //     | { "Content-Type": string; Authorization: string } = {
+  //     "Content-Type": "application/json",
+  //   };
+
+  //   if (token != undefined || token != null) {
+  //     customHeaders = {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     };
+  //   }
+  //   return await axios.post(
+  //     `${config.apiUrl}/User/Register`,
+  //     JSON.stringify(registerForm),
+  //     {
+  //       headers: customHeaders,
+  //     }
+  //   );
+  // },
 
   login: async (email: string, password: string) => {
     type LoginDTO = {
@@ -549,5 +567,35 @@ export const clientApi = {
         },
       }
     );
+  },
+
+  verifyEmail: async (token: string) => {
+    return await axios.get(`${config.apiUrl}/User/VerifyEmail`, {
+      params: { token },
+    });
+  },
+
+  forgotPassword: async (email: string) => {
+    return await axios.post(
+      `${config.apiUrl}/User/ForgotPassword`,
+      JSON.stringify(email),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  },
+
+  resetPassword: async (
+    token: string | null,
+    newPassword: string,
+    confirmPassword: string
+  ) => {
+    return await axios.post(`${config.apiUrl}/User/ResetPassword`, {
+      Token: token,
+      NewPassword: newPassword,
+      confirmPassword: confirmPassword,
+    });
   },
 };

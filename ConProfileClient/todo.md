@@ -2,6 +2,12 @@
 
 NAJSKOR
 
+- [x] zabudnute heslo?
+- [ ] profil problem
+- [ ] tabulka virtuoso
+
+- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
+
 - [x] ten bug v databanke aaasi done
 - [x] are u sure na tvorbe profilu
 - [x] admin
@@ -10,11 +16,8 @@ NAJSKOR
   - pridelovanie administratorskej role
   - mazanie uctu
 - [x] hesla komplikovanejsie aspon 8 znakov a cislo
-- [ ] zabudnute heslo?
-- [ ] poslanie mailu pri registracii
-
+- [x] poslanie mailu pri registracii
 - [x] nejako lepsie ten nazov spektra? mozno si obsahuje nazov suboru
-- [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
 
 ##
 
