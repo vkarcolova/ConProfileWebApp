@@ -58,8 +58,9 @@ export const UserMenu: React.FC = () => {
               <Typography
                 sx={{
                   textAlign: "center",
-                  fontSize: "13px",
+                  fontSize: "12px",
                   color: "#bfc1e6",
+                  marginBlock: "5px",
                 }}
               >
                 Prihlásený používateľ{" "}
