@@ -11,6 +11,7 @@
           "Accord": "3.8.0",
           "Accord.MachineLearning": "3.8.0",
           "Accord.Math": "3.8.0",
+          "Accord.Statistics": "3.8.0",
           "BCrypt.Net-Next": "4.0.3",
           "MailKit": "4.10.0",
           "MathNet.Numerics": "5.0.0",

@@ -299,6 +299,20 @@ export const clientApi = {
     );
   },
 
+  calculateEmptyDataQuadtraticFit: async (column: ColumnDTO) => {
+    return await axios.post(
+      `${config.apiUrl}/LoadedFolder/CalculateEmptyData2`,
+      JSON.stringify(column),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+        },
+      }
+    );
+  },
+
   calculateAjustedData: async (column: ColumnDTO, exampleData: number[]) => {
     const AdjustedDataRequest = {
       Column: column,

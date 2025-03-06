@@ -127,6 +127,8 @@ const CreateProfile: React.FC = () => {
       })),
       tooltip: { trigger: "axis" },
     });
+
+    console.log(projectFolders[selectedFolder]);
   }, [
     projectFolders,
     selectedFolder,
@@ -187,6 +189,10 @@ const CreateProfile: React.FC = () => {
     folderData.data.forEach((file) => {
       const intensities: number[] = file.intensity.map((dto) => dto.intensity);
       allData = allData.concat(intensities);
+      file = {
+        ...file,
+        intensity: file.intensity.sort((a, b) => a.excitation - b.excitation),
+      };
     });
 
     const normalStat: StatData = calculateStats(allData);

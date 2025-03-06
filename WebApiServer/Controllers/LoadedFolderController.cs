@@ -6,8 +6,12 @@ using WebApiServer.Services;
 using Accord.MachineLearning.VectorMachines;
 using Accord.MachineLearning.VectorMachines.Learning;
 using Accord.Statistics.Kernels;
+using MathNet.Numerics.Interpolation;
+
 using WebApiServer.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Newtonsoft.Json.Linq;
+using MathNet.Numerics.LinearAlgebra;
 namespace WebApiServer.Controllers
 {
     [ApiController]
@@ -246,6 +250,226 @@ namespace WebApiServer.Controllers
 
 
         }
+        [HttpPost("CalculateEmptyData2")]
+        public async Task<IActionResult> CalculateEmptyData2([FromBody] ColumnDTO column)
+        {
+            if (column == null || column.Intensities == null || column.Excitations == null ||
+                column.Intensities.Count != column.Excitations.Count)
+            {
+                return BadRequest(new { message = "Nesprávne dáta." });
+            }
+
+            var validExcitacions = new List<double>();
+            var validIntensities = new List<double>();
+            var onlyCalculated = new double?[column.Excitations.Count];
+            var onlyCalculatedExct = new double?[column.Excitations.Count];
+
+            // Získanie platných dát (bez medzier)
+            for (int i = 0; i < column.Intensities.Count; i++)
+            {
+                if (column.Intensities[i].HasValue)
+                {
+                    validExcitacions.Add(column.Excitations[i]);
+                    validIntensities.Add(column.Intensities[i].Value);
+                }
+            }
+
+            if (validExcitacions.Count < 2)
+            {
+                return BadRequest(new
+                {
+                    message = $"Stĺpec '{column.Name}' nemá dostatočne veľa dát na dopočítanie ďalších dát."
+                });
+            }
+
+            // Vytvorenie spline interpolácie pre ostatné body
+            var spline = CubicSpline.InterpolateNaturalSorted(
+                validExcitacions.ToArray(),
+                validIntensities.ToArray()
+            );
+
+            // Pomocná metóda na lineárnu extrapoláciu
+            double LinearExtrapolate(double x1, double y1, double x2, double y2, double x)
+            {
+                double slope = (y2 - y1) / (x2 - x1);
+                return y1 + slope * (x - x1);
+            }
+
+            // Detekcia najväčšieho bloku chýbajúcich dát
+            int? blockStart = null;
+            int? blockEnd = null;
+            int maxMissingLength = 0;
+
+            int currentStart = -1;
+            int currentLength = 0;
+
+            for (int i = 0; i < column.Intensities.Count; i++)
+            {
+                if (!column.Intensities[i].HasValue)
+                {
+                    if (currentStart < 0) currentStart = i;
+                    currentLength++;
+                }
+                else
+                {
+                    if (currentStart >= 0)
+                    {
+                        if (currentLength > maxMissingLength)
+                        {
+                            maxMissingLength = currentLength;
+                            blockStart = currentStart;
+                            blockEnd = i - 1;
+                        }
+                        currentStart = -1;
+                        currentLength = 0;
+                    }
+                }
+            }
+            if (currentStart >= 0 && currentLength > maxMissingLength)
+            {
+                blockStart = currentStart;
+                blockEnd = column.Intensities.Count - 1;
+            }
+
+            // Použijeme clamped Hermiteovu interpoláciu pre hlavný blok, ak je obklopený platnými dátami
+            if (blockStart.HasValue && blockEnd.HasValue)
+            {
+                int iStart = blockStart.Value - 1;
+                int iEnd = blockEnd.Value + 1;
+
+                if (iStart >= 0 && iEnd < column.Intensities.Count &&
+                    column.Intensities[iStart].HasValue &&
+                    column.Intensities[iEnd].HasValue)
+                {
+                    double xA = column.Excitations[iStart];
+                    double yA = column.Intensities[iStart].Value;
+                    double xB = column.Excitations[iEnd];
+                    double yB = column.Intensities[iEnd].Value;
+
+                    // Počet bodov, z ktorých počítame priemerný sklony (napr. 10)
+                    int countForSlope = 10;
+
+                    // Vypočítame priemerný smer zo strany pred medzerou
+                    int leftStart = Math.Max(0, iStart - countForSlope + 1);
+                    // Zostavíme zoznam platných hodnôt z ľavej strany
+                    var leftExc = new List<double>();
+                    var leftInt = new List<double>();
+                    for (int i = leftStart; i <= iStart; i++)
+                    {
+                        if (column.Intensities[i].HasValue)
+                        {
+                            leftExc.Add(column.Excitations[i]);
+                            leftInt.Add(column.Intensities[i].Value);
+                        }
+                    }
+                    double leftSlope = ComputeAverageSlope(leftExc, leftInt, 0, leftExc.Count);
+                    // Ak je leftSlope príliš malý, nastavte minimálnu hodnotu (pozitívnu)
+                    if (Math.Abs(leftSlope) < 1e-6)
+                        leftSlope = Math.Abs(yA) * 0.05;  // napr. 5 % z hodnoty
+
+                    // Vypočítame priemerný smer zo strany po medzere
+                    int rightEnd = Math.Min(column.Intensities.Count - 1, iEnd + countForSlope - 1);
+                    var rightExc = new List<double>();
+                    var rightInt = new List<double>();
+                    for (int i = iEnd; i <= rightEnd; i++)
+                    {
+                        if (column.Intensities[i].HasValue)
+                        {
+                            rightExc.Add(column.Excitations[i]);
+                            rightInt.Add(column.Intensities[i].Value);
+                        }
+                    }
+                    double rightSlope = ComputeAverageSlope(rightExc, rightInt, 0, rightExc.Count);
+                    if (Math.Abs(rightSlope) < 1e-6)
+                        rightSlope = Math.Abs(yB) * 0.05;
+                    // Na pravej strane chceme negatívny sklon (klesanie)
+                    rightSlope = -Math.Abs(rightSlope);
+
+                    // Vytvoríme clamped Hermiteovu spline pre interval [xA, xB]
+                    // Používame dve body so zadanými deriváciami:
+                    // V MathNet.Numerics trieda CubicHermiteSpline umožňuje takúto interpoláciu.
+                    var xs = new double[] { xA, xB };
+                    var ys = new double[] { yA, yB };
+                    var slopes = new double[] { leftSlope, rightSlope };
+
+                    var hermiteSpline = new CubicHermiteSpline(xA, yA, leftSlope, xB, yB, rightSlope);
+
+                    for (int j = iStart + 1; j < iEnd; j++)
+                    {
+                        if (!column.Intensities[j].HasValue)
+                        {
+                            double xVal = column.Excitations[j];
+                            double yVal = hermiteSpline.Interpolate(xVal);
+                            column.Intensities[j] = yVal;
+                            onlyCalculated[j] = yVal;
+                            onlyCalculatedExct[j] = xVal;
+                        }
+                    }
+                }
+            }
+
+            // Ostatné chýbajúce body (mimo blok) spracujeme pôvodným spôsobom
+            for (int i = 0; i < column.Intensities.Count; i++)
+            {
+                if (!column.Intensities[i].HasValue)
+                {
+                    double x = column.Excitations[i];
+
+                    if (x < validExcitacions.First())
+                    {
+                        column.Intensities[i] = LinearExtrapolate(
+                            validExcitacions[0], validIntensities[0],
+                            validExcitacions[1], validIntensities[1],
+                            x);
+                    }
+                    else if (x > validExcitacions.Last())
+                    {
+                        column.Intensities[i] = LinearExtrapolate(
+                            validExcitacions[^2], validIntensities[^2],
+                            validExcitacions[^1], validIntensities[^1],
+                            x);
+                    }
+                    else
+                    {
+                        column.Intensities[i] = spline.Interpolate(x);
+                    }
+
+                    onlyCalculated[i] = column.Intensities[i].Value;
+                    onlyCalculatedExct[i] = column.Excitations[i];
+                }
+            }
+
+            return Ok(new
+            {
+                Message = "Calculation completed",
+                Column = column,
+                OnlyValues = onlyCalculated,
+                OnlyExcitations = onlyCalculatedExct
+            });
+        }
+
+
+
+
+        // Pomocná metóda na výpočet priemernej derivácie pre zadané indexy
+        private static double ComputeAverageSlope(List<double> excitations, List<double> intensities, int start, int count)
+        {
+            double sum = 0;
+            int validCount = 0;
+            for (int i = start; i < start + count - 1 && i + 1 < excitations.Count; i++)
+            {
+                double dx = excitations[i + 1] - excitations[i];
+                double dy = intensities[i + 1] - intensities[i];
+                if (Math.Abs(dx) > 1e-9)
+                {
+                    sum += dy / dx;
+                    validCount++;
+                }
+            }
+            return validCount > 0 ? sum / validCount : 0;
+        }
+
+
 
         [HttpPost("CalculateAdjustedData")]
         public async Task<IActionResult> CalculateAdjustedData([FromBody] AdjustedDataRequest request)
@@ -518,149 +742,149 @@ namespace WebApiServer.Controllers
         //}
 
         [HttpPost("AddCalculatedData")]
-            public async Task<IActionResult> AddCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+        public async Task<IActionResult> AddCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+        {
+            try
             {
-                try
+                if (calculatedData != null)
                 {
-                    if (calculatedData != null)
+                    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    string token;
+                    if (userToken == "") token = _userService.GenerateJwtToken();
+                    else token = userToken;
+                    var userEmail = Request.Headers["UserEmail"].ToString();
+
+                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                        return Unauthorized(new { message = "Neplatné prihlásenie" });
+
+
+
+                    int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
+                    LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
+                    double? factor = null;
+                    if (file.Factor.HasValue)
                     {
-                        var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                        string token;
-                        if (userToken == "") token = _userService.GenerateJwtToken();
-                        else token = userToken;
-                        var userEmail = Request.Headers["UserEmail"].ToString();
+                        factor = file.Factor.Value;
+                    }
 
-                        if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                            return Unauthorized(new { message = "Neplatné prihlásenie" });
-
-
-
-                        int nextDataId = (_context.LoadedDatas.OrderByDescending(obj => obj.IdData).FirstOrDefault()?.IdData ?? 0) + 1;
-                        LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
-                        double? factor = null;
-                        if (file.Factor.HasValue)
+                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                    {
+                        LoadedData newData = new LoadedData
                         {
-                            factor = file.Factor.Value;
-                        }
-
-                        for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
-                        {
-                            LoadedData newData = new LoadedData
-                            {
-                                Intensity = calculatedData.CALCULATEDINTENSITIES[i],
-                                Excitation = calculatedData.EXCITACIONS[i],
-                                IdData = nextDataId,
-                                IdFile = calculatedData.IDFILE
-                            };
-                            if (factor.HasValue)
-                                newData.MultipliedIntensity = calculatedData.CALCULATEDINTENSITIES[i] * factor;
-
-                            nextDataId++;
-                            _context.LoadedDatas.Add(newData);
-
+                            Intensity = calculatedData.CALCULATEDINTENSITIES[i],
+                            Excitation = calculatedData.EXCITACIONS[i],
+                            IdData = nextDataId,
+                            IdFile = calculatedData.IDFILE
                         };
-                        await _context.SaveChangesAsync();
+                        if (factor.HasValue)
+                            newData.MultipliedIntensity = calculatedData.CALCULATEDINTENSITIES[i] * factor;
 
-                        if (file.Factor.HasValue)
+                        nextDataId++;
+                        _context.LoadedDatas.Add(newData);
+
+                    };
+                    await _context.SaveChangesAsync();
+
+                    if (file.Factor.HasValue)
+                    {
+                        bool success = true;
+                        List<LoadedData> loadedDatas = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE).ToList();
+                        var ordered = loadedDatas.OrderBy(x => x.Excitation).ToList();
+                        List<ProfileData> profileDatas = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder).ToList();
+                        profileDatas.OrderBy(x => x.Excitation).ToList();
+                        for (int i = 0; i < ordered.Count; i++)
                         {
-                            bool success = true;
-                            List<LoadedData> loadedDatas = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE).ToList();
-                            var ordered = loadedDatas.OrderBy(x => x.Excitation).ToList();
-                            List<ProfileData> profileDatas = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder).ToList();
-                            profileDatas.OrderBy(x => x.Excitation).ToList();
-                            for (int i = 0; i < ordered.Count; i++)
+                            if (ordered[i].Excitation != profileDatas[i].Excitation)
                             {
-                                if (ordered[i].Excitation != profileDatas[i].Excitation)
-                                {
-                                    success = false; break;
-                                }
-
-                                if (ordered[i].MultipliedIntensity.HasValue && profileDatas[i].MaxIntensity < ordered[i].MultipliedIntensity.Value)
-                                {
-                                    profileDatas[i].MaxIntensity = ordered[i].MultipliedIntensity.Value;
-                                }
-
+                                success = false; break;
                             }
 
-                            if (success) await _context.SaveChangesAsync();
+                            if (ordered[i].MultipliedIntensity.HasValue && profileDatas[i].MaxIntensity < ordered[i].MultipliedIntensity.Value)
+                            {
+                                profileDatas[i].MaxIntensity = ordered[i].MultipliedIntensity.Value;
+                            }
+
                         }
 
+                        if (success) await _context.SaveChangesAsync();
+                    }
 
 
-                        return Ok();
-                    }
-                    else
-                    {
-                        return BadRequest(new { message = "Chybný formát dát." });
-                    }
+
+                    return Ok();
                 }
-                catch (System.Exception e)
+                else
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new
-                    {
-                        Error = "Chyba pri uložení projektu: " + e.Message
-                    });
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
             }
-
-            [HttpPost("ReplaceCalculatedData")]
-            public async Task<IActionResult> ReplaceCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+            catch (System.Exception e)
             {
-                try
+                return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    if (calculatedData != null)
+                    Error = "Chyba pri uložení projektu: " + e.Message
+                });
+            }
+        }
+
+        [HttpPost("ReplaceCalculatedData")]
+        public async Task<IActionResult> ReplaceCalculatedData([FromBody] CalculatedDataDTO calculatedData)
+        {
+            try
+            {
+                if (calculatedData != null)
+                {
+                    var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    string token;
+                    if (userToken == "") token = _userService.GenerateJwtToken();
+                    else token = userToken;
+                    var userEmail = Request.Headers["UserEmail"].ToString();
+
+                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                        return Unauthorized(new { message = "Neplatné prihlásenie" });
+
+                    //zobrat podla excitacie dane dato 
+
+                    LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
+                    double? factor = null;
+                    if (file.Factor.HasValue)
                     {
-                        var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                        string token;
-                        if (userToken == "") token = _userService.GenerateJwtToken();
-                        else token = userToken;
-                        var userEmail = Request.Headers["UserEmail"].ToString();
+                        factor = file.Factor.Value;
+                    }
 
-                        if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                            return Unauthorized(new { message = "Neplatné prihlásenie" });
-
-                        //zobrat podla excitacie dane dato 
-
-                        LoadedFile file = _context.LoadedFiles.Where(x => x.IdFile == calculatedData.IDFILE).FirstOrDefault();
-                        double? factor = null;
-                        if (file.Factor.HasValue)
+                    for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
+                    {
+                        LoadedData dataToReplace = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
+                        dataToReplace.Intensity = calculatedData.CALCULATEDINTENSITIES[i];
+                        if (file.Factor.HasValue && factor.HasValue && factor != null)
                         {
-                            factor = file.Factor.Value;
-                        }
-
-                        for (int i = 0; i < calculatedData.CALCULATEDINTENSITIES.Length; i++)
-                        {
-                            LoadedData dataToReplace = _context.LoadedDatas.Where(x => x.IdFile == calculatedData.IDFILE && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
-                            dataToReplace.Intensity = calculatedData.CALCULATEDINTENSITIES[i];
-                            if (file.Factor.HasValue && factor.HasValue && factor != null)
+                            double multiplied = dataToReplace.Intensity * factor.Value;
+                            dataToReplace.MultipliedIntensity = multiplied;
+                            ProfileData profile = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
+                            if (profile.MaxIntensity < multiplied)
                             {
-                                double multiplied = dataToReplace.Intensity * factor.Value;
-                                dataToReplace.MultipliedIntensity = multiplied;
-                                ProfileData profile = _context.ProfileDatas.Where(x => x.IdFolder == file.IdFolder && x.Excitation == calculatedData.EXCITACIONS[i]).FirstOrDefault();
-                                if (profile.MaxIntensity < multiplied)
-                                {
-                                    profile.MaxIntensity = multiplied;
-                                }
+                                profile.MaxIntensity = multiplied;
                             }
-                        };
-                        await _context.SaveChangesAsync();
+                        }
+                    };
+                    await _context.SaveChangesAsync();
 
-                        return Ok();
-                    }
-                    else
-                    {
-                        return BadRequest(new { message = "Chybný formát dát." });
-                    }
+                    return Ok();
                 }
-                catch (System.Exception e)
+                else
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new
-                    {
-                        Error = "Chyba pri uložení projektu: " + e.Message
-                    });
+                    return BadRequest(new { message = "Chybný formát dát." });
                 }
-
+            }
+            catch (System.Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Error = "Chyba pri uložení projektu: " + e.Message
+                });
             }
 
         }
+
     }
+}

@@ -247,6 +247,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   const handleClose = () => {
     setOpen(false);
     setCalculatedEmptyIntensities([]);
+    setCalculatedSameIntensities([]);
     setChartData(undefined);
     setSelectedTab(0);
     setOptions(null);
@@ -395,6 +396,104 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     });
   };
 
+  const handleCalculateDataQuadtraticFit = async () => {
+    let valuesToCalculate = [...columns[selectedTab].intensities];
+    if (isSameValues) {
+      valuesToCalculate = replaceLongRepeatingNumbers(valuesToCalculate);
+    }
+
+    const columnToSend = {
+      ...columns[selectedTab], // Plytká kópia objektu
+      intensities: [...valuesToCalculate], // Hlboká kópia intenzít
+    };
+
+    await clientApi
+      .calculateEmptyDataQuadtraticFit(columnToSend)
+      .then(async (response) => {
+        const all: (number | undefined)[] = response.data.onlyValues;
+        console.log(response);
+
+        console.log(all);
+        const onlyEmpty = [];
+        const onlySame = [];
+        if (isEmptyValues) {
+          for (let i = 0; i < all.length; i++) {
+            if (columns[selectedTab].intensities[i] == undefined) {
+              onlyEmpty[i] = all[i];
+            } else {
+              onlyEmpty[i] = undefined;
+            }
+          }
+          setCalculatedEmptyIntensities(onlyEmpty);
+        }
+
+        if (isSameValues) {
+          for (let i = 0; i < all.length; i++) {
+            if (
+              columns[selectedTab].intensities[i] != undefined &&
+              all[i] != null
+            ) {
+              onlySame[i] = all[i];
+            } else {
+              onlySame[i] = undefined;
+            }
+          }
+          setCalculatedSameIntensities(onlySame);
+        }
+
+        const newChartData = chartData!.filter(
+          (item) =>
+            item.label !== "Dopočítané z rovnakých dát" &&
+            item.label !== "Dopočítané z prázdnych dát" &&
+            item.label !== "Referenčný stĺpec"
+        );
+
+        const newSeries: any[] = [];
+        const filteredSeries = (options?.series || []).filter(
+          (item: any) =>
+            item.name !== "Dopočítané z rovnakých dát" &&
+            item.name !== "Dopočítané z prázdnych dát" &&
+            item.name !== "Referenčný stĺpec"
+        );
+
+        if (isSameValues) {
+          newChartData.push({
+            data: onlySame,
+            label: "Dopočítané z rovnakých dát",
+          });
+          newSeries.push({
+            name: "Dopočítané z rovnakých dát",
+            type: "line",
+            data: onlySame,
+            smooth: true,
+            connectNulls: false,
+            color: "#ff0000",
+          });
+        }
+
+        if (isEmptyValues) {
+          newChartData.push({
+            data: onlyEmpty,
+            label: "Dopočítané z prázdnych dát",
+          });
+          newSeries.push({
+            name: "Dopočítané z prázdnych dát",
+            type: "line",
+            data: onlyEmpty,
+            smooth: true,
+            connectNulls: false,
+            color: "green",
+          });
+        }
+
+        setChartData(newChartData);
+        setOptions((prevOptions: any) => ({
+          ...prevOptions,
+          series: [...filteredSeries, ...newSeries], // Odstránené staré série, pridané nové
+        }));
+      });
+  };
+
   const handleCalculateAdjustData = async () => {
     let valuesToCalculate = [...columns[selectedTab].intensities];
     if (isSameValues) {
@@ -428,6 +527,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       (value) => value.intensity
     );
 
+    console.log(foundColumn?.intensity);
+
     const exampleColumnName = foundColumn?.filename;
 
     if (columns.find((col) => col.name === exampleColumnName) !== undefined) {
@@ -445,6 +546,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
       return;
     }
 
+    console.log(exampleData);
     await clientApi
       .calculateAjustedData(columnToSend, exampleData)
       .then(async (response) => {
@@ -536,6 +638,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           connectNulls: false,
           color: "yellow",
         });
+
+        console.log(exampleData);
 
         setChartData(newChartData);
         setOptions((prevOptions: any) => ({
@@ -806,11 +910,11 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                       <br />
                       {columnSpectrum !== undefined && columnSpectrum !== 0 && (
                         <>
-                          "Druhá metóda pre výpočet dát je{" "}
+                          Druhá metóda pre výpočet dát je{" "}
                           <b>podľa referenčného stĺpca</b>. Pre stĺpec so
                           spektrom 2 je to stĺpec so spektrom 0, pre stĺpec so
                           spektrom 8 - 2, pre stĺpec 32 - 8, pre 128 - 32 a pre
-                          stĺpec so spektrom 512 je to stĺpec so spektrom 128."
+                          stĺpec so spektrom 512 je to stĺpec so spektrom 128.
                         </>
                       )}
                     </Typography>
@@ -865,7 +969,43 @@ const CalculateData: React.FC<CalculateDataProps> = ({
                         }}
                         textTransform={"none"}
                       >
-                        Dopočítať chýbajúce hodnoty
+                        Dopočítať chýbajúce hodnoty (interpolácia)
+                      </Typography>
+                    </Button>{" "}
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderRadius: "30px",
+                        border: "2px solid #514986",
+                        "&:hover": {
+                          border: "2px solid #dcdbe7",
+                        },
+                        backgroundColor:
+                          calculatedEmptyIntensities.length > 0
+                            ? "#f6fafd"
+                            : "#d5e1fb",
+
+                        width: "60%",
+                        marginBottom: "10px",
+                      }}
+                      onClick={() => {
+                        handleCalculateDataQuadtraticFit();
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "Poppins",
+                          fontWeight: 500,
+                          fontSize: "15px",
+                          padding: "2px",
+                          color:
+                            calculatedEmptyIntensities.length > 0
+                              ? "#84809c"
+                              : "#514986",
+                        }}
+                        textTransform={"none"}
+                      >
+                        Dopočítať chýbajúce hodnoty (quadtratic fit)
                       </Typography>
                     </Button>{" "}
                     {columnSpectrum !== undefined && columnSpectrum !== 0 && (

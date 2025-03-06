@@ -467,7 +467,7 @@ const Home: React.FC = () => {
                               />
 
                               {/* Zoznam nahraných priečinkov */}
-                              <Box sx={{ flex: 1, ml: 2 }}>
+                              <Box sx={{ flex: 1, ml: 1, mr: 5 }}>
                                 <Typography
                                   variant="body2"
                                   color="textSecondary"
