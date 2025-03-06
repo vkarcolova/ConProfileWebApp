@@ -173,9 +173,9 @@ namespace WebApiServer.Controllers
 
         //potom niekde zo stredu to moze asi aj viac krat cize while 
 
-
-        [HttpPost("CalculateEmptyData")]
-        public async Task<IActionResult> CalculateEmptyData([FromBody] ColumnDTO column)
+        //BASIC INTERPOLACIA
+        [HttpPost("CalculateEmptyData2")]
+        public async Task<IActionResult> CalculateEmptyData2([FromBody] ColumnDTO column)
         {
             if (column == null || column.Intensities == null || column.Excitations == null || column.Intensities.Count != column.Excitations.Count)
             {
@@ -247,11 +247,9 @@ namespace WebApiServer.Controllers
             }
 
             return Ok(new { Message = "Calculation completed", Column = column, OnlyValues = onlyCalculated, OnlyExcitations = onlyCalculatedExct });
-
-
         }
-        [HttpPost("CalculateEmptyData2")]
-        public async Task<IActionResult> CalculateEmptyData2([FromBody] ColumnDTO column)
+        [HttpPost("CalculateEmptyData")]
+        public async Task<IActionResult> CalculateEmptyData([FromBody] ColumnDTO column)
         {
             if (column == null || column.Intensities == null || column.Excitations == null ||
                 column.Intensities.Count != column.Excitations.Count)

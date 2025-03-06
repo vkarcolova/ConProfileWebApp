@@ -299,7 +299,7 @@ export const clientApi = {
     );
   },
 
-  calculateEmptyDataQuadtraticFit: async (column: ColumnDTO) => {
+  calculateEmptyData2: async (column: ColumnDTO) => {
     return await axios.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData2`,
       JSON.stringify(column),
