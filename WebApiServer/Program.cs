@@ -69,25 +69,25 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        var origin = context.Request.Headers["Origin"].ToString();
+//app.Use(async (context, next) =>
+//{
+//    if (context.Request.Method == "OPTIONS")
+//    {
+//        var origin = context.Request.Headers["Origin"].ToString();
 
-        var allowedOrigins = new[] { "http://localhost:5000", "https://conprofile.fri.uniza.sk" };
+//        var allowedOrigins = new[] { "http://localhost:5000", "https://conprofile.fri.uniza.sk" };
 
-        if (allowedOrigins.Contains(origin))
-            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
-        else
-            context.Response.Headers["Access-Control-Allow-Origin"] = "null";
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type, UserEmail");
-        context.Response.StatusCode = 204;
-        return;
-    }
-    await next();
-});
+//        if (allowedOrigins.Contains(origin))
+//            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+//        else
+//            context.Response.Headers["Access-Control-Allow-Origin"] = "null";
+//        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
+//        context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type, UserEmail");
+//        context.Response.StatusCode = 204;
+//        return;
+//    }
+//    await next();
+//});
 try { 
     using (var scope = app.Services.CreateScope())
     {
