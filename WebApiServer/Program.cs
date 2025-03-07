@@ -57,10 +57,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             })
             ;
 
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication();
-
-
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
