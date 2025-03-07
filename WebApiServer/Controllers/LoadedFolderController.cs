@@ -467,8 +467,6 @@ namespace WebApiServer.Controllers
             return validCount > 0 ? sum / validCount : 0;
         }
 
-
-
         [HttpPost("CalculateAdjustedData")]
         public async Task<IActionResult> CalculateAdjustedData([FromBody] AdjustedDataRequest request)
         {
@@ -477,7 +475,6 @@ namespace WebApiServer.Controllers
                 return BadRequest(new { message = "Nesprávne dáta." });
             }
 
-            // Overíme, či majú všetky zoznamy rovnakú dĺžku.
             if (request.Column.Intensities == null ||
                 request.Column.Excitations == null ||
                 request.Column.Intensities.Count != request.Column.Excitations.Count ||
@@ -487,42 +484,11 @@ namespace WebApiServer.Controllers
             }
 
             int n = request.Column.Intensities.Count;
-
-            // Získame platné hodnoty pre výpočet škálovacieho faktora.
-            var validIntensities = request.Column.Intensities
-                .Where(x => x.HasValue)
-                .Select(x => x.Value)
-                .ToList();
-
-            if (validIntensities.Count == 0)
-            {
-                return BadRequest(new { message = "Stĺpec neobsahuje žiadne platné dáta na dopočítanie." });
-            }
-
-            double meanColumn = validIntensities.Average();
-            double meanReference = request.ReferenceSeries.Average();
-
-            if (meanReference == 0)
-            {
-                return BadRequest(new { message = "Referenčná séria obsahuje len nulové hodnoty." });
-            }
-
-            double scaleFactor = meanColumn / meanReference;
-
-            // Výstupné pole – dopočítané hodnoty pre gap-y, inak null (čo znamená, že existujúca hodnota zostáva)
             var computedIntensities = new double?[n];
-
-            // Pomocná funkcia pre lineárnu extrapoláciu (na začiatku alebo na konci)
-            double LinearExtrapolate(double x1, double y1, double x2, double y2, double x)
-            {
-                double slope = (y2 - y1) / (x2 - x1);
-                return y1 + slope * (x - x1);
-            }
 
             int i = 0;
             while (i < n)
             {
-                // Ak je hodnota platná, necháme computedIntensities[i] ako null (t.j. už existujúce dáta sa nemenia)
                 if (request.Column.Intensities[i].HasValue)
                 {
                     computedIntensities[i] = null;
@@ -530,64 +496,71 @@ namespace WebApiServer.Controllers
                 }
                 else
                 {
-                    // Detekujeme gap – súvislý úsek chýbajúcich hodnôt.
                     int gapStart = i;
-                    while (i < n && !request.Column.Intensities[i].HasValue)
+                    while (i < n && !request.Column.Intensities[i].HasValue) i++;
+                    int gapEnd = i;
+
+                    if (gapStart == 0 || gapEnd == n)
                     {
-                        i++;
+                        continue; // Extrapoláciu ponecháme pôvodnú
                     }
-                    int gapEnd = i; // gapEnd je prvý index po gap-e, kde je hodnota platná (alebo n, ak gap pokračuje až do konca)
 
-                    // Ak je gap na začiatku, použijeme lineárnu extrapoláciu z prvej platnej hodnoty.
-                    if (gapStart == 0)
+                    // Posledný známy bod pred medzerou
+                    double xA = request.Column.Excitations[gapStart - 1];
+                    double yA = request.Column.Intensities[gapStart - 1].Value;
+                    // Prvý známy bod po medzere
+                    double xB = request.Column.Excitations[gapEnd];
+                    double yB = request.Column.Intensities[gapEnd].Value;
+
+                    // Získanie referenčných hodnôt v chýbajúcom úseku
+                    List<double> refX = new List<double>();
+                    List<double> refY = new List<double>();
+
+                    // Pridanie okrajových bodov pre lepšiu interpoláciu
+                    refX.Add(xA);
+                    refY.Add(yA);
+
+                    for (int j = gapStart; j < gapEnd; j++)
                     {
-                        double x2 = request.Column.Excitations[gapEnd];
-                        double y2 = request.Column.Intensities[gapEnd].Value;
-                        for (int j = gapStart; j < gapEnd; j++)
-                        {
-                            double x = request.Column.Excitations[j];
-                            computedIntensities[j] = LinearExtrapolate(x2, y2, x2 + 1, y2, x); // Jednoduchá extrapolácia
-                        }
+                        refX.Add(request.Column.Excitations[j]);
+                        refY.Add(request.ReferenceSeries[j]);
                     }
-                    // Ak je gap na konci, extrapolujeme z poslednej platnej hodnoty.
-                    else if (gapEnd == n)
+
+                    refX.Add(xB);
+                    refY.Add(yB);
+
+                    // Vytvorenie polynómového fitu cez referenčné hodnoty (stupeň 3)
+                    var polyFit = MathNet.Numerics.Fit.Polynomial(refX.ToArray(), refY.ToArray(), 3);
+
+                    // Dopočítanie chýbajúcich hodnôt pomocou fitovanej krivky
+                    double[] interpolatedValues = new double[gapEnd - gapStart];
+
+                    for (int j = gapStart; j < gapEnd; j++)
                     {
-                        double x1 = request.Column.Excitations[gapStart - 1];
-                        double y1 = request.Column.Intensities[gapStart - 1].Value;
-                        for (int j = gapStart; j < gapEnd; j++)
+                        double x = request.Column.Excitations[j];
+
+                        // Manuálny výpočet hodnoty polynómu
+                        double yFit = 0;
+                        for (int k = 0; k < polyFit.Length; k++)
                         {
-                            double x = request.Column.Excitations[j];
-                            computedIntensities[j] = LinearExtrapolate(x1 - 1, y1, x1, y1, x); // Jednoduchá extrapolácia
+                            yFit += polyFit[k] * Math.Pow(x, k);
                         }
+
+                        interpolatedValues[j - gapStart] = yFit;
                     }
-                    // Gap je uprostred, máme platný bod pred gapom aj po gapu.
-                    else
+
+                    // **Spojíme interpoláciu s okrajmi posunom**
+                    double yFitStart = interpolatedValues[0]; // Prvý interpolovaný bod
+                    double yFitEnd = interpolatedValues[^1]; // Posledný interpolovaný bod
+
+                    double shiftStart = yA - yFitStart; // Posun, aby interpolácia začínala správne
+                    double shiftEnd = yB - yFitEnd; // Posun, aby interpolácia končila správne
+
+                    // Dopočítanie upravených hodnôt
+                    for (int j = gapStart; j < gapEnd; j++)
                     {
-                        // Posledný platný bod pred gapom
-                        double x0 = request.Column.Excitations[gapStart - 1];
-                        double y0 = request.Column.Intensities[gapStart - 1].Value;
-                        // Prvý platný bod po gapu
-                        double x1 = request.Column.Excitations[gapEnd];
-                        double y1 = request.Column.Intensities[gapEnd].Value;
-
-                        // Kandidátske hodnoty z referenčnej série pre hranice gapu
-                        double candidateStart = request.ReferenceSeries[gapStart] * scaleFactor;
-                        double candidateEnd = request.ReferenceSeries[gapEnd] * scaleFactor;
-
-                        // Vypočítame lineárnu transformáciu, ktorá zabezpečí, že:
-                        // pri x = request.Column.Excitations[gapStart] bude computed = y0,
-                        // pri x = request.Column.Excitations[gapEnd] bude computed = y1.
-                        // Predpokladáme lineárnu mapovaciu funkciu: computed = a + b * (reference[i] * scaleFactor).
-                        // Určíme a a b:
-                        double b = (y1 - y0) / (candidateEnd - candidateStart + 1e-9);
-                        double a = y0 - b * candidateStart;
-
-                        // Pre každý index v gap-e dopočítať hodnotu:
-                        for (int j = gapStart; j < gapEnd; j++)
-                        {
-                            double candidate = request.ReferenceSeries[j] * scaleFactor;
-                            computedIntensities[j] = a + b * candidate;
-                        }
+                        double t = (j - gapStart) / (double)(gapEnd - gapStart - 1); // Normalizácia do [0,1]
+                        computedIntensities[j] = interpolatedValues[j - gapStart] + (1 - t) * shiftStart + t * shiftEnd;
                     }
                 }
             }
@@ -599,8 +572,6 @@ namespace WebApiServer.Controllers
                 AdjustedValues = computedIntensities
             });
         }
-
-
 
 
         //[HttpPost("CalculateAdjustedData")]
