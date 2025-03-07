@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Factors, FolderDTO, TableData } from "../types";
 import "./components.css";
 import CustomInputAutocomplete from "./CustomAutocomplete";
@@ -11,9 +11,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
-import { TableComponents, TableVirtuoso } from "react-virtuoso";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 interface DataTableProps {
   tableData: TableData;
@@ -26,7 +25,7 @@ const DataTable: React.FC<DataTableProps> = ({
   tableData,
   showAutocomplete,
   factors,
-  folderData
+  folderData,
 }) => {
   interface RowData {
     excitation: number;
@@ -34,59 +33,77 @@ const DataTable: React.FC<DataTableProps> = ({
     multipliedIntensities?: (number | undefined)[];
   }
 
+  const [intensityRows, setIntensityRows] = useState<RowData[]>([]);
+  const [prevRows, setPrevRows] = useState<RowData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const rowHeight = 20;
+  const minRowCount = 10;
+
   useEffect(() => {
-    const rowCount = tableData.intensities[0].intensities.length;
+    setIsLoading(true);
+    setPrevRows(intensityRows.length > 0 ? intensityRows : []);
+
+    const rowCount = tableData.intensities[0]?.intensities.length || 0;
     const rows: RowData[] = [];
 
     for (let i = 0; i < rowCount; i++) {
-      const row: RowData = {
+      rows.push({
         excitation: tableData.excitation[i],
         intensities: tableData.intensities.map((col) => col.intensities[i]),
         multipliedIntensities: tableData.multipliedintensities
           ? tableData.multipliedintensities.map((col) => col.intensities[i])
           : undefined,
-      };
-      rows.push(row);
+      });
     }
 
-    setIntensityRows(rows);
+    setTimeout(() => {
+      setIntensityRows(rows);
+      setIsLoading(false);
+    }, 200);
   }, [tableData]);
 
-  const [intensityRows, setIntensityRows] = React.useState<RowData[]>([]);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: isLoading ? minRowCount : intensityRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 40,
+  });
+
   const calculateColumnWidth = () => {
     const totalColumns = tableData.intensities.length;
-    return totalColumns <= 10 ? `${100 / totalColumns}%` : '75px';
-  };
-  const VirtuosoTableComponents: TableComponents<RowData> = {
-    Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
-      <TableContainer component={Paper} {...props} ref={ref} />
-    )),
-    Table: (props) => (
-      <Table
-        {...props}
-        sx={{ borderCollapse: "separate", tableLayout: "fixed" }}
-      />
-    ),
-    TableHead: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableHead {...props} ref={ref} />
-    )),
-    TableRow,
-    TableBody: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableBody {...props} ref={ref} />
-    )),
+    return totalColumns <= 10 ? `${100 / totalColumns}%` : "75px";
   };
 
-  function fixedHeaderContent() {
-    return (
-      <>
-        <TableRow>
-          {tableData.intensities.map((tableData) => (
-            <React.Fragment key={tableData.name}>
+  return (
+    <TableContainer
+      component={Paper}
+      sx={{
+        maxHeight: "45vh",
+        overflow: "auto",
+        height: `45vh`,
+        textAlign: "center",
+        boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+      }}
+      ref={parentRef}
+    >
+      <Table stickyHeader sx={{ tableLayout: "fixed", width: "100%" }}>
+        <TableHead
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 2,
+            backgroundColor: "white",
+          }}
+        >
+          <TableRow>
+            {tableData.intensities.map((tableData) => (
               <TableCell
-                style={{
+                key={tableData.name}
+                sx={{
                   width: calculateColumnWidth(),
                   backgroundColor: "#bfc3d9",
-
                   textAlign: "center",
                   border: "none",
                   padding: "0",
@@ -104,15 +121,20 @@ const DataTable: React.FC<DataTableProps> = ({
                   {tableData.name}
                 </Box>
               </TableCell>
-            </React.Fragment>
-          ))}
-        </TableRow>
-        {showAutocomplete && folderData && (
-          <TableRow>
-            {tableData.intensities.map((tableData, index) => (
-              <React.Fragment key={tableData.name}>
+            ))}
+          </TableRow>
+          {showAutocomplete && folderData && (
+            <TableRow
+              sx={{
+                position: "sticky",
+                zIndex: 1,
+                backgroundColor: "#eef",
+              }}
+            >
+              {tableData.intensities.map((tableData, index) => (
                 <TableCell
-                  style={{
+                  key={tableData.name}
+                  sx={{
                     width: calculateColumnWidth(),
                     textAlign: "center",
                     border: "none",
@@ -135,79 +157,70 @@ const DataTable: React.FC<DataTableProps> = ({
                       columnSpectrum={tableData.spectrum!}
                       allFactors={factors!}
                       id={index}
-                      inputedFactor={folderData.data[index].factor ? folderData.data[index].factor : null}
+                      inputedFactor={
+                        folderData.data[index].factor
+                          ? folderData.data[index].factor
+                          : null
+                      }
                     />
                   </Box>
                 </TableCell>
-              </React.Fragment>
-            ))}
-          </TableRow>
-        )}
-      </>
-    );
-  }
+              ))}
+            </TableRow>
+          )}
+        </TableHead>
+        <TableBody
+          style={{
+            position: "relative",
+            height: `${rowVirtualizer.getTotalSize()}px`,
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = isLoading
+              ? prevRows[virtualRow.index] || {
+                  excitation: 0,
+                  intensities: Array(tableData.intensities.length).fill(0),
+                }
+              : intensityRows[virtualRow.index];
 
-  function rowContent(_index: number, row: RowData) {
-    return (
-      <>
-        {showAutocomplete ? (
-          <React.Fragment>
-            {row.intensities.map((data) => (
-              <TableCell
+            return (
+              <TableRow
+                key={virtualRow.index}
                 style={{
-                  width: calculateColumnWidth(),
-                  padding: "1px",
-                  textAlign: "center",
-                  borderBlock: "none",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap", 
-                  textOverflow: "ellipsis", 
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  height: `${virtualRow.size}px`,
+                  width: "100%",
+                  display: "flex",
                 }}
               >
-                <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>
-              </TableCell>
-            ))}
-          </React.Fragment>
-        ) : (
-          <React.Fragment>
-            {row.multipliedIntensities!.map((data) => (
-              <TableCell
-                style={{
-                  width: calculateColumnWidth(),
-                  padding: "1px",
-                  textAlign: "center",
-                  borderBlock: "none",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap", 
-                  textOverflow: "ellipsis",
-                }}
-              >
-                <Typography fontSize={"12px"}>{data?.toFixed(5)}</Typography>
-              </TableCell>
-            ))}
-          </React.Fragment>
-        )}
-      </>
-    );
-  }
-  return (
-    <TableContainer
-      component={Paper}
-      sx={{
-        maxHeight: "45vh",
-        textAlign: "center",
-        boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
-      }}
-    >
-      <TableVirtuoso
-        style={{ height: "45vh", width: "100%" }}
-        data={intensityRows}
-        components={VirtuosoTableComponents}
-        itemContent={rowContent}
-        fixedHeaderContent={fixedHeaderContent}
-        overscan={10}
-        totalCount={intensityRows.length}
-      />
+                {row.intensities.map((data, columnIndex) => (
+                  <TableCell
+                    key={columnIndex}
+                    sx={{
+                      textAlign: "center",
+                      padding: "5px",
+                      fontSize: "12px",
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      borderInline: isLoading ? "none" : "1px solid #e0e0e0",
+
+                      textOverflow: "ellipsis",
+                      borderBlock: "none",
+                      color: isLoading ? "#aaa" : "inherit",
+                    }}
+                  >
+                    {isLoading ? " " : data?.toFixed(5)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
     </TableContainer>
   );
 };

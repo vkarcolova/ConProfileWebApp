@@ -7,15 +7,15 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Typography,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Profile } from "../../../shared/types";
-import { TableComponents, TableVirtuoso } from "react-virtuoso";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 interface ProfileDataTableProps {
   profile: Profile;
 }
+
 export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
   profile,
 }) => {
@@ -24,133 +24,154 @@ export const ProfileDataTable: React.FC<ProfileDataTableProps> = ({
     intensity: number;
   }
 
+  const [tableRows, setTableRows] = useState<RowData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const rowHeight = 20; // ✅ Presná výška jedného riadku
+  const minRowCount = 10; // ✅ Počet placeholder riadkov, keď sa načítavajú dáta
+
   useEffect(() => {
+    setIsLoading(true);
     const rowCount = profile.profile.length;
     const rows: RowData[] = [];
 
     for (let i = 0; i < rowCount; i++) {
-      const row: RowData = {
+      rows.push({
         excitation: profile.excitation[i],
         intensity: profile.profile[i],
-      };
-      rows.push(row);
+      });
     }
 
-    setTableRows(rows);
+    setTimeout(() => {
+      setTableRows(rows);
+      setIsLoading(false);
+    }, 200);
   }, [profile]);
 
-  const VirtuosoTableComponents: TableComponents<RowData> = {
-    Scroller: React.forwardRef<HTMLDivElement>((props, ref) => (
-      <TableContainer component={Paper} {...props} ref={ref} />
-    )),
-    Table: (props) => (
-      <Table
-        {...props}
-        sx={{ borderCollapse: "separate", tableLayout: "fixed" }}
-      />
-    ),
-    TableHead: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableHead {...props} ref={ref} />
-    )),
-    TableRow,
-    TableBody: React.forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableBody {...props} ref={ref} />
-    )),
-  };
+  const parentRef = useRef<HTMLDivElement>(null);
 
-  function fixedHeaderContent() {
-    return (
-      <>
-        <TableRow>
-          <TableCell
-            style={{
-              textAlign: "center",
-              border: "none",
-              padding: "0",
-            }}
-          >
-            <Box
-              sx={{
-                fontWeight: "bold",
-                backgroundColor: "#bfc3d9",
-                margin: 0,
-                paddingBlock: "5px",
-              }}
-              className="TableRowName"
-            >
-              Excitácie
-            </Box>
-          </TableCell>
-          <TableCell
-            style={{
-              textAlign: "center",
-              border: "none",
-              padding: "0",
-            }}
-          >
-            <Box
-              sx={{
-                fontWeight: "bold",
-                backgroundColor: "#bfc3d9",
-                margin: 0,
-                paddingBlock: "5px",
-              }}
-              className="TableRowName"
-            >
-              Intenzity
-            </Box>
-          </TableCell>
-        </TableRow>
-      </>
-    );
-  }
-
-  function rowContent(_index: number, rows: RowData) {
-    return (
-      <>
-        <React.Fragment>
-          <TableCell
-            style={{
-              padding: "1px",
-              textAlign: "center",
-              borderBlock: "none",
-            }}
-          >
-            <Typography fontSize={"12px"}>
-              {rows.excitation.toFixed(5)}
-            </Typography>
-          </TableCell>
-          <TableCell
-            style={{
-              padding: "1px",
-              textAlign: "center",
-              borderBlock: "none",
-            }}
-          >
-            <Typography fontSize={"12px"}>
-              {rows.intensity.toFixed(5)}
-            </Typography>
-          </TableCell>
-        </React.Fragment>
-      </>
-    );
-  }
-
-  const [tableRows, setTableRows] = React.useState<RowData[]>([]);
+  const rowVirtualizer = useVirtualizer({
+    count: isLoading ? minRowCount : tableRows.length, // ✅ Fixný počet riadkov počas načítavania
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 40,
+  });
 
   return (
     <Box
       className="table-container"
-      sx={{ boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px" }}
+      sx={{
+        boxShadow: "rgba(0, 0, 0, 0.2) 0px 4px 12px",
+        borderRadius: "8px",
+        overflow: "hidden",
+      }}
     >
-      <TableContainer component={Paper} sx={{ maxHeight: "45vh" }}>
-        <TableVirtuoso
-          style={{ height: "45vh", width: "100%" }}
-          data={tableRows}
-          components={VirtuosoTableComponents}
-          itemContent={rowContent}
-          fixedHeaderContent={fixedHeaderContent}
-        />
+      <TableContainer
+        component={Paper}
+        sx={{
+          maxHeight: "45vh",
+          overflow: "auto",
+          height: `45vh`, // ✅ Fixná výška tabuľky aj pri načítaní
+          width: "100%",
+        }}
+        ref={parentRef}
+      >
+        <Table
+          stickyHeader
+          sx={{
+            tableLayout: "fixed",
+            width: "100%",
+          }}
+        >
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  backgroundColor: "#bfc3d9",
+                  color: "#333",
+                  padding: "5px",
+                  width: "50%",
+                }}
+              >
+                Excitácie
+              </TableCell>
+              <TableCell
+                sx={{
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  backgroundColor: "#bfc3d9",
+                  color: "#333",
+                  padding: "5px",
+                  width: "50%",
+                }}
+              >
+                Intenzity
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody
+            style={{
+              position: "relative",
+              height: `${rowVirtualizer.getTotalSize()}px`,
+            }}
+          >
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = isLoading
+                ? { excitation: 0, intensity: 0 } // ✅ Placeholder dáta
+                : tableRows[virtualRow.index];
+
+              return (
+                <TableRow
+                  key={virtualRow.index}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    height: `${virtualRow.size}px`,
+                    width: "100%",
+                    display: "flex",
+                  }}
+                  sx={{
+                    "&:nth-of-type(odd)": { backgroundColor: "#f5f5f5" },
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      padding: "5px",
+                      fontSize: "12px",
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      border: "none",
+                      color: isLoading ? "#aaa" : "inherit", // ✅ Sivý text počas načítavania
+                    }}
+                  >
+                    {isLoading ? "  " : row.excitation.toFixed(5)}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      padding: "5px",
+                      fontSize: "12px",
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      border: "none",
+                      color: isLoading ? "#aaa" : "inherit",
+                    }}
+                  >
+                    {isLoading ? "  " : row.intensity.toFixed(5)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </TableContainer>
     </Box>
   );

