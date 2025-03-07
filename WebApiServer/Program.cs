@@ -22,7 +22,8 @@ options.AddPolicy(name: AllowSpecificOrigins,
                           policy.WithOrigins("http://localhost:5000", "http://conprofile.fri.uniza.sk:5000", "https://conprofile.fri.uniza.sk")
                             .AllowAnyHeader()
                             .AllowAnyMethod()
-                           .AllowCredentials();
+                           .AllowCredentials()
+                            .SetIsOriginAllowed(origin => true);
                       });
 });
 
