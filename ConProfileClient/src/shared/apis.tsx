@@ -20,23 +20,19 @@ import {
 
 export const clientApi = {
   register: async (email: string, password: string, password2: string) => {
-    type RegisterFormDTO = {
-      EMAIL: string;
-      PASSWORD: string;
-      PASSWORD2: string;
-    };
-    const registerForm: RegisterFormDTO = {
+    const registerForm = {
       EMAIL: email,
       PASSWORD: password,
       PASSWORD2: password2,
     };
+
     return await axios.post(`${config.apiUrl}/User/Register`, registerForm, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        UserEmail: localStorage.getItem("useremail"),
+        "Content-Type": "application/json",
       },
     });
   },
+
   // register: async (email: string, password: string, password2: string) => {
   //   type RegisterFormDTO = {
   //     EMAIL: string;

@@ -176,7 +176,7 @@ namespace WebApiServer.Services
             {
 
                 client.Connect("smtp.gmail.com", 587, false);
-                client.Authenticate("conprofileverify@gmail.com", "ujhe dkjn fpap jejt");
+                client.Authenticate("conprofileverify@gmail.com", "xabq xshh nndk koct");
                 client.Send(message);
                 client.Disconnect(true);
             }
