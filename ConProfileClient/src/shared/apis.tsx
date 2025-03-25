@@ -1,4 +1,3 @@
-import axios from "axios";
 import { toast } from "react-toastify";
 import config from "../../config";
 import {
@@ -17,6 +16,7 @@ import {
   ShareDatabankObjectDTO,
   UserAllDTO,
 } from "./types";
+import axiosInstance from "../pages/axiosInstance";
 
 export const clientApi = {
   register: async (email: string, password: string, password2: string) => {
@@ -26,11 +26,15 @@ export const clientApi = {
       PASSWORD2: password2,
     };
 
-    return await axios.post(`${config.apiUrl}/User/Register`, registerForm, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    return await axiosInstance.post(
+      `${config.apiUrl}/User/Register`,
+      registerForm,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   // register: async (email: string, password: string, password2: string) => {
@@ -59,7 +63,7 @@ export const clientApi = {
   //       Authorization: `Bearer ${localStorage.getItem("token")}`,
   //     };
   //   }
-  //   return await axios.post(
+  //   return await axiosInstance.post(
   //     `${config.apiUrl}/User/Register`,
   //     JSON.stringify(registerForm),
   //     {
@@ -89,7 +93,7 @@ export const clientApi = {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       };
     }
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/User/Login`,
       JSON.stringify(loginUser),
       {
@@ -104,7 +108,7 @@ export const clientApi = {
       projectname: projectName,
     });
 
-    return axios
+    return axiosInstance
       .put(`${config.apiUrl}/Project/UpdateProjectName?${dataToSend}`, null, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -121,7 +125,9 @@ export const clientApi = {
 
   getFactors: async (factors: Factors[]): Promise<Factors[]> => {
     try {
-      const response = await axios.get<Factors[]>(`${config.apiUrl}/Factor`);
+      const response = await axiosInstance.get<Factors[]>(
+        `${config.apiUrl}/Factor`
+      );
       factors = factors.filter(
         (localFactor) =>
           !response.data.some(
@@ -138,7 +144,7 @@ export const clientApi = {
   },
 
   getProjectByToken: async (token: string | null) => {
-    return await axios.get<ProjectDTO[]>(
+    return await axiosInstance.get<ProjectDTO[]>(
       `${config.apiUrl}/Project/GetProjectsByToken/` + token,
       {
         headers: {
@@ -149,7 +155,7 @@ export const clientApi = {
   },
 
   getProjectByUser: async (useremail: string, token: string | null) => {
-    return await axios.get<ProjectDTO[]>(
+    return await axiosInstance.get<ProjectDTO[]>(
       `${config.apiUrl}/Project/GetProjectsByUser/` + useremail,
       {
         headers: {
@@ -163,7 +169,7 @@ export const clientApi = {
   loadProjectFromId: async (loadedProjectId: string): Promise<ProjectDTO> => {
     const idProject = parseInt(loadedProjectId, 10);
 
-    const response = await axios.get<ProjectDTO>(
+    const response = await axiosInstance.get<ProjectDTO>(
       `${config.apiUrl}/Project/GetProject/${idProject}`,
       {
         headers: {
@@ -176,7 +182,7 @@ export const clientApi = {
   },
 
   createProject: async (loadedFiles: FileContent[]) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/Project/CreateNewProject`,
       JSON.stringify(loadedFiles),
       {
@@ -190,7 +196,7 @@ export const clientApi = {
   },
 
   createProjectFromDatabank: async (data: DatabankDataToSend) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/Project/CreateNewProjectWithDatabank`,
       JSON.stringify(data),
       {
@@ -214,7 +220,7 @@ export const clientApi = {
       name: name,
     };
 
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/Project/CreateNewProjectWithExcel`,
       JSON.stringify(content),
       {
@@ -228,7 +234,7 @@ export const clientApi = {
   },
 
   batchProcessFolders: async (loadedFiles: FileContent[]) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/BatchProcessFolders`,
       JSON.stringify(loadedFiles),
       {
@@ -240,7 +246,7 @@ export const clientApi = {
   },
 
   postFolderToProject: async (loadedFiles: FileContent[]) => {
-    return axios.post(
+    return axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolderToProject`,
       JSON.stringify(loadedFiles),
       {
@@ -254,7 +260,7 @@ export const clientApi = {
   },
 
   postExcelToProject: async (excelFile: ExcelContent) => {
-    return axios.post(
+    return axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/PostNewExcelToProject`,
       JSON.stringify(excelFile),
       {
@@ -268,21 +274,21 @@ export const clientApi = {
   },
 
   postFolderToSession: async (loadedFiles: FileContent[]) => {
-    return axios.post(
+    return axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/PostNewFolder`,
       loadedFiles
     );
   },
 
   postExcelToSession: async (excelFile: ExcelContent) => {
-    return axios.post(
+    return axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/PostNewExcelToSession`,
       excelFile
     );
   },
 
   calculateEmptyData: async (column: ColumnDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData`,
       JSON.stringify(column),
       {
@@ -296,7 +302,7 @@ export const clientApi = {
   },
 
   calculateEmptyData2: async (column: ColumnDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/CalculateEmptyData2`,
       JSON.stringify(column),
       {
@@ -314,7 +320,7 @@ export const clientApi = {
       Column: column,
       ReferenceSeries: exampleData,
     };
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/CalculateAdjustedData`,
       JSON.stringify(AdjustedDataRequest),
       {
@@ -328,7 +334,7 @@ export const clientApi = {
   },
 
   saveCalculatedData: async (calculatedData: CalculatedDataDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/AddCalculatedData`,
       JSON.stringify(calculatedData),
       {
@@ -342,7 +348,7 @@ export const clientApi = {
   },
 
   replaceCalculatedData: async (calculatedData: CalculatedDataDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/ReplaceCalculatedData`,
       JSON.stringify(calculatedData),
       {
@@ -356,7 +362,7 @@ export const clientApi = {
   },
 
   postFolderMultiply: async (dataToSend: MultiplyFolderDTO) => {
-    return axios.post(
+    return axiosInstance.post(
       `${config.apiUrl}/LoadedFolder/PostFactorsMultiply`,
       JSON.stringify(dataToSend),
       {
@@ -370,7 +376,7 @@ export const clientApi = {
   deleteProject: async (projectId: number) => {
     const token = localStorage.getItem("token");
     if (!token || token == null) return;
-    return await axios.delete(
+    return await axiosInstance.delete(
       `${config.apiUrl}/Project/DeleteProject/` + projectId,
       {
         headers: {
@@ -389,7 +395,7 @@ export const clientApi = {
       folderids: folderIds,
     };
 
-    return await axios.delete(
+    return await axiosInstance.delete(
       `${config.apiUrl}/Project/DeleteFoldersFromProject`,
       {
         headers: {
@@ -403,7 +409,7 @@ export const clientApi = {
   },
 
   uploadExcelToDatabank: async (data: DataBankFileDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/DataBank/UploadExcelToDatabank`,
       data,
       {
@@ -417,7 +423,7 @@ export const clientApi = {
   },
 
   uploadFolderToDatabank: async (folder: DataBankFolderDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/DataBank/UploadFolderToDatabank`,
       folder,
       {
@@ -431,7 +437,7 @@ export const clientApi = {
   },
 
   getAllDatabankData: async () => {
-    return await axios.get<DataBankFolderDTO[]>(
+    return await axiosInstance.get<DataBankFolderDTO[]>(
       `${config.apiUrl}/DataBank/GetAllDatabankData/`,
       {
         headers: {
@@ -443,7 +449,7 @@ export const clientApi = {
   },
 
   getExcelContents: async (ids: string[]) => {
-    return await axios.post<DatabankExcelContentDTO[]>(
+    return await axiosInstance.post<DatabankExcelContentDTO[]>(
       `${config.apiUrl}/DataBank/GetExcelsForUpload/`,
       ids,
       {
@@ -458,7 +464,7 @@ export const clientApi = {
   deleteDatabankObject: async (id: string) => {
     const token = localStorage.getItem("token");
     if (!token || token == null) return;
-    return await axios.delete(
+    return await axiosInstance.delete(
       `${config.apiUrl}/DataBank/DeleteDatabankObject/` + id,
       {
         headers: {
@@ -470,7 +476,7 @@ export const clientApi = {
   },
 
   changeDatabankShareSettings: async (share: ShareDatabankObjectDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/DataBank/ChangeDatabankShareSettings`,
       share,
       {
@@ -484,7 +490,7 @@ export const clientApi = {
   },
 
   getAllUserNames: async () => {
-    return await axios.get<string[]>(`${config.apiUrl}/User/`, {
+    return await axiosInstance.get<string[]>(`${config.apiUrl}/User/`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         UserEmail: localStorage.getItem("useremail"),
@@ -497,13 +503,17 @@ export const clientApi = {
       Password: password,
       DeleteDatabankData: DeleteDatabankData,
     };
-    return await axios.post(`${config.apiUrl}/User/DeleteUser`, request, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        UserEmail: localStorage.getItem("useremail"),
-        "Content-Type": "application/json",
-      },
-    });
+    return await axiosInstance.post(
+      `${config.apiUrl}/User/DeleteUser`,
+      request,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   changePassword: async (
@@ -516,17 +526,21 @@ export const clientApi = {
       newPassword: newPassword,
       confirmPassword: confirmPassword,
     };
-    return await axios.post(`${config.apiUrl}/User/ChangePassword`, request, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        UserEmail: localStorage.getItem("useremail"),
-        "Content-Type": "application/json",
-      },
-    });
+    return await axiosInstance.post(
+      `${config.apiUrl}/User/ChangePassword`,
+      request,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          UserEmail: localStorage.getItem("useremail"),
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   deleteUserByAdmin: async (userToDelete: string) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/User/DeleteUserByAdmin`,
       userToDelete,
       {
@@ -540,7 +554,7 @@ export const clientApi = {
   },
 
   // changeUsersRoleByAdmin: async (users: ChangeUserRoleByAdminDTO[]) => {
-  //   return await axios.post(
+  //   return await axiosInstance.post(
   //     `${config.apiUrl}/User/ChangeUsersRoleByAdmin`,
   //     users,
   //     {
@@ -554,7 +568,7 @@ export const clientApi = {
   // },
 
   changeUsersRoleByAdmin: async (user: UserDTO) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/User/ChangeUsersRoleByAdmin`,
       user,
       {
@@ -568,7 +582,7 @@ export const clientApi = {
   },
 
   getAllUsersForAdmin: async () => {
-    return await axios.get<UserAllDTO[]>(
+    return await axiosInstance.get<UserAllDTO[]>(
       `${config.apiUrl}/User/GetAllUsersForAdmin`,
       {
         headers: {
@@ -580,13 +594,13 @@ export const clientApi = {
   },
 
   verifyEmail: async (token: string) => {
-    return await axios.get(`${config.apiUrl}/User/VerifyEmail`, {
+    return await axiosInstance.get(`${config.apiUrl}/User/VerifyEmail`, {
       params: { token },
     });
   },
 
   forgotPassword: async (email: string) => {
-    return await axios.post(
+    return await axiosInstance.post(
       `${config.apiUrl}/User/ForgotPassword`,
       JSON.stringify(email),
       {
@@ -602,7 +616,7 @@ export const clientApi = {
     newPassword: string,
     confirmPassword: string
   ) => {
-    return await axios.post(`${config.apiUrl}/User/ResetPassword`, {
+    return await axiosInstance.post(`${config.apiUrl}/User/ResetPassword`, {
       Token: token,
       NewPassword: newPassword,
       confirmPassword: confirmPassword,

@@ -14,6 +14,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { clientApi } from "../../../shared/apis";
 import { toast } from "react-toastify";
 import { useUserContext } from "../../../shared/context/useContext";
+import { useNavigate } from "react-router-dom";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -34,6 +35,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
   const isValidPassword = (password: string) => {
     return password.length >= 8 && /\d/.test(password);
   };
+
+  const navigate = useNavigate();
 
   const [passwordError, setPasswordError] = useState(false);
 
@@ -90,6 +93,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onClose }) => {
         if (response.status === 200) {
           toast.success("Účet bol úspešne zmazaný.");
           logoutUser();
+          navigate("/auth/prihlasenie");
         }
       })
       .catch((error) => {

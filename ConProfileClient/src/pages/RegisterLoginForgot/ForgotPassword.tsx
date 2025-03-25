@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
+    config.apiUrl.includes("localhost") ? "ver.karcolova@gmail.com" : ""
   );
   const navigate = useNavigate();
   const handleSubmit = async () => {
@@ -30,7 +30,7 @@ const ForgotPassword: React.FC = () => {
         toast.success(
           "Skontrolujte svoj e-mail a kliknite na overovací odkaz pre zmenu hesla."
         );
-        navigate("/");
+        navigate("/auth/prihlasenie");
       })
       .catch((error) =>
         toast.error(
