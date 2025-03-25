@@ -42,7 +42,7 @@ namespace WebApiServer.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var userEmail = Request.Headers["UserEmail"].ToString();
 
-                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                     return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                 var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
@@ -90,7 +90,7 @@ namespace WebApiServer.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var userEmail = Request.Headers["UserEmail"].ToString();
 
-                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                     return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                 var existingProject = _context.Projects.FirstOrDefault(p => (p.Token == userToken || p.CreatedBy == userEmail)
@@ -718,12 +718,9 @@ namespace WebApiServer.Controllers
                 if (calculatedData != null)
                 {
                     var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                    string token;
-                    if (userToken == "") token = _userService.GenerateJwtToken();
-                    else token = userToken;
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
-                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                         return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
@@ -804,12 +801,10 @@ namespace WebApiServer.Controllers
                 if (calculatedData != null)
                 {
                     var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                    string token;
-                    if (userToken == "") token = _userService.GenerateJwtToken();
-                    else token = userToken;
+
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
-                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                         return Unauthorized(new { message = "Neplatné prihlásenie" });
 
                     //zobrat podla excitacie dane dato 

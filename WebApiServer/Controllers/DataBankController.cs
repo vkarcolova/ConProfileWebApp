@@ -134,7 +134,7 @@ namespace WebApiServer.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             var folders = _context.DataBankFolders
@@ -234,7 +234,7 @@ namespace WebApiServer.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
@@ -270,7 +270,7 @@ namespace WebApiServer.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Regex regex = new Regex(@"^(?<prefix>[a-zA-Z]+)(?<number>\d+)$");
@@ -314,7 +314,7 @@ namespace WebApiServer.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
             if (shareData == null || string.IsNullOrEmpty(shareData.Id)) return BadRequest();
 
