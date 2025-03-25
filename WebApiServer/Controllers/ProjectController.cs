@@ -65,8 +65,8 @@ namespace WebAPI.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                return Unauthorized("Neplatné prihlásenie");
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             List<Project> projects = _context.Projects.Where(project => project.CreatedBy == useremail).ToList();
 
@@ -117,7 +117,7 @@ namespace WebAPI.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var userEmail = Request.Headers["UserEmail"].ToString();
                 string token = "";
-                if (userToken == "")
+                if (userToken == "" || userToken == "null")
                 {
                     if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
                     else token = _userService.GenerateJwtToken(userEmail! );
@@ -125,8 +125,9 @@ namespace WebAPI.Controllers
                 }
                 else token = userToken;
 
-                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                    return Unauthorized("Neplatné prihlásenie");
+                if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized(new { message = "Neplatné prihlásenie" });
+
 
                 List<FolderDTO> folders = new List<FolderDTO>();
                 folders.Add(_loadedDataService.ProcessUploadedFolder(loadedFiles));
@@ -156,7 +157,7 @@ namespace WebAPI.Controllers
                 var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var userEmail = Request.Headers["UserEmail"].ToString();
                 string token = "";
-                if (userToken == "")
+                if (userToken == "" || userToken == "null")
                 {
                     if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
                     else token = _userService.GenerateJwtToken(userEmail!);
@@ -164,8 +165,9 @@ namespace WebAPI.Controllers
                 }
                 else token = userToken;
 
-                if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-                    return Unauthorized("Neplatné prihlásenie");
+                if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
+                    return Unauthorized(new { message = "Neplatné prihlásenie" });
+
                 List<FolderDTO> folders = new List<FolderDTO>();
                 folders.Add(_loadedDataService.ProcessUploadedFolderFromExcel(content));
                 ProjectDTO result = new ProjectDTO
@@ -193,7 +195,7 @@ namespace WebAPI.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
             string token = "";
-            if (userToken == "")
+            if (userToken == "" || userToken == "null")
             {
                 if (string.IsNullOrEmpty(userEmail)) token = _userService.GenerateJwtToken();
                 else token = _userService.GenerateJwtToken(userEmail!);
@@ -202,8 +204,8 @@ namespace WebAPI.Controllers
             else token = userToken;
             List<FolderDTO> folders = new List<FolderDTO>();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
-               return Unauthorized(new { message = "Neplatné prihlásenie" });
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
+                return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             if (data.ids != null && data.ids.Count > 0)
             {
@@ -265,11 +267,11 @@ namespace WebAPI.Controllers
                 {
                     var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                     string token;
-                    if (userToken == "") token = _userService.GenerateJwtToken();
+                    if (userToken == "" || userToken == "null") token = _userService.GenerateJwtToken();
                     else token = userToken;
                     var userEmail = Request.Headers["UserEmail"].ToString();
 
-                    if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+                    if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                         return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 
@@ -379,10 +381,8 @@ namespace WebAPI.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
-
-
 
             Project project = _context.Projects.Where(project => project.IdProject == id && (project.Token == userToken || userEmail == project.CreatedBy)).FirstOrDefault();
 
@@ -479,7 +479,7 @@ namespace WebAPI.Controllers
             var userEmail = Request.Headers["UserEmail"].ToString();
 
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Project project = _context.Projects.Where(project =>
@@ -501,8 +501,7 @@ namespace WebAPI.Controllers
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
-
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
             Project projectToRemove = _context.Projects.Where(project =>
@@ -537,8 +536,7 @@ namespace WebAPI.Controllers
         {
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
-
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
 
 

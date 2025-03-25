@@ -74,7 +74,7 @@ namespace WebApiServer.Services
 
         public bool IsAuthorized(string userEmail, string userToken)
         {
-
+            if (string.IsNullOrEmpty(userEmail)) return false; 
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(userToken) as JwtSecurityToken;
 

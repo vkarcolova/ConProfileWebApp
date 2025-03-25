@@ -3,12 +3,15 @@ import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { FolderDTO, ProjectDTO } from "../../shared/types";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
+
 import {
+  Backdrop,
   Box,
   Button,
   Card,
   CardActionArea,
   CardContent,
+  CircularProgress,
   Divider,
   Grid,
   IconButton,
@@ -53,10 +56,16 @@ const Home: React.FC = () => {
   const [userSettingsDialogOpen, setUserSettingsDialogOpen] =
     useState<boolean>(false);
   useEffect(() => {
-    if (user != undefined) {
+    console.log(user);
+    if (user != undefined && user != null) {
+      console.log("getProjectsByUser");
       getProjectsByUser();
-    } else {
+    } else if (user == undefined && user != null) {
+      console.log("setProjecsData");
       setProjecsData([]);
+    } else if (user == null) {
+      console.log("navigate");
+      navigate("/auth/prihlasenie/");
     }
   }, [user]);
 
@@ -82,7 +91,6 @@ const Home: React.FC = () => {
         try {
           const json = JSON.parse(event.target?.result as string);
           sessionStorage.setItem("loadeddata", JSON.stringify(json));
-
           navigate("/uprava-profilu/");
         } catch (error) {
           console.error("Chyba pri čítaní alebo spracovaní súboru:", error);
@@ -94,7 +102,7 @@ const Home: React.FC = () => {
   };
 
   const getProjectsByUser = async () => {
-    const token = localStorage.getItem("token");
+    // const token = localStorage.getItem("token");
     if (user != undefined && user != null) {
       await clientApi
         .getProjectByUser(user.email, localStorage.getItem("token"))
@@ -106,18 +114,18 @@ const Home: React.FC = () => {
           console.error("Chyba pri získavaní dát zo servera:", error);
         })
         .finally(() => {});
-    } else if (user == null && token != undefined) {
-      if (token != undefined || token != null) {
-        await clientApi
-          .getProjectByToken(token)
-          .then((response) => {
-            setProjecsData(response.data);
-          })
-          .catch((error) => {
-            console.error("Chyba pri získavaní dát zo servera:", error);
-          })
-          .finally(() => {});
-      }
+      // }  else if (user == null && token != undefined) {
+      //   if (token != undefined || token != null) {
+      //     await clientApi
+      //       .getProjectByToken(token)
+      //       .then((response) => {
+      //         setProjecsData(response.data);
+      //       })
+      //       .catch((error) => {
+      //         console.error("Chyba pri získavaní dát zo servera:", error);
+      //       })
+      //       .finally(() => {});
+      //   }
     } else if (user == undefined) {
       setProjecsData([]);
     }
@@ -183,71 +191,37 @@ const Home: React.FC = () => {
           navigate("/databanka/");
         }
       },
-      disabled: user == null || user == undefined ? true : false,
-      tooltip:
-        user != undefined || user != null
-          ? "Prezeranie a správa databanky."
-          : "Prezeranie a správa databanky. Prihláste sa pre prístup k databanke.",
+      tooltip: "Prezeranie a správa databanky.",
     },
   ];
 
+  if (user === null) {
+    navigate("/auth/prihlasenie/");
+    return null;
+  }
+
+  if (user === undefined) {
+    return (
+      <Backdrop
+        open={true}
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    );
+  }
+
   return (
     <Box sx={{ width: "100%", maxHeight: "100%", overflowY: "auto" }}>
-      <Box className="home-page">
-        <AppBarLogin
-          content={
-            <>
-              {user == undefined ? (
-                <>
-                  <Button
-                    color="primary"
-                    variant="text"
-                    size="small"
-                    component="a"
-                    sx={{
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                      width: "80px",
-                      borderRadius: 100,
-                      color: "rgba(59, 49, 119, 0.87)",
-                      padding: "10px",
-                      marginRight: "10px",
-
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "#E2E3E8",
-                      },
-                    }}
-                    onClick={() => {
-                      navigate("/auth/prihlasenie/");
-                    }}
-                  >
-                    <Typography fontWeight={600}>Prihlásenie</Typography>
-                  </Button>
-                  <Button
-                    color="primary"
-                    variant="text"
-                    size="small"
-                    component="a"
-                    onClick={() => {
-                      navigate("/auth/registracia/");
-                    }}
-                    sx={{
-                      backgroundColor: "#BFC2D2",
-                      width: "80px",
-                      borderRadius: 100,
-                      color: "rgba(59, 49, 119, 0.87)",
-                      padding: "10px",
-
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "#E2E3E8",
-                      },
-                    }}
-                  >
-                    <Typography fontWeight={600}>Registrácia</Typography>
-                  </Button>
-                </>
-              ) : (
+      {user != undefined && user != null && (
+        <Box className="home-page">
+          <SettingsDialog
+            open={userSettingsDialogOpen}
+            onClose={() => setUserSettingsDialogOpen(false)}
+          />
+          <AppBarLogin
+            content={
+              <>
                 <Box sx={{ display: "flex" }}>
                   <Typography
                     sx={{
@@ -309,237 +283,223 @@ const Home: React.FC = () => {
                     <Typography fontWeight={600}>Odhlásenie</Typography>
                   </Button>
                 </Box>
-              )}
-            </>
-          }
-        />
+              </>
+            }
+          />
 
-        <Box className="button-container">
-          <UploadModal
-            openModal={dataUploadDialogOpen}
-            setOpenModal={setDataUploadDialogOpen}
-          />
-          <BatchDataLoadModal
-            openModal={batchProcessFoldersDialogOpen}
-            setOpenModal={setBatchProcessFoldersDialogOpen}
-          />
-          <Grid
-            container
-            spacing={2}
-            justifyContent="center"
+          <Box className="button-container">
+            <UploadModal
+              openModal={dataUploadDialogOpen}
+              setOpenModal={setDataUploadDialogOpen}
+            />
+            <BatchDataLoadModal
+              openModal={batchProcessFoldersDialogOpen}
+              setOpenModal={setBatchProcessFoldersDialogOpen}
+            />
+            <Grid
+              container
+              spacing={2}
+              justifyContent="center"
+              sx={{
+                padding: 3,
+                width: "45%",
+                maxHeight: "50%",
+                paddingTop: { sm: 14, lg: 14, xxl: 20 },
+              }}
+            >
+              {options.map((option) => (
+                <Tooltip
+                  enterDelay={500}
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+                          {
+                            marginTop: "2px",
+                            fontSize: "12px",
+                          },
+                      },
+                    },
+                  }}
+                  title={option.tooltip}
+                >
+                  <Grid item key={option.value} xs={12} sm={6}>
+                    <Card
+                      sx={{
+                        height: { md: 150, lg: 150, xxl: 200 },
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 5,
+                        backgroundColor: "#f6f5f5",
+                      }}
+                    >
+                      <CardActionArea
+                        onClick={option.function}
+                        sx={{ height: "100%" }}
+                        disabled={option.disabled}
+                      >
+                        <CardContent sx={{ textAlign: "center" }}>
+                          {option.icon}
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              marginTop: 1,
+                              color: option.disabled ? "gray" : "black",
+                            }}
+                          >
+                            {option.label}
+                          </Typography>
+                        </CardContent>
+                      </CardActionArea>
+                    </Card>
+                  </Grid>
+                </Tooltip>
+              ))}
+            </Grid>
+
+            <input
+              type="file"
+              id="fileInput"
+              ref={inputRefProject}
+              onChange={handleUploadExportedProject}
+              accept=".cprj"
+              style={{ display: "none" }}
+            />
+          </Box>
+
+          <Box
+            className="welcomebar"
             sx={{
-              padding: 3,
-              width: "45%",
-              maxHeight: "50%",
-              paddingTop: { sm: 14, lg: 14, xxl: 20 },
+              bottom: { xl: "100px", md: "50px", xs: "30px" },
             }}
           >
-            {options.map((option) => (
-              <Tooltip
-                enterDelay={500}
-                slotProps={{
-                  popper: {
-                    sx: {
-                      [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-                        {
-                          marginTop: "2px",
-                          fontSize: "12px",
-                        },
-                    },
-                  },
-                }}
-                title={option.tooltip}
-              >
-                <Grid item key={option.value} xs={12} sm={6}>
-                  <Card
+            {Array.isArray(projectsData) &&
+              projectsData != null &&
+              projectsData &&
+              projectsData?.length > 0 && (
+                <>
+                  <Box className="small-text">
+                    Projekty z databázy uložené k používateľskému profilu:
+                  </Box>
+                  <Box
                     sx={{
-                      height: { md: 150, lg: 150, xxl: 200 },
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 5,
-                      backgroundColor: "#f6f5f5",
+                      width: "60%",
+                      paddingTop: { lg: 1, xl: 2 },
                     }}
                   >
-                    <CardActionArea
-                      onClick={option.function}
-                      sx={{ height: "100%" }}
-                      disabled={option.disabled}
+                    <Paper
+                      sx={{
+                        borderRadius: "12px",
+                        boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
+                        maxHeight: "30vh",
+                        overflowY: "auto",
+                        marginBottom: "20px",
+                      }}
                     >
-                      <CardContent sx={{ textAlign: "center" }}>
-                        {option.icon}
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            marginTop: 1,
-                            color: option.disabled ? "gray" : "black",
-                          }}
-                        >
-                          {option.label}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              </Tooltip>
-            ))}
-          </Grid>
+                      <List>
+                        {projectsData.map((project, index) => {
+                          const displayedFolders = project.folders.slice(0, 3);
+                          const hasMoreFolders = project.folders.length > 3;
 
-          <input
-            type="file"
-            id="fileInput"
-            ref={inputRefProject}
-            onChange={handleUploadExportedProject}
-            accept=".cprj"
-            style={{ display: "none" }}
-          />
-        </Box>
-
-        <Box
-          className="welcomebar"
-          sx={{
-            bottom: { xl: "100px", md: "50px", xs: "30px" },
-          }}
-        >
-          {Array.isArray(projectsData) &&
-            projectsData != null &&
-            projectsData &&
-            projectsData?.length > 0 && (
-              <>
-                <Box className="small-text">
-                  {user ? (
-                    "Projekty z databázy uložené k používateľskému profilu:"
-                  ) : (
-                    <>
-                      Projekty uložené v prehliadači bez prihlásenia sú viazané
-                      na dočasný token a zostávajú dostupné po dobu 30 dní.
-                      <br />
-                      Po prihlásení sa tieto dáta automaticky presunú do vášho
-                      profilu a zostanú bezpečne uložené.
-                    </>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    width: "60%",
-                    paddingTop: { lg: 1, xl: 2 },
-                  }}
-                >
-                  <Paper
-                    sx={{
-                      borderRadius: "12px",
-                      boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
-                      maxHeight: "30vh",
-                      overflowY: "auto",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <List>
-                      {projectsData.map((project, index) => {
-                        const displayedFolders = project.folders.slice(0, 3);
-                        const hasMoreFolders = project.folders.length > 3;
-
-                        return (
-                          <React.Fragment key={project.idproject}>
-                            <ListItem
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                "&:hover": { backgroundColor: "#f5f5f5" },
-                                transition: "0.3s ease-in-out",
-                              }}
-                            >
-                              <FolderIcon
+                          return (
+                            <React.Fragment key={project.idproject}>
+                              <ListItem
                                 sx={{
-                                  marginRight: "10px",
-                                  color: "#625b92",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  "&:hover": { backgroundColor: "#f5f5f5" },
+                                  transition: "0.3s ease-in-out",
                                 }}
-                              />
+                              >
+                                <FolderIcon
+                                  sx={{
+                                    marginRight: "10px",
+                                    color: "#625b92",
+                                  }}
+                                />
 
-                              {/* Názov projektu + dátum */}
-                              <ListItemText
-                                primary={
-                                  <Typography fontWeight="500">
-                                    {project.projectname}
-                                  </Typography>
-                                }
-                                secondary={`Vytvorené: ${moment(project.created).format("DD.MM.YYYY HH:mm:ss")}`}
-                              />
+                                {/* Názov projektu + dátum */}
+                                <ListItemText
+                                  primary={
+                                    <Typography fontWeight="500">
+                                      {project.projectname}
+                                    </Typography>
+                                  }
+                                  secondary={`Vytvorené: ${moment(project.created).format("DD.MM.YYYY HH:mm:ss")}`}
+                                />
 
-                              {/* Zoznam nahraných priečinkov */}
-                              <Box sx={{ flex: 1, ml: 1, mr: 5 }}>
-                                <Typography
-                                  variant="body2"
-                                  color="textSecondary"
-                                >
-                                  <strong>Priečinky:</strong>{" "}
-                                  {displayedFolders.map(
-                                    (folder: FolderDTO, index: number) => (
-                                      <React.Fragment key={index}>
-                                        {folder.foldername}
-                                        {index < displayedFolders.length - 1
-                                          ? ", "
-                                          : ""}
-                                      </React.Fragment>
-                                    )
-                                  )}
-                                  {hasMoreFolders && (
-                                    <Tooltip
-                                      title={project.folders
-                                        .slice(3)
-                                        .map((folder) => folder.foldername)
-                                        .join(", ")}
-                                    >
-                                      <Typography
-                                        variant="body2"
-                                        color="primary"
-                                        component="span"
-                                        sx={{ cursor: "pointer", ml: 1 }}
+                                {/* Zoznam nahraných priečinkov */}
+                                <Box sx={{ flex: 1, ml: 1, mr: 5 }}>
+                                  <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                  >
+                                    <strong>Priečinky:</strong>{" "}
+                                    {displayedFolders.map(
+                                      (folder: FolderDTO, index: number) => (
+                                        <React.Fragment key={index}>
+                                          {folder.foldername}
+                                          {index < displayedFolders.length - 1
+                                            ? ", "
+                                            : ""}
+                                        </React.Fragment>
+                                      )
+                                    )}
+                                    {hasMoreFolders && (
+                                      <Tooltip
+                                        title={project.folders
+                                          .slice(3)
+                                          .map((folder) => folder.foldername)
+                                          .join(", ")}
                                       >
-                                        + {project.folders.length - 3} ďalších
-                                      </Typography>
-                                    </Tooltip>
-                                  )}
-                                </Typography>
-                              </Box>
+                                        <Typography
+                                          variant="body2"
+                                          color="primary"
+                                          component="span"
+                                          sx={{ cursor: "pointer", ml: 1 }}
+                                        >
+                                          + {project.folders.length - 3} ďalších
+                                        </Typography>
+                                      </Tooltip>
+                                    )}
+                                  </Typography>
+                                </Box>
 
-                              {/* Akčné tlačidlá */}
-                              <ListItemSecondaryAction>
-                                <IconButton
-                                  aria-label="edit"
-                                  onClick={() =>
-                                    handleEditProject(project.idproject)
-                                  }
-                                  sx={{ color: "gray" }}
-                                >
-                                  <ModeEditIcon />
-                                </IconButton>
-                                <IconButton
-                                  aria-label="delete"
-                                  onClick={() =>
-                                    handleDeleteProject(project.idproject)
-                                  }
-                                  sx={{ color: "error.main" }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </ListItemSecondaryAction>
-                            </ListItem>
-                            {index < projectsData.length - 1 && <Divider />}
-                          </React.Fragment>
-                        );
-                      })}
-                    </List>
-                  </Paper>
-                </Box>
-              </>
-            )}
+                                {/* Akčné tlačidlá */}
+                                <ListItemSecondaryAction>
+                                  <IconButton
+                                    aria-label="edit"
+                                    onClick={() =>
+                                      handleEditProject(project.idproject)
+                                    }
+                                    sx={{ color: "gray" }}
+                                  >
+                                    <ModeEditIcon />
+                                  </IconButton>
+                                  <IconButton
+                                    aria-label="delete"
+                                    onClick={() =>
+                                      handleDeleteProject(project.idproject)
+                                    }
+                                    sx={{ color: "error.main" }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </ListItemSecondaryAction>
+                              </ListItem>
+                              {index < projectsData.length - 1 && <Divider />}
+                            </React.Fragment>
+                          );
+                        })}
+                      </List>
+                    </Paper>
+                  </Box>
+                </>
+              )}
+          </Box>
         </Box>
-      </Box>
-      <SettingsDialog
-        open={userSettingsDialogOpen}
-        onClose={() => setUserSettingsDialogOpen(false)}
-      />
+      )}
     </Box>
   );
 };

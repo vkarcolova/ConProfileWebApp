@@ -270,7 +270,7 @@ namespace WebApiServer.Controllers
             var userToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var userEmail = Request.Headers["UserEmail"].ToString();
 
-            if (!string.IsNullOrEmpty(userEmail) && !_userService.IsAuthorized(userEmail, userToken))
+            if (string.IsNullOrEmpty(userEmail) || !_userService.IsAuthorized(userEmail, userToken))
                 return Unauthorized(new { message = "Neplatné prihlásenie" });
             var allLoadedData = await _context.Users.Select(x => x.UserEmail).ToListAsync();
 

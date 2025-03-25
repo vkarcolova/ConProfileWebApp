@@ -165,11 +165,11 @@ const TabsLoginRegister: React.FC = () => {
                   textAlign: "justify",
                 }}
               >
-                Odporúčame si vytvoriť užívateľský účet, aby ste mohli svoje
-                dáta ukladať priamo do databázy. Ak sa neprihlásite, vaše dáta
-                sa budú viazať na session token vo vašom prehliadači. To
-                znamená, že k nim nebudete mať prístup z iného prehliadača,
-                pokiaľ si projekt najskôr nestiahnete a následne neimportujete.
+                Na prístup k aplikácií je potrebné prihlásenie. Vytvorením účtu
+                si zabezpečíte možnosť spravovať a uchovávať svoje projekty
+                bezpečne priamo v databáze. Po prihlásení získate prístup k
+                nahrávaniu dát, úprave profilov, databanke a k ďalším
+                funkcionalitám aplikácie.
               </Typography>
             </Toolbar>
           </Container>
