@@ -2,9 +2,17 @@
 
 NAJSKOR
 
-- [x] zabudnute heslo?
-- [ ] profil problem
-- [ ] tabulka virtuoso
+- [x] prihlásenie,
+- [ ] nacitanie z excelu a priecinku nech je nazov projektu a projekt do exportu
+- [ ] heatmapa, 3d mapa
+- [ ] slider na
+- [ ] zabudla si stahovanie v databanke
+- [ ] preco prihlásenie tak dlho
+- [ ] aktivity diagram pre nahranie, parsovanie, vypocet, export
+- [ ] doprec tie gulky z grafu
+
+- [ ]vyhladanie kriviek, mozno skor iba na grafe
+- [ ]mozno priemer oboch referencnych spektrier
 
 - [ ] ked z databanky nahravas viac rovnakych priecinkov? ci kaslat feature?
 
