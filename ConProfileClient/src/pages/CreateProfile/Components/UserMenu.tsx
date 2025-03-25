@@ -27,33 +27,7 @@ export const UserMenu: React.FC = () => {
       >
         <AccountCircleIcon sx={{ fontSize: "40px", marginTop: "10px" }} />
         <Box sx={{ padding: "0", marginRight: "-10px", width: "70%" }}>
-          {user == null ? (
-            <>
-              <Typography
-                sx={{
-                  textAlign: "center",
-                  marginTop: "10px",
-                  fontSize: "13px",
-                }}
-              >
-                Používateľ neprihlásený
-                <Link
-                  sx={{
-                    color: "#bfc1e6",
-                    textDecoration: "none",
-                    "&:hover": {
-                      color: "#ffffff",
-                      textDecoration: "none",
-                    },
-                  }}
-                  href="/auth/prihlasenie/"
-                >
-                  {" "}
-                  Prihlásiť sa
-                </Link>
-              </Typography>
-            </>
-          ) : (
+          {user && (
             <>
               <Typography
                 sx={{
@@ -70,7 +44,7 @@ export const UserMenu: React.FC = () => {
                   onClick={() => {
                     logoutUser();
                     toast.success("Boli ste úspešne odhlásený.");
-                    navigate("/");
+                    navigate("/auth");
                   }}
                   sx={{
                     color: "#bfc1e6",

@@ -27,13 +27,13 @@ const isValidPassword = (password: string) => {
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin@gmail.com" : ""
+    config.apiUrl.includes("localhost") ? "ver.karcolova@gmail.com" : ""
   );
   const [password, setPassword] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin123" : ""
+    config.apiUrl.includes("localhost") ? "Heslo123" : ""
   );
   const [password2, setPassword2] = React.useState(
-    config.apiUrl.includes("localhost") ? "admin123" : ""
+    config.apiUrl.includes("localhost") ? "Heslo123" : ""
   );
   const [passwordError, setPasswordError] = useState(false);
 
