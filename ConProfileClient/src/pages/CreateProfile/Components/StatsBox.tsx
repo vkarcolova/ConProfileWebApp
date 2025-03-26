@@ -1,4 +1,4 @@
-import { Box, Card, Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import React from "react";
 import { StatData } from "../../../shared/types";
 
@@ -11,18 +11,7 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
   multipliedStatsData,
 }) => {
   return (
-    <Card
-      variant="outlined"
-      className="stats"
-      sx={{
-        maxHeight: { xxl: "40%", lg: "50%" },
-        borderRadius: "30px",
-        boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 12px",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <>
       <Box className="statsHead">
         <h3>Štatistiky</h3>
       </Box>
@@ -92,6 +81,6 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
           </Box>
         </Grid>
       </Box>
-    </Card>
+    </>
   );
 };

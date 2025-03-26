@@ -33,6 +33,7 @@ interface CalculateDataProps {
     excitations: number[]
   ) => Promise<boolean>;
   projectFolder: AllFolderData;
+  treshold: number;
 }
 
 const CalculateData: React.FC<CalculateDataProps> = ({
@@ -41,6 +42,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   saveColumnWithEmptyData,
   saveColumnWithSameData,
   projectFolder,
+  treshold,
 }) => {
   const [open, setOpen] = useState(false); // Stav pre modálne okno
   const [selectedTab, setSelectedTab] = useState(0); // Stav pre aktuálne vybraný tab
@@ -134,7 +136,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   }, [open, columns]);
 
   const hasTooManyRepeats = (numbers: (number | undefined)[]): boolean => {
-    const threshold = numbers.length * 0.05;
+    const threshold = numbers.length * (treshold / 100);
     let count = 1;
     let lastValue = numbers[0];
     let hasTooManyRepeats = false;
@@ -167,11 +169,10 @@ const CalculateData: React.FC<CalculateDataProps> = ({
   //jedny pojdu do povodnej funkcie druhe do nahradzovacej
 
   function replaceLongRepeatingNumbers(
-    numbers: (number | undefined)[],
-    minRepeatCount: number = 20
+    numbers: (number | undefined)[]
   ): (number | undefined)[] {
     if (!numbers || numbers.length === 0) return numbers;
-
+    const minRepeatCount = numbers.length * (treshold / 100);
     const result: (number | undefined)[] = [...numbers]; // Kópia pôvodného poľa
     let count = 1;
     let lastValue = numbers[0];

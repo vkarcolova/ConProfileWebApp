@@ -27,13 +27,16 @@ import "./index.css";
 import {
   Box,
   Button,
+  Card,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
+  Divider,
   Grid,
   IconButton,
   Skeleton,
+  Slider,
   Tooltip,
   tooltipClasses,
   Typography,
@@ -87,6 +90,8 @@ const CreateProfile: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [options, setOptions] = useState<any>(null);
+  const [treshold, setTreshold] = useState(5);
+  const [localTreshold, setLocalTreshold] = useState(treshold);
 
   useEffect(() => {
     setOptions(null);
@@ -187,6 +192,20 @@ const CreateProfile: React.FC = () => {
     fetchFactors();
   }, []); //load factors
 
+  useEffect(() => {
+    if (projectFolders[selectedFolder] === undefined) return;
+    console.log("treshold", treshold);
+    const newProjectFolders = { ...projectFolders };
+    newProjectFolders[selectedFolder].emptyDataColums = findEmptyColumns(
+      newProjectFolders[selectedFolder]
+    );
+    setProjectFolders(newProjectFolders);
+    console.log(
+      "emptyDataColums",
+      newProjectFolders[selectedFolder].emptyDataColums
+    );
+  }, [treshold]);
+
   const fillFolder = async (folderData: FolderDTO): Promise<AllFolderData> => {
     const dynamicChartData: ChartData[] = [];
     let allData: number[] = [];
@@ -215,11 +234,30 @@ const CreateProfile: React.FC = () => {
       fillMultipliedFolder(allFolderData);
     }
     allFolderData.tableData = processDataForTable(allFolderData);
-    const emptyColumns: ColumnDTO[] = [];
+
     allFolderData.tableData.intensities.forEach((column) => {
       dynamicChartData.push({ data: column.intensities, label: column.name });
+    });
 
-      const threshold = column.intensities.length * 0.05;
+    if (allFolderData.multiplied) {
+      dynamicChartData.filter((item) => item.label !== "Profil");
+
+      dynamicChartData.push({
+        data: allFolderData.profileData.profile,
+        label: "Profil",
+      });
+    }
+    allFolderData.emptyDataColums = findEmptyColumns(allFolderData);
+    allFolderData.chartData = dynamicChartData;
+    return allFolderData;
+  };
+
+  const findEmptyColumns = (allFolderData: AllFolderData): ColumnDTO[] => {
+    if (allFolderData == undefined || allFolderData.tableData == undefined)
+      return [];
+    const emptyColumns: ColumnDTO[] = [];
+    allFolderData.tableData.intensities.forEach((column) => {
+      const maxRepeats = (column.intensities.length * treshold) / 100;
       let count = 1;
       let lastValue = column.intensities[0];
       let hasTooManyRepeats = false;
@@ -234,7 +272,7 @@ const CreateProfile: React.FC = () => {
           lastValue = value;
         }
 
-        if (count > threshold && lastValue !== 0) {
+        if (count > maxRepeats && lastValue !== 0) {
           hasTooManyRepeats = true;
         }
       });
@@ -252,17 +290,7 @@ const CreateProfile: React.FC = () => {
       }
     });
 
-    if (allFolderData.multiplied) {
-      dynamicChartData.filter((item) => item.label !== "Profil");
-
-      dynamicChartData.push({
-        data: allFolderData.profileData.profile,
-        label: "Profil",
-      });
-    }
-    allFolderData.emptyDataColums = emptyColumns;
-    allFolderData.chartData = dynamicChartData;
-    return allFolderData;
+    return emptyColumns;
   };
 
   const fillMultipliedFolder = (folder: AllFolderData) => {
@@ -405,9 +433,10 @@ const CreateProfile: React.FC = () => {
             .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
               const filledFolder = await fillFolder(objString);
-              const folders: AllFolderData[] = projectFolders;
-              folders.push(filledFolder);
-              setProjectFolders(folders);
+              const newProjectFolders = { ...projectFolders };
+              const newIndex = Object.keys(newProjectFolders).length;
+              newProjectFolders[newIndex] = filledFolder;
+              setProjectFolders(newProjectFolders);
 
               project.folders.push(objString);
               setProjectData(project);
@@ -1393,24 +1422,73 @@ const CreateProfile: React.FC = () => {
                     <Box
                       sx={{
                         height: "100%",
-                        width: "60%",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <StatsBox
-                        statsData={
-                          projectFolders[selectedFolder].normalStatData
-                        }
-                        multipliedStatsData={
-                          projectFolders[selectedFolder].multiplied
-                            ? projectFolders[selectedFolder].multipliedStatData
-                            : undefined
-                        }
-                      />
-
+                      <Card
+                        variant="outlined"
+                        className="stats"
+                        sx={{
+                          maxHeight: { xxl: "60%", lg: "50%" },
+                          borderRadius: "10px",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          maxWidth: "90%",
+                          width: "90%",
+                          height: "60%",
+                          overflowY: "auto",
+                          backgroundColor: "white",
+                        }}
+                      >
+                        <StatsBox
+                          statsData={
+                            projectFolders[selectedFolder].normalStatData
+                          }
+                          multipliedStatsData={
+                            projectFolders[selectedFolder].multiplied
+                              ? projectFolders[selectedFolder]
+                                  .multipliedStatData
+                              : undefined
+                          }
+                        />{" "}
+                        <Divider sx={{ marginBlock: "10px" }} />
+                        <Typography
+                          sx={{
+                            fontSize: "12px",
+                            color: "#514986",
+                            fontWeight: 500,
+                            textAlign: "center",
+                            mb: 1,
+                          }}
+                        >
+                          Nastavenie percent hodnôt, ktoré sa nemôžu opakovať,
+                          na nájdenie odrezaných dát
+                        </Typography>
+                        <Slider
+                          value={localTreshold}
+                          onChange={(_, newValue) => {
+                            setLocalTreshold(newValue as number); // pohyb slidera
+                          }}
+                          onChangeCommitted={(_, newValue) => {
+                            setTreshold(newValue as number); // až keď slider pustíš
+                            console.log("Final value:", newValue);
+                          }}
+                          aria-label="Percento"
+                          valueLabelDisplay="auto"
+                          step={1}
+                          min={0}
+                          max={100}
+                          sx={{
+                            color: "#514986",
+                            width: "80%",
+                            margin: "0 auto",
+                            display: "block",
+                          }}
+                        />
+                      </Card>
                       <CalculateData
                         columns={projectFolders[selectedFolder].emptyDataColums}
                         setColumns={(columns) => {
@@ -1425,6 +1503,7 @@ const CreateProfile: React.FC = () => {
                           saveCalculatedColumnWithSameData
                         }
                         projectFolder={projectFolders[selectedFolder]}
+                        treshold={treshold}
                       />
                     </Box>
                   </Box>

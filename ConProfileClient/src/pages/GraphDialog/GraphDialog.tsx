@@ -3,18 +3,13 @@ import {
   Button,
   Dialog,
   DialogContent,
-  FormControl,
-  FormControlLabel,
   IconButton,
-  Radio,
-  RadioGroup,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import ReactECharts from "echarts-for-react";
 import "echarts-gl";
-import Plot from "react-plotly.js";
 
 interface GraphDialogProps {
   open: boolean;
