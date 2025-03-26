@@ -3,19 +3,25 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogTitle,
+  FormControl,
+  FormControlLabel,
   IconButton,
+  Radio,
+  RadioGroup,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import ReactECharts from "echarts-for-react";
+import "echarts-gl";
+import Plot from "react-plotly.js";
 
 interface GraphDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  options: any[];
+  options: any;
   selectedFolder: number;
+  projectName: string;
 }
 
 const GraphDialog: React.FC<GraphDialogProps> = ({
@@ -23,6 +29,7 @@ const GraphDialog: React.FC<GraphDialogProps> = ({
   setOpen,
   options,
   selectedFolder,
+  projectName,
 }) => {
   const chartRef = useRef<any>(null);
 
@@ -45,7 +52,7 @@ const GraphDialog: React.FC<GraphDialogProps> = ({
 
       const link = document.createElement("a");
       link.href = dataURL;
-      link.download = "chart.png";
+      link.download = projectName + "_chart.png";
       link.click();
     }
   };

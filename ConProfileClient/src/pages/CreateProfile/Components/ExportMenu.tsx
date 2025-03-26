@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   alpha,
   Button,
@@ -14,6 +15,7 @@ import DatasetIcon from "@mui/icons-material/Dataset";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import { Profile, ProjectDTO, TableData } from "../../../shared/types";
 import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -85,7 +87,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
   const handleExportProjectData = () => {
     const jsonString = JSON.stringify(projectData);
     const blob = new Blob([jsonString], { type: "application/json" });
-    saveAs(blob, `project.cprj`);
+    saveAs(blob, `${projectData?.projectname}.cprj`);
     handleClose();
   };
 
@@ -99,9 +101,10 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     return value;
   };
 
-  const handleExportDataAsCSV = () => {
-    const masterMatrix = [];
-    const header = [];
+  const handleExportData = (format: "csv" | "xlsx") => {
+    const masterMatrix: any[] = [];
+    const header: any[] = [];
+
     header.push("Excitacie");
     masterMatrix.push(tableData.excitation);
     tableData.intensities.forEach((intensity) => {
@@ -124,28 +127,36 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
       masterMatrix.push(profile.profile);
     }
 
-    const rows = [];
-    rows.push(header.join(";"));
-
     const rowCount = masterMatrix[0].length;
+    const rows: any[] = [];
+    rows.push(header);
 
     for (let i = 0; i < rowCount; i++) {
       const row = masterMatrix.map((column) =>
-        column[i] !== undefined ? replaceDotWithComma(column[i]) : ""
+        column[i] !== undefined ? column[i] : ""
       );
-      rows.push(row.join(";"));
+      rows.push(row);
     }
 
-    const csvContent = rows.join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (format === "csv") {
+      // export ako CSV
+      const csvRows = rows.map((row) => row.map(replaceDotWithComma).join(";"));
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", projectData?.projectname + ".csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else if (format === "xlsx") {
+      // export ako Excel
+      const worksheet = XLSX.utils.aoa_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+      XLSX.writeFile(workbook, projectData?.projectname + ".xlsx");
+    }
   };
 
   return (
@@ -192,12 +203,20 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           Exportovať projekt
         </MenuItem>
         <MenuItem
-          onClick={handleExportDataAsCSV}
+          onClick={() => handleExportData("csv")}
           disableRipple
           disabled={multiplied}
         >
           <DatasetIcon />
           Exportovať dáta ako CSV
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleExportData("xlsx")}
+          disableRipple
+          disabled={multiplied}
+        >
+          <DatasetIcon />
+          Exportovať dáta ako EXCEL súbor
         </MenuItem>
         <MenuItem onClick={() => setGraphDialogOpen(true)} disableRipple>
           <SsidChartIcon />

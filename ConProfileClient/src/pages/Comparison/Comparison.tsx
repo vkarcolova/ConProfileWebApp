@@ -117,6 +117,8 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
         });
 
         return {
+          symbol: "none",
+
           name: label,
           type: "line",
           data: mappedData,
@@ -126,6 +128,7 @@ const Comparison: React.FC<ComparisonProps> = ({ open, onClose, folders }) => {
       });
 
       setOptions({
+        symbol: "none",
         xAxis: { type: "category", data: allExcitations },
         yAxis: {
           type: "value",

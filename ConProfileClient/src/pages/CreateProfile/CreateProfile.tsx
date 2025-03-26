@@ -55,6 +55,7 @@ import { UserMenu } from "./Components/UserMenu";
 import CalculateData from "../CalculateData/CalculateDataButtonDialog";
 import { AddFolderMenu } from "./Components/AddFolderMenu";
 import GraphDialog from "../GraphDialog/GraphDialog";
+import ContourMapDialog from "../GraphDialog/ContourMapDialog";
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -67,6 +68,7 @@ const CreateProfile: React.FC = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [graphDialogOpen, setGraphDialogOpen] = useState(false);
+  const [countourMapDialogOpen, setCountourMapDialogOpen] = useState(false);
 
   const [foldersToCompare, setFoldersToCompare] = useState<FolderDTO[] | null>(
     null
@@ -93,6 +95,8 @@ const CreateProfile: React.FC = () => {
     if (!folderData || !chartData || !projectData) return;
 
     setOptions({
+      symbol: "none",
+
       xAxis: { type: "category", data: folderData },
       yAxis: {
         nameGap: 30,
@@ -119,6 +123,8 @@ const CreateProfile: React.FC = () => {
         },
       },
       series: chartData.map(({ data, label }) => ({
+        symbol: "none",
+
         name: label,
         type: "line",
         data: data.map((value) => value ?? null),
@@ -127,8 +133,6 @@ const CreateProfile: React.FC = () => {
       })),
       tooltip: { trigger: "axis" },
     });
-
-    console.log(projectFolders[selectedFolder]);
   }, [
     projectFolders,
     selectedFolder,
@@ -1271,6 +1275,23 @@ const CreateProfile: React.FC = () => {
                           height: "40px",
                           borderRadius: "30px",
                           width: "100%",
+                        }}
+                        fontSize="12px"
+                      />
+                      <NunuButton
+                        onClick={() => {
+                          setCountourMapDialogOpen(true);
+                        }}
+                        bgColour="#4e4b6f"
+                        textColour="white"
+                        hoverTextColour="white"
+                        hoverBgColour="#1f1e2c"
+                        label="Kontúrovacia mapa"
+                        sx={{
+                          maxWidth: "150px",
+                          height: "40px",
+                          borderRadius: "30px",
+                          width: "100%",
                           marginRight: "10px",
                         }}
                         fontSize="12px"
@@ -1416,6 +1437,18 @@ const CreateProfile: React.FC = () => {
             setOpen={setGraphDialogOpen}
             options={options}
             selectedFolder={selectedFolder}
+            projectName={projectData!.projectname}
+          />
+          <ContourMapDialog
+            open={countourMapDialogOpen}
+            setOpen={setCountourMapDialogOpen}
+            excitation={projectFolders[selectedFolder].folderData.excitation}
+            zMatrix={projectFolders[selectedFolder].folderData.data.map((row) =>
+              row.intensity.map((point) => point.intensity ?? 0)
+            )}
+            spectres={projectFolders[selectedFolder].folderData.data
+              .map((file) => file.spectrum)
+              .sort((a, b) => a - b)}
           />
         </>
       )}

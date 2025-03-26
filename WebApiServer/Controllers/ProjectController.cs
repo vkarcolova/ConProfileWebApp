@@ -136,7 +136,7 @@ namespace WebAPI.Controllers
                     CREATED = DateTime.Now,
                     FOLDERS = folders,
                     IDPROJECT = -1,
-                    PROJECTNAME = "NovyProjekt",
+                    PROJECTNAME = folders[0].FOLDERNAME,
                     USEREMAIL = userEmail
                 };
                 if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
@@ -175,7 +175,7 @@ namespace WebAPI.Controllers
                     CREATED = DateTime.Now,
                     FOLDERS = folders,
                     IDPROJECT = -1,
-                    PROJECTNAME = "NovyProjekt",
+                    PROJECTNAME = folders[0].FOLDERNAME,
                     USEREMAIL = userEmail
                 };
                 if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });
@@ -249,7 +249,7 @@ namespace WebAPI.Controllers
                 CREATED = DateTime.Now,
                 FOLDERS = folders,
                 IDPROJECT = -1,
-                PROJECTNAME = "NovyProjekt",
+                PROJECTNAME = folders[0].FOLDERNAME,
                 USEREMAIL = userEmail
             };
             if (folders.Count != 0) return Ok(new { TOKEN = token, PROJECT = result });

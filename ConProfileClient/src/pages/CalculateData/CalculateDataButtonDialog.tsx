@@ -266,6 +266,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     setIsSameValues(issamevalues);
     setIsEmptyValues(columns[newValue].intensities.includes(undefined));
     setOptions({
+      symbol: "none",
+
       xAxis: { type: "category", data: columns[newValue].excitations },
       yAxis: {
         type: "value",
@@ -280,6 +282,8 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         },
       },
       series: chartData.map(({ data, label }) => ({
+        symbol: "none",
+
         name: label,
         type: "line",
         data: data.map((value) => value ?? null),

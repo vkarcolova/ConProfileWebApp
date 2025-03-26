@@ -44,7 +44,7 @@ export const UserMenu: React.FC = () => {
                   onClick={() => {
                     logoutUser();
                     toast.success("Boli ste úspešne odhlásený.");
-                    navigate("/auth");
+                    navigate("/auth/prihlasenie");
                   }}
                   sx={{
                     color: "#bfc1e6",
