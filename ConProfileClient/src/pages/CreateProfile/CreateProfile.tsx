@@ -195,7 +195,7 @@ const CreateProfile: React.FC = () => {
   useEffect(() => {
     if (projectFolders[selectedFolder] === undefined) return;
     console.log("treshold", treshold);
-    const newProjectFolders = { ...projectFolders };
+    const newProjectFolders = [...projectFolders];
     newProjectFolders[selectedFolder].emptyDataColums = findEmptyColumns(
       newProjectFolders[selectedFolder]
     );
@@ -433,7 +433,7 @@ const CreateProfile: React.FC = () => {
             .then(async (response) => {
               const objString = response.data.folder as FolderDTO;
               const filledFolder = await fillFolder(objString);
-              const newProjectFolders = { ...projectFolders };
+              const newProjectFolders = [...projectFolders];
               const newIndex = Object.keys(newProjectFolders).length;
               newProjectFolders[newIndex] = filledFolder;
               setProjectFolders(newProjectFolders);
@@ -1430,15 +1430,13 @@ const CreateProfile: React.FC = () => {
                     >
                       <Card
                         variant="outlined"
-                        className="stats"
                         sx={{
-                          maxHeight: { xxl: "60%", lg: "50%" },
+                          height: { xxl: "60%", lg: "70%" },
                           borderRadius: "10px",
                           justifyContent: "center",
                           alignItems: "center",
                           maxWidth: "90%",
                           width: "90%",
-                          height: "60%",
                           overflowY: "auto",
                           backgroundColor: "white",
                         }}
@@ -1462,10 +1460,18 @@ const CreateProfile: React.FC = () => {
                             fontWeight: 500,
                             textAlign: "center",
                             mb: 1,
+                            paddingInline: "12px",
                           }}
                         >
-                          Nastavenie percent hodnôt, ktoré sa nemôžu opakovať,
-                          na nájdenie odrezaných dát
+                          Nastavenie prahu pre maximálny počet po sebe idúcich
+                          rovnakých hodnôt, na nájdenie odrezaných dát [
+                          {(
+                            (projectFolders[selectedFolder].folderData
+                              .excitation.length *
+                              treshold) /
+                            100
+                          ).toFixed()}{" "}
+                          hodnôt]
                         </Typography>
                         <Slider
                           value={localTreshold}
@@ -1479,7 +1485,7 @@ const CreateProfile: React.FC = () => {
                           aria-label="Percento"
                           valueLabelDisplay="auto"
                           step={1}
-                          min={0}
+                          min={1}
                           max={100}
                           sx={{
                             color: "#514986",
@@ -1487,11 +1493,13 @@ const CreateProfile: React.FC = () => {
                             margin: "0 auto",
                             display: "block",
                           }}
+                          valueLabelFormat={(value) => `${value}%`}
                         />
                       </Card>
                       <CalculateData
                         columns={projectFolders[selectedFolder].emptyDataColums}
                         setColumns={(columns) => {
+                          console.log(projectFolders);
                           const folders = [...projectFolders];
                           folders[selectedFolder].emptyDataColums = columns;
                           setProjectFolders(folders);

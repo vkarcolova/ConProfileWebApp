@@ -94,6 +94,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         data: data.map((value) => value ?? null),
         smooth: true,
         connectNulls: false,
+        symbol: "none",
       })),
       tooltip: { trigger: "axis" },
       legend: { show: true },
@@ -113,6 +114,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         smooth: true,
         connectNulls: false,
         color: "#ff0000",
+        symbol: "none",
       });
     }
     if (isEmptyValues && calculatedEmptyIntensities.length > 0) {
@@ -127,6 +129,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
         smooth: true,
         connectNulls: false,
         color: "green",
+        symbol: "none",
       });
     }
     newOptions.series = [...newOptions.series, ...newSeries];
@@ -374,6 +377,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           smooth: true,
           connectNulls: false,
           color: "#ff0000",
+          symbol: "none",
         });
       }
 
@@ -389,6 +393,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           smooth: true,
           connectNulls: false,
           color: "green",
+          symbol: "none",
         });
       }
 
@@ -516,6 +521,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
             smooth: true,
             connectNulls: false,
             color: "#ff0000",
+            symbol: "none",
           });
         }
 
@@ -531,6 +537,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
             smooth: true,
             connectNulls: false,
             color: "green",
+            symbol: "none",
           });
         }
 
@@ -545,6 +552,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
           smooth: true,
           connectNulls: false,
           color: "yellow",
+          symbol: "none",
         });
 
         setChartData(newChartData);
@@ -585,9 +593,12 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     if (result === true && !isSameValues) {
       //ak este nie su rovnake hodnoty
       const columnName = columns[selectedTab].name;
-      const filteredColumns = columns.filter(
+      let filteredColumns = [...columns];
+
+      filteredColumns = filteredColumns.filter(
         (column) => column.name !== columnName
       );
+      console.log(filteredColumns);
       setSelectedTab(0);
       setColumns(filteredColumns);
       if (filteredColumns.length === 0) {
@@ -631,7 +642,10 @@ const CalculateData: React.FC<CalculateDataProps> = ({
     if (result === true && !isEmptyValues) {
       //ak este nie su rovnake hodnoty
       const columnName = columns[selectedTab].name;
-      const filteredColumns = columns.filter(
+      let filteredColumns = [...columns];
+      console.log(filteredColumns);
+
+      filteredColumns = filteredColumns.filter(
         (column) => column.name !== columnName
       );
       setSelectedTab(0);
@@ -669,7 +683,7 @@ const CalculateData: React.FC<CalculateDataProps> = ({
             }}
             severity="warning"
             sx={{
-              margin: "10px",
+              marginTop: "10px",
               borderRadius: "40px",
               padding: "3px",
               bgcolor: "#fff4e5",

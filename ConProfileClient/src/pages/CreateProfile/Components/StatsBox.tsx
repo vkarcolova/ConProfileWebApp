@@ -16,18 +16,18 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
         <h3>Štatistiky</h3>
       </Box>
       <Box
-        style={{
+        sx={{
           flexDirection: "row",
           display: "flex",
-          marginTop: "10px",
+          marginTop: { xxl: "10px", lg: "2px" },
         }}
       >
         <Grid className="statsColumn" item xs={12} sm={6}>
           <Typography sx={{ fontSize: "15px" }}>Originálne</Typography>
           <Box
             className="center-items"
-            style={{
-              marginTop: "20px",
+            sx={{
+              marginTop: { xxl: "20px", lg: "2px" },
               flexDirection: "row",
               display: "flex",
               textAlign: "center",
@@ -49,8 +49,8 @@ export const StatsBox: React.FC<StatsBoxProps> = ({
           <Typography sx={{ fontSize: "15px" }}>Prenásobené</Typography>
           <Box
             className="center-items"
-            style={{
-              marginTop: "20px",
+            sx={{
+              marginTop: { xxl: "20px", lg: "2px" },
               flexDirection: "row",
               display: "flex",
               textAlign: "center",
