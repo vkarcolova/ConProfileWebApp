@@ -1405,9 +1405,7 @@ const CreateProfile: React.FC = () => {
                   >
                     <Box
                       sx={{
-                        paddingRight: "10px",
-                        paddingLeft: "10px",
-                        width: "40%",
+                        width: "30%",
                       }}
                     >
                       {projectFolders[selectedFolder].multiplied &&
@@ -1422,6 +1420,7 @@ const CreateProfile: React.FC = () => {
                     <Box
                       sx={{
                         height: "100%",
+                        width: "70%",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
